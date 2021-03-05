@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+body{
+    padding: 40px;
+}
+hr{
+    width:100%;
+    height:1px;
+    border-bottom: 1px dashed black;
+}
+.spaDetails img{
+    border-radius: 50%;
+    width: 8rem;
+    height: 8rem;
+}
+.spaDetails h4{
+    font-weight: 700;
+}
+.spaDetails p{
+    margin-bottom: 0;
+    font-size: 14px;
+}
+.small-padding{
+    padding-left: 2rem;
+}
+.column {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+</style>
+</head>
+{% load static %}
+<body >
+
+	<div class="container">
+		<div class="row  spaDetails justify-content-center">
+			<div class="col-xs-4 d-flex justify-content-center">
+				<img src="{{path}}" alt="">
+			</div>
+			<div class="col-xs-8 pl-3">
+				<h4>{{name}}</h4>
+				<p>{{address}}</p>
+			</div>
+		</div>
+	</div>
+
+  <hr>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col">
+                <div class="row ">
+                    <div class="col-1 ">
+                        <p class="font-weight-bold">Code</p>
+                    </div>
+                    <div class="col-6 pl-4">
+                        <p>: {{ code }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-1 ">
+                        <p class="font-weight-bold">Name</p>
+                    </div>
+                    <div class="col-6 pl-4">
+                        <p>: {{ name }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="row">
+                    <div class="col-1">
+                        <p class="font-weight-bold">Trans</p>
+                    </div>
+                    <div class="col-6 small-padding">
+                        <p>: {{ trans }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-1">
+                        <p class="font-weight-bold">Date</p>
+                    </div>
+                    <div class="col-6 small-padding">
+                        <p>: {{ date }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-1">
+                        <p class="font-weight-bold">Time</p>
+                    </div>
+                    <div class="col-6 small-padding">
+                        <p>: {{ time }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-1">
+                        <p class="font-weight-bold">Issued</p>
+                    </div>
+                    <div class="col-6 small-padding">
+                        <p>: {{ user }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  <hr>
+  <br>
+</body>
+
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<style>
+hr{
+    border:0;
+    margin:0;
+    width:100%;
+    height:1px;
+    border-bottom: 1px solid black;
+}
+.checkbox {
+  width:15px;
+  height:15px;
+  border: 1px solid #000;
+  display: inline-block;
+}
+
+/* This is what simulates a checkmark icon */
+.checkbox.checked:after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 7px;
+
+  /* "Center" the checkmark */
+  position:absolute;
+  top:4px;
+  left:7px;
+
+  border: solid #000;
+  border-width: 0 2px 2px 0;
+
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+td {
+  padding: 5px;
+  text-align: center;
+}
+.first th {
+  text-align: center;
+}
+.split {
+  height: 500px;
+  width: 50%;
+  position: absolute;
+}
+.right {
+  right: 0px;
+  text-align: left;
+  padding-left: 100px;
+}
+.right1 {
+  right: 40px;
+  text-align: right;
+}
+.box {
+  width: 50%;
+  height: 100px;
+}
+.clearfix {
+  content: "";
+  clear: both;
+  display: table;
+}
+img.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  width: 200px;}
+.column {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+header {
+   position: fixed;
+   padding: 10px 16px;
+}
+fix {
+    position: fixed;
+    bottom: -600px;
+    left: 15px;
+    right: 15px;
+    text-align: left;
+}
+.spaDetails img{
+        border-radius: 50%;
+        width: 8rem;
+        height: 8rem;
+}
+.spaDetails h4{
+        font-weight: 700;
+}
+.spaDetails p{
+        margin-bottom: 0;
+        font-size: 14px;
+}
+/* .space{
+    padding-top: 30px;
+} */
+
+
+</style>
+</head>
+{% load static %}
+<body style="margin:40px;">
+    <div class="container">
+        <div class="row  spaDetails justify-content-center">
+            <div class="col-xs-4 d-flex justify-content-center">
+                <img src="{{path}}" alt="">
+            </div>
+            <div class="col-xs-8 pl-3">
+                <h4>{{name}}</h4>
+                <p>{{address}}</p>
+            </div>
+        </div>
+        <div>
+            <tr>
+                <td style="float:left;text-align:left;"><strong><u>Treatment Desc</u></strong></td>
+            </tr>
+        </div>
+
+        &nbsp;
+        <div class="clearfix">
+            <div class="box">
+                <div class="split">
+                    <p><b>Client :</b> {{ cust.cust_code  }} &nbsp;  {{ cust.cust_name  }}</p>
+                </div>
+                <div class="split right" style="float: right;text-align:right;">
+                    <p><b>Credit Number: </b> {{ creditno }} </p>
+                    <p><b>Date: </b>   &nbsp;&nbsp;&nbsp;{{ date }} </p>
+                </div>
+            </div>    
+        </div>
+
+        <table cellspacing="15" cellpadding="10" class="first">
+            <tr style="border-bottom: 1px solid black;">
+              <th style="float:left;text-align:left;">Description</th>
+              <th style="float:right;text-align:right;">Amount(SGD)</th>
+            </tr>
+        
+            {% for h in credit %}
+              <tr>
+                <td style="float:left;text-align:left;"><p>{{ h.invoice }} <br> {{ h.desc }} </p> </td>
+                <td style="float:right;text-align:right;">{{ h.amount|floatformat:2 }}</td>
+              </tr>
+            {% endfor %}
+
+          
+        </table>
+
+        
+
+        <table>
+            <tr>
+                <td style="width: 40%;"></td>
+                <td style="float:right;text-align:right;width: 45%;"></td>
+                <td style="float:right;width: 15%;text-align:right;border-top: 1px solid black;border-bottom: 1px solid black;"> {{ total|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td style="width: 40%;"></td>
+                <td style="float:right;text-align:right;width: 45%;">Credit Balance Available :</td>
+                <td style="float:right;width: 15%;text-align:right;"> {{ total|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td style="width: 40%;"></td>
+                <td style="float:right;text-align:right;width: 45%;">Adjustment Reason: {{ reason.rev_desc }} {{ remark }}</td>
+
+                {% if adjustamt %}
+                    <td style="float:right;width: 15%;text-align:right;">{{ adjustamt|floatformat:2 }}</td>
+                {% else %} 
+                    <td style="float:right;width: 15%;text-align:right;">{{ adjustamtstr }}</td>
+                {% endif %}   
+            </tr>
+            <tr>
+                <td style="width: 40%;"></td>
+                <td style="float:right;text-align:right;width: 45%;">Total Credit :</td>
+                <td style="float:right;width: 15%;text-align:right;font-size: 14px;border-top: 1px solid black;border-bottom: 1px solid black;"> {{ total_credit|floatformat:2 }}</td>
+            </tr>
+            <!-- <tr>
+                <td></td>
+                <td style="float:right;text-align:right;border-top: 1px solid black;"></td>
+            </tr> -->
+        </table>
+
+        <br>
+       
+       <hr>
+       <br>
+       <br>
+       <br>
+
+        <div>
+          <p style="float:right;text-align:right;border-top: 1px solid black;"><strong>Customer Signature</strong></p> 
+          <p style="float:right;text-align:right;border-top: 1px solid black;margin-right: 20px;"><strong>Authorized Signature</strong> </p> 
+       </div>
+        
+        <hr>
+        <tr>
+            <td style="padding-left: 50px;"><p><strong>Terms & Conditions:</strong></p></td>
+        </tr>
+        <div class="split">
+            <p>1 {% if footer1 %} {{ footer1 }} {% else %} {% endif %} </p>
+            <p>2 {% if footer2 %} {{ footer2 }} {% else %} {% endif %} </p>
+            <p>3 {% if footer3 %} {{ footer3 }} {% else %} {% endif %} </p>
+            <p>4 {% if footer4 %} {{ footer4 }} {% else %} {% endif %}</p>
+        </div>
+       
+         
+    </div>
+
+    
+</body>
+</html>    

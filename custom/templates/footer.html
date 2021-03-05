@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<style>
+body{
+    padding: 40px;
+}
+hr{
+    width:100%;
+    height:1px;
+    margin: 0;
+    border-bottom: 1px dashed black;
+}
+fix {
+position: fixed;
+bottom: -600px;
+left: 15px;
+right: 15px;
+text-align: left;
+}
+.split {
+  height: 500px;
+  width: 50%;
+  position: absolute;
+}
+.right {
+  right: 0;
+  text-align: left;
+}
+</style>
+</head>
+<body >
+    <fix>
+        <div class="box">
+          <div class="split">
+            <p>Remarks:  {% if hdr.trans_remark %} {{ hdr.trans_remark }}  {% else %} {% endif %}</p>
+            <p> {% if footer1 %} {{ footer1 }} {% else %} {% endif %} </p>
+            <p> {% if footer2 %} {{ footer2 }} {% else %} {% endif %} </p>
+            <p>{% if footer3 %} {{ footer3 }} {% else %} {% endif %} </p>
+            <p>{% if footer4 %} {{ footer4 }} {% else %} {% endif %}</p>
+          </div>
+          <div class="split right">
+            <hr>
+            <p>Customer Signature</p>
+          </div>
+        </div>
+    </fix>
+</body>
+</html>

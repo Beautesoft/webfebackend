@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
+<style>
+hr{
+    border:0;
+    margin:0;
+    width:100%;
+    height:1px;
+    border-bottom: 1px dashed black;
+}
+.checkbox {
+  width:15px;
+  height:15px;
+  border: 1px solid #000;
+  display: inline-block;
+}
+
+/* This is what simulates a checkmark icon */
+.checkbox.checked:after {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 7px;
+
+  /* "Center" the checkmark */
+  position:absolute;
+  top:4px;
+  left:7px;
+
+  border: solid #000;
+  border-width: 0 2px 2px 0;
+
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+td {
+  padding: 5px;
+  text-align: center;
+}
+th {
+  border-top: 1px dashed black;
+  border-bottom: 1px dashed black;
+  text-align: center;
+}
+.split {
+  height: 500px;
+  width: 50%;
+  position: absolute;
+}
+.right {
+  right: 0;
+  text-align: left;
+}
+.right1 {
+  right: 40px;
+  text-align: right;
+}
+.box {
+  width: 50%;
+  height: 160px;
+}
+.clearfix {
+  content: "";
+  clear: both;
+  display: table;
+}
+img.sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  width: 200px;}
+.column {
+  float: left;
+  width: 33.33%;
+  padding: 5px;
+}
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+header {
+   position: fixed;
+   padding: 10px 16px;
+}
+fix {
+    position: fixed;
+    bottom: -600px;
+    left: 15px;
+    right: 15px;
+    text-align: left;
+}
+.spaDetails img{
+        border-radius: 50%;
+        width: 8rem;
+        height: 8rem;
+}
+.spaDetails h4{
+        font-weight: 700;
+}
+.spaDetails p{
+        margin-bottom: 0;
+        font-size: 14px;
+}
+
+</style>
+</head>
+{% load static %}
+<body style="margin:40px;">
+  <div class="container">
+		<div class="row  spaDetails justify-content-center">
+			<div class="col-xs-4 d-flex justify-content-center">
+				<img src="{{path}}" alt="">
+			</div>
+			<div class="col-xs-8 pl-3">
+				<h4>{{name}}</h4>
+				<p>{{address}}</p>
+			</div>
+		</div>
+	</div>
+
+  <br>
+  <hr>
+  &nbsp;
+  <hr>
+	<div class="clearfix">
+		<div class="box">
+			<div class="split">
+				<p><b>Code:</b> {{ hdr.sa_custno }} </p>
+				<p><b>Name:</b> {{ hdr.sa_custname }} </p>
+			</div>
+			<div class="split right">
+				<p><b>Trans #: </b> {{ hdr.sa_transacno_ref }} </p>
+				<p><b>Date: </b>   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ date }} </p>
+				<p><b>Time: </b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ time }} </p>
+				<p><b>Issued: </b> &nbsp;&nbsp;{{ fmspw.pw_userlogin }} </p>
+			</div>
+		</div>
+	</div>
+  <hr>
+  <br>
+  {% load mathfilters %}
+
+  <table cellspacing="15" cellpadding="10">
+    <tr>
+      <th>No</th>
+      <th>Description</th>
+      <th>Qty</th>
+      <th>Net Price</th>
+      <th>Paid</th>
+      <th>Balance</th>
+      <th>Sold/Serviced_By</th>
+    </tr>
+
+    {% for d in daud %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+
+          {% if d.isfoc %}
+            <td>{{ d.dt_itemdesc }}</td>
+          {% elif d.dt_status == "SA" and d.record_detail_type == "PACKAGE" %}
+            <td>{{ d.dt_itemdesc }}&#8209; {{ packages }}</td>  
+          {% elif d.dt_status == "SA" and d.record_detail_type == "TD" %}
+            <td>{{ d.record_detail_type }}&#8209; {{ d.dt_itemdesc }}</td>
+          {% elif d.dt_status == "SA" and d.record_detail_type == 'TP SERVICE' or d.record_detail_type == 'TP PRODUCT' or d.record_detail_type == 'TP PREPAID' %}
+            <td>{{ d.record_detail_type }}&#8209; {{ d.dt_itemdesc }}</td>
+          {% elif d.dt_status == "VT" %}
+            <td>{{ d.dt_itemdesc }}</td>
+          {% elif d.dt_status == "VT" and d.record_detail_type == "TD"%}
+            <td>{{ d.dt_itemdesc }}</td>
+          {% elif d.dt_status == "VT" and d.record_detail_type == 'TP SERVICE' or d.record_detail_type == 'TP PRODUCT' or d.record_detail_type == 'TP PREPAID' %}
+            <td>{{ d.dt_itemdesc }}</td>
+          {% elif d.holditemqty is not None and d.record_detail_type == 'PRODUCT'%}
+            <td>{{ d.record_detail_type }}&#8209;{{ d.dt_itemdesc|add:"(H"}}{{ d.holditemqty|floatformat:"0"|add:")"}}</td>
+          {% else %}
+            <td>{{ d.record_detail_type }}&#8209; {{ d.dt_itemdesc }}</td>
+          {% endif %}
+
+          <td>&nbsp;{{ d.dt_qty }}</td>
+          {% if d.dt_status == "SA" and d.record_detail_type == "TD" %}
+            <td>&nbsp;</td>
+          {% else %}
+            <td>$&nbsp;{{ d.dt_amt|floatformat:2 }}</td>
+          {% endif %}
+          <!-- <td style="font-weight: normal;font-size: 13px;border: 1px solid grey;">$&nbsp;{{ d.dt_discamt|floatformat:2 }}</td> -->
+          {% if d.dt_status == "SA" and d.record_detail_type == "TD" %}
+            <td>&nbsp;</td>
+          {% else %}
+            <td>$&nbsp;{{ d.dt_deposit|floatformat:2 }}</td>
+          {% endif %}
+
+          <!-- <li>13 - 17 = {{ 13|sub:17 }}</li> -->
+          {% if d.dt_status == "SA" and d.record_detail_type == "TD" %}
+            <td>&nbsp;</td>
+          {% else %}
+            <td>$&nbsp;{{ d.dt_amt|sub:d.dt_deposit |floatformat:2 }}</td>
+          {% endif %}
+
+          {% if d.dt_status == "SA" and d.record_detail_type == "TD" %}
+            <td> &frasl; {{ d.trmt_done_staff_name }}</td>
+          {% else %}
+            <td>{{ d.staffs }}</td>
+          {% endif %}
+
+        </tr>
+      {% endfor %}
+    <tr>
+      <th></th>
+      <th></th>
+      <th>{{ total_qty }}</th>
+      {% if d.dt_status == "SA" and d.record_detail_type == "TD" %}
+        <th>$&nbsp;{{ "0.00" }}</th>
+        <th>$&nbsp;{{ "0.00" }}</th>
+        <th>$&nbsp;{{ "0.00" }}</th>
+      {% else %}
+        <th>$&nbsp;{{ trans_amt|floatformat:2 }}</th>
+        <th>$&nbsp;{{ deposit_amt|floatformat:2 }}</th>
+        <th>$&nbsp;{{ total_balance|floatformat:2 }}</th>
+      {% endif %}
+      <th></th>
+    </tr>
+
+    <tr>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td colspan="2"><span style="font-weight:bold"></span>Sub Total:</td>
+      {% if d.dt_status == "SA" and d.record_detail_type == "TD" %}
+        <td><span style="font-weight:bold"></span>$ {{ "0.00" }}</td>
+      {% else %}
+        <td><span style="font-weight:bold"></span>$ {{ subtotal|floatformat:2 }}</td>
+      {% endif %}
+    </tr>
+    </table>
+    <br>
+
+    <div class="split">
+      <div class="box">
+      <th></th>
+      <table style="border-collapse: collapse;" cellspacing="2" cellpadding="5" width="20%">
+        <tr>
+          <th>No</th>
+          <th>Type</th>
+          <th>Amount</th>
+        </tr>
+        {% for taud in postaud %}
+          <tr>
+            <td>{% if taud.pay_rem1 %} {{ taud.pay_rem1 }} {% else %} {% endif %}</td>
+            <td>{{ taud.pay_typeid.pay_description }}</td>
+            <td>${{ taud.pay_amt|floatformat:2 }}</td>
+          </tr>
+        {% endfor %}
+
+        <tr>
+          <th>Inclusive {{ percent }} % GST {{ hdr.sa_totgst|floatformat:2 }}</th>
+          <th>Total</th>
+          <th>${{ billing_amount|floatformat:2 }}</th>
+        </tr>
+      </table>
+      </div></div>
+
+      <div class="split right1">
+        {% if hdr.sa_totgst %}
+          <h6>Gst: {{ hdr.sa_totgst|floatformat:2 }}</h6>
+        {% else %}
+          <h6>Gst: {{ "0.00" }}</h6>
+        {% endif %}
+
+        {% if hdr.sa_round %}
+          <h6>Rounding: {{ hdr.sa_round|floatformat:2 }}</h6>
+        {% else %}
+          <h6>Rounding: {{ "0.00" }}</h6>
+        {% endif %}
+        <h6>Grand Total: {{ billing_amount|floatformat:2 }}</h6>
+      </div>
+
+    <fix>
+        <div class="box">
+          <div class="split">
+            <p>Remarks:  {% if hdr.trans_remark %} {{ hdr.trans_remark }}  {% else %} {% endif %}</p>
+            <p> {% if footer1 %} {{ footer1 }} {% else %} {% endif %} </p>
+            <p> {% if footer2 %} {{ footer2 }} {% else %} {% endif %} </p>
+            <p>{% if footer3 %} {{ footer3 }} {% else %} {% endif %} </p>
+            <p>{% if footer4 %} {{ footer4 }} {% else %} {% endif %}</p>
+          </div>
+          <div class="split right">
+            <hr>
+            <p>Customer Signature</p>
+          </div>
+        </div>
+    </fix>
+</body>
+</html>

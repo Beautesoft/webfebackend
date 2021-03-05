@@ -1,0 +1,6 @@
+# use python manage.py runserver command if gunicorn was not installed
+source /var/BE_Dev_DoodleProject/env/bin/activate
+cd /var/BE_Dev_DoodleProject/backend_beautesoft
+python manage.py runserver 0.0.0.0:8000
+#gunicorn sample2.wsgi
+
