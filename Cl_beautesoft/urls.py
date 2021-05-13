@@ -29,6 +29,9 @@ router.register(r'tmpitemhelper', views.TmpItemHelperViewset, basename='tmpitemh
 router.register(r'empappointmentview', views.EmployeeAppointmentView, basename='empappointmentview')
 router.register(r'appointmentresources', views.AppointmentResourcesViewset, basename='appointmentresources')
 
+router.register(r'staffPlus', views.StaffPlusViewSet, basename='staffPlus')
+
+
     
 urlpatterns = [
     path('admin/', admin.site.urls),

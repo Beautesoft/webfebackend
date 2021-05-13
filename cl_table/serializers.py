@@ -532,8 +532,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services','emp_address',
         'Emp_sexesid','gender','defaultSiteCodeid','defaultsitecode','site_name','Site_Codeid','site_code',
         'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic','EMP_TYPEid','jobtitle_name',
-        'is_login','pw_password','LEVEL_ItmIDid','level_desc']
-        read_only_fields = ('emp_isactive', 'updated_at','created_at','emp_code','branch') 
+        'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',"emp_nric"]
+        read_only_fields = ('updated_at','created_at','emp_code','branch')
         extra_kwargs = {'emp_email': {'required': False},'Site_Codeid': {'required': False},
         'emp_name': {'required': True}}
 
@@ -590,7 +590,13 @@ class EmployeeSerializer(serializers.ModelSerializer):
         else:
             if request.data['emp_pic'] is None:
                 raise serializers.ValidationError("emp_pic Field is required.")
-            
+
+        if request.data.get("emp_isactive") is None:
+            raise serializers.ValidationError("emp_isactive field is required.")
+
+        if request.data.get("emp_nric") is None:
+            raise serializers.ValidationError("emp_nric field is required.")
+
         if 'skills_list' in data:
             if data['skills_list'] is not None:
                 if ',' in data['skills_list']:
@@ -653,11 +659,22 @@ class EmployeeSerializer(serializers.ModelSerializer):
         Site_Codeid = fmspw.loginsite
         siteobj = ItemSitelist.objects.filter(pk=validated_data.get('defaultSiteCodeid').pk,itemsite_isactive=True).first()
         employee = Employee.objects.create(emp_name=validated_data.get('emp_name'),
-        emp_phone1=validated_data.get('emp_phone1'),display_name=validated_data.get('emp_name'),
-        emp_address=validated_data.get('emp_address'),Emp_sexesid=validated_data.get('Emp_sexesid'),emp_dob=validated_data.get('emp_dob'),
-        emp_joindate=validated_data.get('emp_joindate'),shift=validated_data.get('shift'),defaultSiteCodeid=validated_data.get('defaultSiteCodeid'),
-        defaultsitecode=siteobj.itemsite_code,emp_pic=validated_data.get('emp_pic'),is_login=validated_data.get('is_login'),
-        EMP_TYPEid=validated_data.get('EMP_TYPEid'),Site_Codeid=Site_Codeid,site_code=Site_Codeid.itemsite_code)
+                                           emp_phone1=validated_data.get('emp_phone1'),
+                                           display_name=validated_data.get('emp_name'),
+                                           emp_address=validated_data.get('emp_address'),
+                                           Emp_sexesid=validated_data.get('Emp_sexesid'),
+                                           emp_dob=validated_data.get('emp_dob'),
+                                           emp_joindate=validated_data.get('emp_joindate'),
+                                           shift=validated_data.get('shift'),
+                                           defaultSiteCodeid=validated_data.get('defaultSiteCodeid'),
+                                           defaultsitecode=siteobj.itemsite_code,
+                                           emp_pic=validated_data.get('emp_pic'),
+                                           is_login=validated_data.get('is_login'),
+                                           EMP_TYPEid=validated_data.get('EMP_TYPEid'),
+                                           emp_isactive=validated_data.get('emp_isactive'),
+                                           emp_nric=validated_data.get('emp_nric'),
+                                           Site_Codeid=Site_Codeid,
+                                           site_code=Site_Codeid.itemsite_code)
         
         skills_data = validated_data.pop('skills_list')
         if ',' in skills_data:
@@ -681,6 +698,8 @@ class EmployeeSerializer(serializers.ModelSerializer):
         instance.defaultSiteCodeid = validated_data.get("defaultSiteCodeid", instance.defaultSiteCodeid)
         instance.defaultsitecode = instance.defaultSiteCodeid.itemsite_code
         instance.Site_Codeid = validated_data.get("Site_Codeid", instance.Site_Codeid)
+        instance.emp_isactive = validated_data.get("emp_isactive", instance.emp_isactive)
+        instance.emp_nric = validated_data.get("emp_nric", instance.emp_nric)
         instance.site_code = instance.Site_Codeid.itemsite_code
 
         if 'emp_email' in validated_data:

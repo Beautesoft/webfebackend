@@ -113,7 +113,7 @@ CRONJOBS = [
 #     }
 # }
 
-#microsoft sql client server
+# #microsoft sql client server
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'sql_server.pyodbc',
@@ -133,7 +133,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
         'NAME': 'healspahq_backup9',
-        'HOST': 'localhost',
+        # 'HOST': 'localhost',
+        'HOST': '103.253.15.184',
         'PORT': '1433',
         'USER': 'sa',
         'PASSWORD': 'Doodle@123',

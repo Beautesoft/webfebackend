@@ -8023,7 +8023,333 @@ class FocReasonAPIView(generics.ListAPIView):
             return general_error_response(invalid_message)     
 
 
-# from .models import (City,CustomerClass,State,Country,Maritalstatus,Races,Religious,Nationality,
+class StaffPlusViewSet(viewsets.ModelViewSet):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+    queryset = Employee.objects.filter(emp_isactive=True).order_by('-pk')
+    serializer_class = EmployeeSerializer
+    filter_backends = [DjangoFilterBackend,]
+
+
+    def get_queryset(self):
+        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        if not self.request.user.is_authenticated:
+            result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Unauthenticated Users are not allowed!!",
+                      'error': True}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        if not fmspw:
+            result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Unauthenticated Users are not Permitted!!",
+                      'error': True}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        site = fmspw[0].loginsite
+        empl = fmspw[0].Emp_Codeid
+        if not site:
+            result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Users Item Site is not mapped!!",
+                      'error': True}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        emp_ids = EmpSitelist.objects.filter(Site_Codeid__pk=site.pk, isactive=True)
+
+        queryset = Employee.objects.none()
+
+        if int(fmspw[0].LEVEL_ItmIDid.level_code) == 24:
+            queryset = Employee.objects.filter(emp_isactive=True).order_by('-pk')
+        elif int(fmspw[0].LEVEL_ItmIDid.level_code) == 31:
+            emp_lst = list(set([e.Emp_Codeid.pk for e in emp_ids if e.Emp_Codeid]))
+            queryset = Employee.objects.filter(pk__in=emp_lst, emp_isactive=True).order_by('-pk')
+        elif int(fmspw[0].LEVEL_ItmIDid.level_code) == 27:
+            emp_lst = list(set([e.Emp_Codeid.pk for e in emp_ids if e.Emp_Codeid.pk == empl.pk]))
+            queryset = Employee.objects.filter(pk__in=emp_lst, emp_isactive=True).order_by('-pk')
+        q = self.request.GET.get('search', None)
+        value = self.request.GET.get('sortValue', None)
+        key = self.request.GET.get('sortKey', None)
+
+        if q is not None:
+            queryset = queryset.filter(Q(emp_name__icontains=q) | Q(emp_code__icontains=q) |
+                                       Q(skills__item_desc__icontains=q) | Q(Site_Codeid__itemsite_desc__icontains=q) |
+                                       Q(defaultSiteCodeid__itemsite_desc__icontains=q)).order_by('-pk')
+        elif value and key is not None:
+            if value == "asc":
+                if key == 'emp_name':
+                    queryset = queryset.order_by('emp_name')
+                elif key == 'emp_code':
+                    queryset = queryset.order_by('emp_code')
+                elif key == 'skills':
+                    queryset = queryset.order_by('skills')
+                elif key == 'Site_Codeid':
+                    queryset = queryset.order_by('Site_Codeid')
+                elif key == 'defaultSiteCodeid':
+                    queryset = queryset.order_by('defaultSiteCodeid')
+            elif value == "desc":
+                if key == 'emp_name':
+                    queryset = queryset.order_by('-emp_name')
+                elif key == 'emp_code':
+                    queryset = queryset.order_by('-emp_code')
+                elif key == 'skills':
+                    queryset = queryset.order_by('-skills')
+                elif key == 'Site_Codeid':
+                    queryset = queryset.order_by('-Site_Codeid')
+                elif key == 'defaultSiteCodeid':
+                    queryset = queryset.order_by('defaultSiteCodeid')
+
+        return queryset
+
+    def list(self, request):
+        try:
+            serializer_class = EmployeeSerializer
+            queryset = self.filter_queryset(self.get_queryset())
+            query_parm_dict = request.GET
+            for k, v in query_parm_dict.items():
+                if hasattr(Employee, k):
+                    print("list parm",k)
+                    try:
+                        queryset = queryset.filter(**{k: v})
+                    except:
+                        continue
+            total = len(queryset)
+            state = status.HTTP_200_OK
+            message = "Listed Succesfully"
+            error = False
+            data = None
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def create(self, request):
+        print("cre")
+        try:
+            state = status.HTTP_400_BAD_REQUEST
+            fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
+            Site_Codeid = fmspw[0].loginsite
+            if not self.request.user.is_authenticated:
+                result = {'status': state, "message": "Unauthenticated Users are not allowed!!", 'error': True}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            if not fmspw:
+                result = {'status': state, "message": "Unauthenticated Users are not Permitted!!", 'error': True}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            if not Site_Codeid:
+                result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Users Item Site is not mapped!!",
+                          'error': True}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+            queryset = None
+            serializer_class = None
+            total = None
+            serializer = self.get_serializer(data=request.data, context={'request': self.request})
+
+            if int(fmspw[0].level_itmid) not in [24, 31]:
+                result = {'status': status.HTTP_400_BAD_REQUEST,
+                          "message": "Staffs / other login user not allow to create staff!!", 'error': True}
+                return Response(data=result, status=status.HTTP_400_BAD_REQUEST)
+
+            if serializer.is_valid():
+                control_obj = ControlNo.objects.filter(control_description__iexact="EMP CODE",
+                                                       Site_Codeid__pk=fmspw[0].loginsite.pk).first()
+                if not control_obj:
+                    result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Employee Control No does not exist!!",
+                              'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                emp_code = str(control_obj.control_prefix) + str(control_obj.control_no)
+                defaultobj = ItemSitelist.objects.filter(pk=request.data['defaultSiteCodeid'],
+                                                         itemsite_isactive=True).first()
+
+                site_unique = EmpSitelist.objects.filter(emp_code=emp_code, site_code=defaultobj.itemsite_code,
+                                                         isactive=True)
+                if site_unique:
+                    result = {'status': state, "message": "Unique Constrain for emp_code and site_code!!",
+                              'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                user_obj = User.objects.filter(username=request.data['emp_name'])
+                if user_obj:
+                    result = {'status': state, "message": "Username already exist!!", 'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                emp_obj = Employee.objects.filter(emp_name=request.data['emp_name'])
+                if emp_obj:
+                    result = {'status': state, "message": "Employee already exist!!", 'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                fmspw_obj = Fmspw.objects.filter(pw_userlogin=request.data['emp_name'])
+                if fmspw_obj:
+                    result = {'status': state, "message": "Fmspw already exist!!", 'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                token_obj = Fmspw.objects.filter(user__username=request.data['emp_name'])
+                if token_obj:
+                    result = {'status': state, "message": "Token for this employee user is already exist!!",
+                              'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                jobtitle = EmpLevel.objects.filter(id=request.data['EMP_TYPEid'], level_isactive=True).first()
+                gender = Gender.objects.filter(pk=request.data['Emp_sexesid'], itm_isactive=True).first()
+                self.perform_create(serializer)
+                s = serializer.save(emp_code=emp_code, emp_type=jobtitle.level_code, emp_sexes=gender.itm_code,
+                                    defaultsitecode=defaultobj.itemsite_code, site_code=Site_Codeid.itemsite_code)
+                s.emp_code = emp_code
+                s.save()
+                token = False
+                if s.is_login == True:
+                    if not 'pw_password' in request.data:
+                        result = {'status': status.HTTP_400_BAD_REQUEST, "message": "pw_password Field is required.",
+                                  'error': True}
+                        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        if request.data['pw_password'] is None:
+                            result = {'status': status.HTTP_400_BAD_REQUEST,
+                                      "message": "pw_password Field is required.", 'error': True}
+                            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                    if not 'LEVEL_ItmIDid' in request.data:
+                        result = {'status': status.HTTP_400_BAD_REQUEST, "message": "LEVEL_ItmIDid Field is required.",
+                                  'error': True}
+                        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        if request.data['LEVEL_ItmIDid'] is None:
+                            result = {'status': status.HTTP_400_BAD_REQUEST,
+                                      "message": "LEVEL_ItmIDid Field is required.", 'error': True}
+                            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                    EmpSitelist(Emp_Codeid=s, emp_code=emp_code, Site_Codeid=s.defaultSiteCodeid,
+                                site_code=s.defaultSiteCodeid.itemsite_code).save()
+                    user = User.objects.create_user(username=s.emp_name, email=s.emp_email,
+                                                    password=request.data['pw_password'])
+                    levelobj = Securities.objects.filter(pk=request.data['LEVEL_ItmIDid'], level_isactive=True).first()
+                    Fmspw(pw_userlogin=s.emp_name, pw_password=request.data['pw_password'],
+                          LEVEL_ItmIDid=levelobj, level_itmid=levelobj.level_code,
+                          level_desc=levelobj.level_description,
+                          Emp_Codeid=s, emp_code=emp_code, user=user, loginsite=None).save()
+                    s.pw_userlogin = s.emp_name
+                    s.pw_password = request.data['pw_password']
+                    s.LEVEL_ItmIDid = levelobj
+                    s.save()
+                    token = Token.objects.create(user=user)
+                if s.pk:
+                    control_obj.control_no = int(control_obj.control_no) + 1
+                    control_obj.save()
+                state = status.HTTP_201_CREATED
+                message = "Created Succesfully"
+                error = False
+                data = serializer.data
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                v = result.get('data')
+                if token:
+                    v["token"] = token.key
+
+                return Response(result, status=status.HTTP_201_CREATED)
+
+            message = "Invalid Input"
+            error = True
+            data = serializer.errors
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def get_object(self, pk):
+        try:
+            return Employee.objects.get(pk=pk, emp_isactive=True)
+        except Employee.DoesNotExist:
+            raise Http404
+
+    def retrieve(self, request, pk=None):
+        try:
+            ip = get_client_ip(request)
+            queryset = None
+            total = None
+            serializer_class = None
+            employee = self.get_object(pk)
+            serializer = EmployeeSerializer(employee)
+            data = serializer.data
+            state = status.HTTP_200_OK
+            message = "Listed Succesfully"
+            error = False
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            v = result.get('data')
+            if v['emp_pic']:
+                images = str(ip) + str(v['emp_pic'])
+                v['emp_pic'] = images
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def update(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            employee = self.get_object(pk)
+            serializer = EmployeeSerializer(employee, data=request.data, context={'request': self.request})
+            if serializer.is_valid():
+                if 'emp_name' in request.data and not request.data['emp_name'] is None:
+                    serializer.save()
+                    fmspw_obj = Fmspw.objects.filter(Emp_Codeid=employee, pw_isactive=True).first()
+                    if fmspw_obj:
+                        fmspw_obj.pw_userlogin = request.data['emp_name']
+                        fmspw_obj.save()
+                        if fmspw_obj.user:
+                            fmspw_obj.user.username = request.data['emp_name']
+                            fmspw_obj.user.save()
+                        else:
+                            result = {'status': status.HTTP_400_BAD_REQUEST,
+                                      "message": "FMSPW User is not Present.Please map", 'error': True}
+                            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                serializer.save()
+                state = status.HTTP_200_OK
+                message = "Updated Succesfully"
+                error = False
+                data = serializer.data
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+
+            state = status.HTTP_204_NO_CONTENT
+            message = "Invalid Input"
+            error = True
+            data = serializer.errors
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def partial_update(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            employee = self.get_object(pk)
+            serializer = EmployeeSerializer(employee, data=request.data, partial=True,
+                                            context={'request': self.request})
+            if serializer.is_valid():
+                serializer.save()
+                state = status.HTTP_200_OK
+                message = "Updated Succesfully"
+                error = False
+                data = serializer.data
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+
+            state = status.HTTP_204_NO_CONTENT
+            message = "Invalid Input"
+            error = True
+            data = serializer.errors
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+
+
+        # from .models import (City,CustomerClass,State,Country,Maritalstatus,Races,Religious,Nationality,
 # CommType,EmpSocso,Days,ReverseHdr,ReverseDtl,ItemRange)
 
 # class UpdateTablesAPIView(APIView):
