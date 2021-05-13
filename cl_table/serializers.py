@@ -810,8 +810,8 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         if request.data.get("emp_isactive") is None:
             raise serializers.ValidationError("emp_isactive field is required.")
 
-        if request.data.get("emp_nric") is None:
-            raise serializers.ValidationError("emp_nric field is required.")
+        # if request.data.get("emp_nric") is None:
+        #     raise serializers.ValidationError("emp_nric field is required.")
 
         if 'skills_list' in data:
             if data['skills_list'] is not None:
