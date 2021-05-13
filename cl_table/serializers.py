@@ -713,7 +713,12 @@ class EmployeeSerializer(serializers.ModelSerializer):
         return instance
 
 class StaffPlusSerializer(serializers.ModelSerializer):
-
+    """
+    most parts are identical to EmployeeSerializer. validation little bit different.
+    use for StaffPlus APIs.
+    TODO:   should be figure out a way to use same serializer (EmployeeSerializer) to both old stadd apis and
+            staff plus apis without any conflicts.
+    """
     id = serializers.IntegerField(source='pk',required=False)
     services =  serializers.SerializerMethodField()
     gender = serializers.CharField(source='Emp_sexesid.itm_name',required=False)
