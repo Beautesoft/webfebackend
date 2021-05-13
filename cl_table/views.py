@@ -8032,7 +8032,7 @@ class FocReasonAPIView(generics.ListAPIView):
 class StaffPlusViewSet(viewsets.ModelViewSet):
     authentication_classes = [ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated & authenticated_only]
-    queryset = Employee.objects.filter(emp_isactive=True).order_by('-pk')
+    queryset = Employee.objects.all().order_by('-pk')
     serializer_class = StaffPlusSerializer
     filter_backends = [DjangoFilterBackend,]
 
@@ -8058,13 +8058,16 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
         queryset = Employee.objects.none()
 
         if int(fmspw[0].LEVEL_ItmIDid.level_code) == 24:
-            queryset = Employee.objects.filter(emp_isactive=True).order_by('-pk')
+            # queryset = Employee.objects.filter(emp_isactive=True).order_by('-pk')
+            queryset = Employee.objects.all().order_by('-pk')
         elif int(fmspw[0].LEVEL_ItmIDid.level_code) == 31:
             emp_lst = list(set([e.Emp_Codeid.pk for e in emp_ids if e.Emp_Codeid]))
-            queryset = Employee.objects.filter(pk__in=emp_lst, emp_isactive=True).order_by('-pk')
+            # queryset = Employee.objects.filter(pk__in=emp_lst, emp_isactive=True).order_by('-pk')
+            queryset = Employee.objects.filter(pk__in=emp_lst).order_by('-pk')
         elif int(fmspw[0].LEVEL_ItmIDid.level_code) == 27:
             emp_lst = list(set([e.Emp_Codeid.pk for e in emp_ids if e.Emp_Codeid.pk == empl.pk]))
-            queryset = Employee.objects.filter(pk__in=emp_lst, emp_isactive=True).order_by('-pk')
+            # queryset = Employee.objects.filter(pk__in=emp_lst, emp_isactive=True).order_by('-pk')
+            queryset = Employee.objects.filter(pk__in=emp_lst).order_by('-pk')
         q = self.request.GET.get('search', None)
         value = self.request.GET.get('sortValue', None)
         key = self.request.GET.get('sortKey', None)
@@ -8254,7 +8257,8 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
 
     def get_object(self, pk):
         try:
-            return Employee.objects.get(pk=pk, emp_isactive=True)
+            # return Employee.objects.get(pk=pk, emp_isactive=True)
+            return Employee.objects.get(pk=pk)
         except Employee.DoesNotExist:
             raise Http404
 
