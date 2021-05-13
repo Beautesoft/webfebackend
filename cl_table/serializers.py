@@ -748,7 +748,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services','emp_address',
         'Emp_sexesid','gender','defaultSiteCodeid','defaultsitecode','site_name','Site_Codeid','site_code',
         'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic','EMP_TYPEid','jobtitle_name',
-        'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',"emp_nric"]
+        'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',"emp_nric","max_disc"]
         read_only_fields = ('updated_at','created_at','emp_code','branch')
         extra_kwargs = {'emp_email': {'required': False},'Site_Codeid': {'required': False},
         'emp_name': {'required': True}}
@@ -889,6 +889,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                                            EMP_TYPEid=validated_data.get('EMP_TYPEid'),
                                            emp_isactive=validated_data.get('emp_isactive'),
                                            emp_nric=validated_data.get('emp_nric'),
+                                           max_disc=validated_data.get('max_disc'),
                                            Site_Codeid=Site_Codeid,
                                            site_code=Site_Codeid.itemsite_code)
 
@@ -916,6 +917,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         instance.Site_Codeid = validated_data.get("Site_Codeid", instance.Site_Codeid)
         instance.emp_isactive = validated_data.get("emp_isactive", instance.emp_isactive)
         instance.emp_nric = validated_data.get("emp_nric", instance.emp_nric)
+        instance.max_disc = validated_data.get("max_disc", instance.max_disc)
         instance.site_code = instance.Site_Codeid.itemsite_code
 
         if 'emp_email' in validated_data:
