@@ -10,16 +10,22 @@ DepositAccount,PrepaidAccount,PrepaidAccountCondition,VoucherCondition,ItemUom,T
 PackageDtl,PackageHdr)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room,ItemCart,VoucherRecord,EmpLevel
-from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer,Attendance2Serializer,
-CustomerallSerializer,CustomerSerializer, ServicesSerializer, ItemSiteListSerializer, AppointmentSerializer,
-Item_DeptSerializer, StockListSerializer,TreatmentMasterSerializer,ItemSiteListAPISerializer, 
-StockListTreatmentSerializer, StaffsAvailableSerializer,PaytableSerializer,PostaudSerializer,
-PoshaudSerializer,PosdaudSerializer,PayGroupSerializer,PostaudprintSerializer,
-ItemStatusSerializer,SourceSerializer,AppointmentPopupSerializer, AppointmentCalendarSerializer,
-SecuritiesSerializer, CustTransferSerializer, EmpTransferPerSerializer,EmpTransferTempSerializer, 
-EmpSitelistSerializer,ScheduleHourSerializer, CustApptSerializer,ApptTypeSerializer,
-TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,TreatmentApptSerializer,
-AppointmentResourcesSerializer,AppointmentSortSerializer)
+from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
+                          CustomerallSerializer, CustomerSerializer, ServicesSerializer, ItemSiteListSerializer,
+                          AppointmentSerializer,
+                          Item_DeptSerializer, StockListSerializer, TreatmentMasterSerializer,
+                          ItemSiteListAPISerializer,
+                          StockListTreatmentSerializer, StaffsAvailableSerializer, PaytableSerializer,
+                          PostaudSerializer,
+                          PoshaudSerializer, PosdaudSerializer, PayGroupSerializer, PostaudprintSerializer,
+                          ItemStatusSerializer, SourceSerializer, AppointmentPopupSerializer,
+                          AppointmentCalendarSerializer,
+                          SecuritiesSerializer, CustTransferSerializer, EmpTransferPerSerializer,
+                          EmpTransferTempSerializer,
+                          EmpSitelistSerializer, ScheduleHourSerializer, CustApptSerializer, ApptTypeSerializer,
+                          TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,
+                          TreatmentApptSerializer,
+                          AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -8027,7 +8033,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
     authentication_classes = [ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated & authenticated_only]
     queryset = Employee.objects.filter(emp_isactive=True).order_by('-pk')
-    serializer_class = EmployeeSerializer
+    serializer_class = StaffPlusSerializer
     filter_backends = [DjangoFilterBackend,]
 
 
@@ -8095,7 +8101,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
 
     def list(self, request):
         try:
-            serializer_class = EmployeeSerializer
+            serializer_class = StaffPlusSerializer
             queryset = self.filter_queryset(self.get_queryset())
             query_parm_dict = request.GET
             for k, v in query_parm_dict.items():
@@ -8118,7 +8124,6 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             return general_error_response(invalid_message)
 
     def create(self, request):
-        print("cre")
         try:
             state = status.HTTP_400_BAD_REQUEST
             fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
@@ -8260,7 +8265,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             total = None
             serializer_class = None
             employee = self.get_object(pk)
-            serializer = EmployeeSerializer(employee)
+            serializer = StaffPlusSerializer(employee)
             data = serializer.data
             state = status.HTTP_200_OK
             message = "Listed Succesfully"
@@ -8282,7 +8287,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             total = None
             serializer_class = None
             employee = self.get_object(pk)
-            serializer = EmployeeSerializer(employee, data=request.data, context={'request': self.request})
+            serializer = StaffPlusSerializer(employee, data=request.data, context={'request': self.request})
             if serializer.is_valid():
                 if 'emp_name' in request.data and not request.data['emp_name'] is None:
                     serializer.save()
@@ -8324,7 +8329,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             total = None
             serializer_class = None
             employee = self.get_object(pk)
-            serializer = EmployeeSerializer(employee, data=request.data, partial=True,
+            serializer = StaffPlusSerializer(employee, data=request.data, partial=True,
                                             context={'request': self.request})
             if serializer.is_valid():
                 serializer.save()
