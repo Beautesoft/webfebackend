@@ -8953,6 +8953,36 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             invalid_message = str(e)
             return general_error_response(invalid_message)
 
+    def destroy(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            data = None
+            state = status.HTTP_204_NO_CONTENT
+            try:
+                instance = self.get_object(pk)
+                self.perform_destroy(instance)
+                message = "Deleted Succesfully"
+                error = False
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+            except Http404:
+                pass
+
+            message = "No Content"
+            error = True
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def perform_destroy(self, instance):
+        instance.emp_isactive = False
+        instance.save()
         # from .models import (City,CustomerClass,State,Country,Maritalstatus,Races,Religious,Nationality,
 # CommType,EmpSocso,Days,ReverseHdr,ReverseDtl,ItemRange)
 

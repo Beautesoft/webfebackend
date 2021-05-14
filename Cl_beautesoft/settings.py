@@ -128,12 +128,27 @@ CRONJOBS = [
 #     }
 # }
 
-#microsoft sql local server
+# #microsoft sql local server
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'sql_server.pyodbc',
+#         'NAME': 'healspahq_backup9',
+#         # 'HOST': 'localhost',
+#         'HOST': '103.253.15.184',
+#         'PORT': '1433',
+#         'USER': 'sa',
+#         'PASSWORD': 'Doodle@123',
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#         }
+#     }
+# }
+
+# msSQL demo db
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'healspahq_backup9',
-        # 'HOST': 'localhost',
+        'NAME': 'MidysonTrain',
         'HOST': '103.253.15.184',
         'PORT': '1433',
         'USER': 'sa',
@@ -143,7 +158,6 @@ DATABASES = {
         }
     }
 }
-
 
 #mysql
 # DATABASES =  {
