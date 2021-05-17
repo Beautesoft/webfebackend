@@ -755,7 +755,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                   'Site_Codeid','site_code', 'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic',
                   'EMP_TYPEid','jobtitle_name', 'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',
                   "emp_nric","max_disc", 'emp_race', 'Emp_nationalityid', 'Emp_maritalid', 'Emp_religionid', 'emp_emer',
-                  'emp_emerno', 'emp_country', 'emp_remarks']
+                  'emp_emerno', 'emp_country', 'emp_remarks','show_in_trmt','show_in_appt','show_in_sales']
         read_only_fields = ('updated_at','created_at','emp_code','branch')
         extra_kwargs = {'emp_email': {'required': False},'Site_Codeid': {'required': False},
         'emp_name': {'required': True}}
@@ -798,11 +798,11 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         else:
             if request.data['EMP_TYPEid'] is None:
                 raise serializers.ValidationError("EMP_TYPEid Field is required.")
-        if not 'skills_list' in request.data:
-            raise serializers.ValidationError("skills_list Field is required.")
-        else:
-            if request.data['skills_list'] is None:
-                raise serializers.ValidationError("skills_list Field is required.")
+        # if not 'skills_list' in request.data:
+        #     raise serializers.ValidationError("skills_list Field is required.")
+        # else:
+        #     if request.data['skills_list'] is None:
+        #         raise serializers.ValidationError("skills_list Field is required.")
         if not 'defaultSiteCodeid' in request.data:
             raise serializers.ValidationError("defaultSiteCodeid Field is required.")
         else:
@@ -820,19 +820,19 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         # if request.data.get("emp_nric") is None:
         #     raise serializers.ValidationError("emp_nric field is required.")
 
-        if 'skills_list' in data:
-            if data['skills_list'] is not None:
-                if ',' in data['skills_list']:
-                    res = data['skills_list'].split(',')
-                else:
-                    res = data['skills_list'].split(' ')
-                for t in res:
-                    id_val = int(t)
-                    if Stock.objects.filter(pk=id_val,item_isactive=False):
-                        raise serializers.ValidationError("Services ID Does not exist!!")
-
-                    if not Stock.objects.filter(pk=id_val,item_isactive=True):
-                        raise serializers.ValidationError("Services ID Does not exist!!")
+        # if 'skills_list' in data:
+        #     if data['skills_list'] is not None:
+        #         if ',' in data['skills_list']:
+        #             res = data['skills_list'].split(',')
+        #         else:
+        #             res = data['skills_list'].split(' ')
+        #         for t in res:
+        #             id_val = int(t)
+        #             if Stock.objects.filter(pk=id_val,item_isactive=False):
+        #                 raise serializers.ValidationError("Services ID Does not exist!!")
+        #
+        #             if not Stock.objects.filter(pk=id_val,item_isactive=True):
+        #                 raise serializers.ValidationError("Services ID Does not exist!!")
 
 
         if 'Emp_sexesid' in data:
@@ -897,16 +897,19 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                                            emp_isactive=validated_data.get('emp_isactive'),
                                            emp_nric=validated_data.get('emp_nric'),
                                            max_disc=validated_data.get('max_disc'),
+                                           show_in_sales=validated_data.get('show_in_sales'),
+                                           show_in_appt=validated_data.get('show_in_appt'),
+                                           show_in_trmt=validated_data.get('show_in_trmt'),
                                            Site_Codeid=Site_Codeid,
                                            site_code=Site_Codeid.itemsite_code)
 
-        skills_data = validated_data.pop('skills_list')
-        if ',' in skills_data:
-            res = skills_data.split(',')
-        else:
-            res = skills_data.split(' ')
-        for skill in res:
-            employee.skills.add(skill)
+        # skills_data = validated_data.pop('skills_list')
+        # if ',' in skills_data:
+        #     res = skills_data.split(',')
+        # else:
+        #     res = skills_data.split(' ')
+        # for skill in res:
+        #     employee.skills.add(skill)
         return employee
 
     def update(self, instance, validated_data):
@@ -925,24 +928,16 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         instance.emp_isactive = validated_data.get("emp_isactive", instance.emp_isactive)
         instance.emp_nric = validated_data.get("emp_nric", instance.emp_nric)
         instance.max_disc = validated_data.get("max_disc", instance.max_disc)
-        instance.site_code = instance.Site_Codeid.itemsite_code
+        instance.site_code = instance.Site_Codeid.itemsite_code,
+        instance.show_in_sales = validated_data.get("show_in_sales", instance.show_in_sales)
+        instance.show_in_appt = validated_data.get("show_in_appt", instance.show_in_appt)
+        instance.show_in_trmt = validated_data.get("show_in_trmt", instance.show_in_trmt)
 
         if 'emp_email' in validated_data:
             if validated_data['emp_email'] is not None:
                 instance.emp_email = validated_data.get("emp_email", instance.emp_email)
 
-        skills_data = validated_data.pop('skills_list')
-        if ',' in skills_data:
-            res = skills_data.split(',')
-        else:
-            res = skills_data.split(' ')
 
-        if skills_data:
-            for existing in instance.skills.all():
-                instance.skills.remove(existing)
-
-            for skill in res:
-                instance.skills.add(skill)
         instance.save()
         return instance
 
@@ -1415,7 +1410,7 @@ class EmpInfoSerializer(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'emp_code', 'emp_name',
                   'emp_phone1','emp_address','Emp_sexesid','emp_race','Emp_nationalityid','Emp_maritalid','Emp_religionid',
-                  'emp_emer','emp_emerno','emp_country','emp_remarks']
+                  'emp_emer','emp_emerno','emp_country','emp_remarks','show_in_sales','show_in_appt','show_in_trmt']
         # extra_kwargs = {'site_id': {'required': False}}
 
     def validate(self, data):
@@ -1439,6 +1434,7 @@ class EmpInfoSerializer(serializers.ModelSerializer):
         instance.emp_emerno = validated_data.get("emp_emerno", instance.emp_emerno)
         instance.emp_remarks = validated_data.get("emp_remarks", instance.emp_remarks)
         instance.emp_country = validated_data.get("emp_country", instance.emp_country)
+
 
         # todo:
         #   country, emergancy person, emergncy contact number
