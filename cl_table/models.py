@@ -403,7 +403,6 @@ class Employee(models.Model):
     #     ('YES', 'YES'),
     #     ('NO', 'NO'),
     # ]
-
     emp_no = models.AutoField(db_column='Emp_no', primary_key=True)  # Field name made lowercase.
     emp_code = models.CharField(db_column='Emp_code', max_length=20, blank=True, null=True)  # Field name made lowercase.
     emp_name = models.CharField(db_column='Emp_name', max_length=60, blank=True, null=True)  # Field name made lowercase.
@@ -460,6 +459,7 @@ class Employee(models.Model):
     emp_address1 = models.CharField(db_column='Emp_address1', max_length=255, blank=True, null=True)  # Field name made lowercase.
     emp_address2 = models.CharField(db_column='Emp_address2', max_length=255, blank=True, null=True)  # Field name made lowercase.
     emp_address3 = models.CharField(db_column='Emp_address3', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    emp_remarks = models.CharField(db_column='Emp_remarks', max_length=500, blank=True, null=True)  # Field name made lowercase.
     age_range0 = models.BooleanField(db_column='Age_Range0', null=True)  # Field name made lowercase.
     age_range1 = models.BooleanField(db_column='Age_Range1', null=True)  # Field name made lowercase.
     age_range2 = models.BooleanField(db_column='Age_Range2', null=True)  # Field name made lowercase.
@@ -515,6 +515,7 @@ class Employee(models.Model):
     is_login = models.BooleanField(db_column='Login', blank=True, null=True)  # Field name made lowercase.
     pw_password = models.CharField(db_column='PW_Password', max_length=15,  null=True)  #, blank=True, null=True Field name made lowercase.
     LEVEL_ItmIDid = models.ForeignKey('cl_table.Securities', on_delete=models.PROTECT,null=True) #,null=True,blank=True
+    emp_country = models.ForeignKey('cl_table.Country', on_delete=models.PROTECT,null=True) #,null=True,blank=True
 
 
     class Meta:

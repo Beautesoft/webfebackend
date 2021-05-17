@@ -188,7 +188,8 @@ def response(self,request, queryset,total,  state, message, error, serializer_cl
             result = {'status': state,"message":message,'error': error, 'data': data} 
     elif action == 'destroy':
         result = {'status': state,"message":message,'error': error} 
-     
+    else:
+        result = {'status': state, "message": message, 'error': error, 'data': data}
     return result
 
 

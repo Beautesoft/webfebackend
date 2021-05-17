@@ -750,10 +750,12 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services','emp_address',
-        'Emp_sexesid','gender','defaultSiteCodeid','defaultsitecode','site_name','Site_Codeid','site_code',
-        'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic','EMP_TYPEid','jobtitle_name',
-        'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',"emp_nric","max_disc"]
+        fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services',
+                  'emp_address', 'Emp_sexesid','gender','defaultSiteCodeid','defaultsitecode','site_name',
+                  'Site_Codeid','site_code', 'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic',
+                  'EMP_TYPEid','jobtitle_name', 'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',
+                  "emp_nric","max_disc", 'emp_race', 'Emp_nationalityid', 'Emp_maritalid', 'Emp_religionid', 'emp_emer',
+                  'emp_emerno', 'emp_country', 'emp_remarks']
         read_only_fields = ('updated_at','created_at','emp_code','branch')
         extra_kwargs = {'emp_email': {'required': False},'Site_Codeid': {'required': False},
         'emp_name': {'required': True}}
@@ -1402,9 +1404,48 @@ class EmpTransferTempSerializer(serializers.ModelSerializer):
                 if not ScheduleHour.objects.filter(id=request.data['hour_id'],itm_isactive=True):
                     raise serializers.ValidationError("ScheduleHour ID Does not exist!!")
         
-        return data        
-        
-        
+        return data
+
+
+class EmpInfoSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', required=False)
+    # site_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = ['id', 'emp_code', 'emp_name',
+                  'emp_phone1','emp_address','Emp_sexesid','emp_race','Emp_nationalityid','Emp_maritalid','Emp_religionid',
+                  'emp_emer','emp_emerno','emp_country','emp_remarks']
+        # extra_kwargs = {'site_id': {'required': False}}
+
+    def validate(self, data):
+        request = self.context['request']
+        # if not 'site_id' in request.data:
+        #     raise serializers.ValidationError("site_id Field is required.")
+        # else:
+        #     if request.data['site_id'] is None:
+        #         raise serializers.ValidationError("site_id Field is required!!")
+
+        return data
+
+    def update(self, instance, validated_data):
+        instance.emp_phone1 = validated_data.get("emp_phone1", instance.emp_phone1)
+        instance.emp_address = validated_data.get("emp_address", instance.emp_address)
+        instance.Emp_sexesid = validated_data.get("Emp_sexesid", instance.Emp_sexesid)
+        instance.Emp_nationalityid = validated_data.get("Emp_nationalityid", instance.Emp_nationalityid)
+        instance.Emp_maritalid = validated_data.get("Emp_maritalid", instance.Emp_maritalid)
+        instance.Emp_religionid = validated_data.get("Emp_religionid", instance.Emp_religionid)
+        instance.emp_emer = validated_data.get("emp_emer", instance.emp_emer)
+        instance.emp_emerno = validated_data.get("emp_emerno", instance.emp_emerno)
+        instance.emp_remarks = validated_data.get("emp_remarks", instance.emp_remarks)
+        instance.emp_country = validated_data.get("emp_country", instance.emp_country)
+
+        # todo:
+        #   country, emergancy person, emergncy contact number
+        instance.save()
+        return instance
+
+
 class EmpSitelistSerializer(serializers.ModelSerializer):
 
     class Meta:

@@ -28,7 +28,8 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           EmpSitelistSerializer, ScheduleHourSerializer, CustApptSerializer, ApptTypeSerializer,
                           TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,
                           TreatmentApptSerializer,
-                          AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer)
+                          AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer,
+                          EmpInfoSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -8983,6 +8984,38 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.emp_isactive = False
         instance.save()
+
+    @action(detail=True, methods=['PUT'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[ExpiringTokenAuthentication], url_path='EmpInfo', url_name='EmpInfo')
+    def EmpInfo(self,request,pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            employee = self.get_object(pk)
+            serializer = EmpInfoSerializer(employee, data=request.data, partial=True,
+                                             context={'request': self.request})
+            if serializer.is_valid():
+                serializer.save()
+                state = status.HTTP_200_OK
+                message = "Updated Succesfully"
+                error = False
+                data = serializer.data
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+
+            state = status.HTTP_204_NO_CONTENT
+            message = "Invalid Input"
+            error = True
+            data = serializer.errors
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
         # from .models import (City,CustomerClass,State,Country,Maritalstatus,Races,Religious,Nationality,
 # CommType,EmpSocso,Days,ReverseHdr,ReverseDtl,ItemRange)
 
