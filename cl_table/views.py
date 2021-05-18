@@ -10,7 +10,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      ApptType, ItemHelper, Multistaff, DepositType, TmpItemHelper, PosDisc, FocReason, Holditemdetail,
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
-                     PackageDtl, PackageHdr, Workschedule)
+                     PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -9247,4 +9247,70 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
 
 
 #         result = {'status': status.HTTP_200_OK,"message":"Updated Successfully",'error': False}
-#         return Response(data=result, status=status.HTTP_200_OK) 
+#         return Response(data=result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET',])
+def meta_race(request):
+    try:
+        race_qs = Races.objects.filter(itm_isactive=True).values('itm_id','itm_name','itm_code')
+        response_data = {
+            "races": list(race_qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data,status=status.HTTP_200_OK)
+    except:
+        response_data = {
+            "message": "error"
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET',])
+def meta_nationality(request):
+    try:
+        qs = Nationality.objects.filter(itm_isactive=True).values('itm_id','itm_name','itm_code')
+        response_data = {
+            "nationalities": list(qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data,status=status.HTTP_200_OK)
+    except:
+        response_data = {
+            "message": "error"
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET',])
+def meta_religious(request):
+    try:
+        qs = Religious.objects.filter(itm_isactive=True).values('itm_id','itm_name','itm_code')
+        response_data = {
+            "religions": list(qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data,status=status.HTTP_200_OK)
+    except:
+        response_data = {
+            "message": "error"
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET',])
+def meta_country(request):
+    try:
+        qs = Country.objects.filter(itm_isactive=True).values('itm_id','itm_desc','itm_code','phonecode')
+        response_data = {
+            "countries": list(qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data,status=status.HTTP_200_OK)
+    except:
+        response_data = {
+            "message": "error"
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+

@@ -30,6 +30,10 @@ urlpatterns = [
     # path('api/updatetable/', views.UpdateTablesAPIView.as_view(), name='updatetable'),
     path('api/treatmentpackages/', views.TreatmentApptAPI.as_view(), name='treatmentpackages'),
     path('api/appointmentsort/', views.AppointmentSortAPIView.as_view(), name='appointmentsort'),
+    path('api/meta/race/', views.meta_race, name='meta_race'),
+    path('api/meta/nationality/', views.meta_nationality, name='meta_nationality'),
+    path('api/meta/religion/', views.meta_religious, name='meta_religious'),
+    path('api/meta/country/', views.meta_country, name='meta_country'),
 
 
     

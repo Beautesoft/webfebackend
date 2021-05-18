@@ -771,54 +771,18 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         else:
             if request.data['emp_name'] is None:
                 raise serializers.ValidationError("emp_name Field is required.")
-        if not 'Emp_sexesid' in request.data:
-            raise serializers.ValidationError("Emp_sexesid Field is required.")
-        else:
-            if request.data['Emp_sexesid'] is None:
-                raise serializers.ValidationError("Emp_sexesid Field is required.")
-        if not 'emp_phone1' in request.data:
-            raise serializers.ValidationError("emp_phone1 Field is required.")
-        else:
-            if request.data['emp_phone1'] is None:
-                raise serializers.ValidationError("emp_phone1 Field is required.")
-        if not 'emp_address' in request.data:
-            raise serializers.ValidationError("emp_address Field is required.")
-        else:
-            if request.data['emp_address'] is None:
-                raise serializers.ValidationError("emp_address Field is required.")
-        if not 'emp_dob' in request.data:
-            raise serializers.ValidationError("emp_dob Field is required.")
-        else:
-            if request.data['emp_dob'] is None:
-                raise serializers.ValidationError("emp_dob Field is required.")
-        if not 'emp_joindate' in request.data:
-            raise serializers.ValidationError("emp_joindate Field is required.")
-        else:
-            if request.data['emp_joindate'] is None:
-                raise serializers.ValidationError("emp_joindate Field is required.")
-        if not 'EMP_TYPEid' in request.data:
-            raise serializers.ValidationError("EMP_TYPEid Field is required.")
-        else:
-            if request.data['EMP_TYPEid'] is None:
-                raise serializers.ValidationError("EMP_TYPEid Field is required.")
-        # if not 'skills_list' in request.data:
-        #     raise serializers.ValidationError("skills_list Field is required.")
-        # else:
-        #     if request.data['skills_list'] is None:
-        #         raise serializers.ValidationError("skills_list Field is required.")
-        if not 'defaultSiteCodeid' in request.data:
-            raise serializers.ValidationError("defaultSiteCodeid Field is required.")
-        else:
-            if request.data['defaultSiteCodeid'] is None:
-                raise serializers.ValidationError("defaultSiteCodeid Field is required.")
-        if not 'emp_pic' in request.data:
-            raise serializers.ValidationError("emp_pic Field is required.")
-        else:
-            if request.data['emp_pic'] is None:
-                raise serializers.ValidationError("emp_pic Field is required.")
 
         if request.data.get("emp_isactive") is None:
             raise serializers.ValidationError("emp_isactive field is required.")
+
+        if request.data.get("display_name") is None:
+            raise serializers.ValidationError("display_name field is required.")
+
+        if request.data.get("max_disc") is None:
+            raise serializers.ValidationError("max_disc field is required.")
+
+        if request.data.get("emp_joindate") is None:
+            raise serializers.ValidationError("emp_joindate field is required.")
 
         # if request.data.get("emp_nric") is None:
         #     raise serializers.ValidationError("emp_nric field is required.")
