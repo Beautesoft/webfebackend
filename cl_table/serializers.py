@@ -802,12 +802,12 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         #                 raise serializers.ValidationError("Services ID Does not exist!!")
 
 
-        if 'Emp_sexesid' in data:
-            if data['Emp_sexesid'] is not None:
-                if Gender.objects.filter(pk=data['Emp_sexesid'].pk,itm_isactive=False):
-                    raise serializers.ValidationError("Gender ID Does not exist!!")
-                if not Gender.objects.filter(pk=data['Emp_sexesid'].pk,itm_isactive=True):
-                    raise serializers.ValidationError("Gender ID Does not exist!!")
+        # if 'Emp_sexesid' in data:
+        #     if data['Emp_sexesid'] is not None:
+        #         if Gender.objects.filter(pk=data['Emp_sexesid'].pk,itm_isactive=False):
+        #             raise serializers.ValidationError("Gender ID Does not exist!!")
+        #         if not Gender.objects.filter(pk=data['Emp_sexesid'].pk,itm_isactive=True):
+        #             raise serializers.ValidationError("Gender ID Does not exist!!")
 
 
         if 'shift' in data:

@@ -8787,9 +8787,10 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
                     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
                 jobtitle = EmpLevel.objects.filter(id=request.data['EMP_TYPEid'], level_isactive=True).first()
-                gender = Gender.objects.filter(pk=request.data['Emp_sexesid'], itm_isactive=True).first()
+                gender = Gender.objects.filter(pk=request.data.get('Emp_sexesid'), itm_isactive=True).first()
+                gender_code = gender.itm_code if gender else None
                 self.perform_create(serializer)
-                s = serializer.save(emp_code=emp_code, emp_type=jobtitle.level_code, emp_sexes=gender.itm_code,
+                s = serializer.save(emp_code=emp_code, emp_type=jobtitle.level_code, emp_sexes=gender_code,
                                     defaultsitecode=defaultobj.itemsite_code, site_code=Site_Codeid.itemsite_code)
                 s.emp_code = emp_code
                 s.save()
