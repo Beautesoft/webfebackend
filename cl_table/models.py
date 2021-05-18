@@ -2458,7 +2458,7 @@ class Workschedule(models.Model):
         db_table = 'WorkSchedule'
 
     def __str__(self):
-        return str(self.Name)
+        return str(self.name)
 
 class AttnType(models.Model):
     attn_id = models.AutoField(db_column='Attn_id', primary_key=True)  # Field name made lowercase.
