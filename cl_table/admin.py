@@ -1,10 +1,14 @@
 from django.contrib import admin
-from .models import (Gender,Employee,  Fmspw,  Attendance2, Customer, Images, Treatment, Stock ,
-Systemloginlog, EmpSitelist, ItemClass, ItemRange,ItemDept,ItemDiv,ItemType, ControlNo, Treatment_Master,
-Appointment,GstSetting, Securities,PosTaud,Paytable, PayGroup,PosHaud,PosDaud,PosTaud,TreatmentAccount,
-ItemStatus,Source,CustomerClass, Systemlog, ScheduleHour,ScheduleMonth,ApptType, ItemHelper, Multistaff,
-DepositType, ItemUomprice, TmpItemHelper, ItemUom, PackageDtl, PosDisc, FocReason,DepositAccount,
-PrepaidAccount,PrepaidAccountCondition,VoucherCondition,Title,Systemsetup,PackageHdr,ItemBatch,Stktrn)
+from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Treatment, Stock,
+                     Systemloginlog, EmpSitelist, ItemClass, ItemRange, ItemDept, ItemDiv, ItemType, ControlNo,
+                     Treatment_Master,
+                     Appointment, GstSetting, Securities, PosTaud, Paytable, PayGroup, PosHaud, PosDaud, PosTaud,
+                     TreatmentAccount,
+                     ItemStatus, Source, CustomerClass, Systemlog, ScheduleHour, ScheduleMonth, ApptType, ItemHelper,
+                     Multistaff,
+                     DepositType, ItemUomprice, TmpItemHelper, ItemUom, PackageDtl, PosDisc, FocReason, DepositAccount,
+                     PrepaidAccount, PrepaidAccountCondition, VoucherCondition, Title, Systemsetup, PackageHdr,
+                     ItemBatch, Stktrn, Workschedule)
 from cl_app.models import ItemSitelist, SiteGroup
 
 # # Register your models here.
@@ -61,3 +65,4 @@ admin.site.register(Systemsetup)
 admin.site.register(PackageHdr)
 admin.site.register(ItemBatch)
 admin.site.register(Stktrn)
+admin.site.register(Workschedule)

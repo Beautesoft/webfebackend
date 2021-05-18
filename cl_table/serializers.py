@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from .models import (Gender,Employee,  Fmspw,  Attendance2, Customer, Images, Treatment, Stock , 
-EmpSitelist, ItemClass, ItemRange,PackageDtl, Appointment,ItemDept, Treatment_Master,PayGroup,Paytable,
-PosTaud,PosDaud,PosHaud,ItemStatus,Source,Securities,ScheduleHour,ApptType,TmpItemHelper,FocReason)
+from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Treatment, Stock,
+                     EmpSitelist, ItemClass, ItemRange, PackageDtl, Appointment, ItemDept, Treatment_Master, PayGroup,
+                     Paytable,
+                     PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
+                     FocReason, Workschedule)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
 from django.contrib.auth.models import User
@@ -762,6 +764,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
 
     def validate(self, data):
+        """ validation for StaffPlusSerializer"""
         request = self.context['request']
         if not 'emp_name' in request.data:
             raise serializers.ValidationError("emp_name Field is required.")
@@ -1454,6 +1457,43 @@ class ScheduleHourSerializer(serializers.ModelSerializer):
         model = ScheduleHour
         fields = ['id','itm_code','itm_desc','offday']
 
+class EmpWorkScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Workschedule
+        fields = ['id','monday','tuesday','wednesday','thursday','friday','saturday','sunday','emp_code']
+        read_only_fields = ('updated_at', 'created_at', 'emp_code')
+
+    def validate(self, data):
+        request = self.context['request']
+        print("req",data)
+        return data
+
+
+    # def update(self, validated_data):
+
+        # work_schedule = Workschedule.objects.create(emp_code=self.emp.emp_code,
+        #                                             monday=validated_data.get('monday'),
+        #                                             tuesday=validated_data.get('tuesday'),
+        #                                             wednesday=validated_data.get('wednesday'),
+        #                                             thursday=validated_data.get('thursday'),
+        #                                             friday=validated_data.get('friday'),
+        #                                             saturday=validated_data.get('saturday'),
+        #                                             sunday=validated_data.get('sunday'),
+        #                                             name=self.emp.emp_name,
+        #                                             )
+    def update(self, instance, validated_data):
+        print(validated_data)
+        instance.monday = validated_data.get('monday',instance.monday)
+        instance.tuesday = validated_data.get('tuesday',instance.tuesday)
+        instance.wednesday = validated_data.get('wednesday',instance.tuesday)
+        instance.thursday = validated_data.get('thursday',instance.tuesday)
+        instance.friday = validated_data.get('friday',instance.tuesday)
+        instance.saturday = validated_data.get('saturday',instance.tuesday)
+        instance.sunday = validated_data.get('sunday',instance.tuesday)
+
+        instance.save()
+        return instance
+        # instance.name=self.emp.emp_name,
 
 class CustApptSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk',required=False)

@@ -10,7 +10,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      ApptType, ItemHelper, Multistaff, DepositType, TmpItemHelper, PosDisc, FocReason, Holditemdetail,
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
-                     PackageDtl, PackageHdr)
+                     PackageDtl, PackageHdr, Workschedule)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -29,7 +29,7 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,
                           TreatmentApptSerializer,
                           AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer,
-                          EmpInfoSerializer)
+                          EmpInfoSerializer, EmpWorkScheduleSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -9015,6 +9015,54 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
         except Exception as e:
             invalid_message = str(e)
             return general_error_response(invalid_message)
+
+    @action(detail=True, methods=['GET','PUT'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[ExpiringTokenAuthentication], url_path='WorkSchedule', url_name='WorkSchedule')
+    def WorkSchedule(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            employee = self.get_object(pk)
+
+            work_schedule = Workschedule.objects.filter(emp_code=employee.emp_code).first()
+            if work_schedule is None:
+                work_schedule = Workschedule.objects.create(emp_code=employee.emp_code)
+
+            if request.method == "PUT":
+                serializer = EmpWorkScheduleSerializer(work_schedule, data= request.data, partial=True,context={'request': self.request})
+                if serializer.is_valid():
+                    print("valid")
+                    serializer.save()
+                    state = status.HTTP_200_OK
+                    message = "Updated Succesfully"
+                    error = False
+                    data = serializer.data
+                    result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                      action=self.action)
+                    return Response(result, status=status.HTTP_200_OK)
+
+                    state = status.HTTP_204_NO_CONTENT
+                    message = "Invalid Input"
+                    error = True
+                    data = serializer.errors
+                    result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                      action=self.action)
+                    return Response(result, status=status.HTTP_200_OK)
+            else:
+                serializer = EmpWorkScheduleSerializer(work_schedule)
+                data = serializer.data
+                state = status.HTTP_200_OK
+                message = "Listed Succesfully"
+                error = False
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+
 
         # from .models import (City,CustomerClass,State,Country,Maritalstatus,Races,Religious,Nationality,
 # CommType,EmpSocso,Days,ReverseHdr,ReverseDtl,ItemRange)
