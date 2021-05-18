@@ -886,7 +886,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         siteobj = ItemSitelist.objects.filter(pk=validated_data.get('defaultSiteCodeid').pk,itemsite_isactive=True).first()
         employee = Employee.objects.create(emp_name=validated_data.get('emp_name'),
                                            emp_phone1=validated_data.get('emp_phone1'),
-                                           display_name=validated_data.get('emp_name'),
+                                           display_name=validated_data.get('display_name'),
                                            emp_address=validated_data.get('emp_address'),
                                            Emp_sexesid=validated_data.get('Emp_sexesid'),
                                            emp_dob=validated_data.get('emp_dob'),
@@ -917,6 +917,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.emp_name = validated_data.get("emp_name", instance.emp_name)
+        instance.display_name = validated_data.get("display_name", instance.display_name)
         instance.emp_phone1 = validated_data.get("emp_phone1", instance.emp_phone1)
         instance.emp_address = validated_data.get("emp_address", instance.emp_address)
         instance.Emp_sexesid = validated_data.get("Emp_sexesid", instance.Emp_sexesid)
