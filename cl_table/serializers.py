@@ -847,6 +847,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         fmspw = Fmspw.objects.filter(user=self.context['request'].user,pw_isactive=True).first()
         Site_Codeid = fmspw.loginsite
+        site_code_str = str(Site_Codeid.itemsite_code)
         siteobj = ItemSitelist.objects.filter(pk=validated_data.get('defaultSiteCodeid').pk,itemsite_isactive=True).first()
         employee = Employee.objects.create(emp_name=validated_data.get('emp_name'),
                                            emp_phone1=validated_data.get('emp_phone1'),
@@ -868,7 +869,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                                            show_in_appt=validated_data.get('show_in_appt'),
                                            show_in_trmt=validated_data.get('show_in_trmt'),
                                            Site_Codeid=Site_Codeid,
-                                           site_code=Site_Codeid.itemsite_code)
+                                           site_code=site_code_str)
 
         # skills_data = validated_data.pop('skills_list')
         # if ',' in skills_data:

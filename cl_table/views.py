@@ -8789,9 +8789,10 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
                 jobtitle = EmpLevel.objects.filter(id=request.data['EMP_TYPEid'], level_isactive=True).first()
                 gender = Gender.objects.filter(pk=request.data.get('Emp_sexesid'), itm_isactive=True).first()
                 gender_code = gender.itm_code if gender else None
-                self.perform_create(serializer)
+                # self.perform_create(serializer) # commented this line to fix sitecode () issue.
                 s = serializer.save(emp_code=emp_code, emp_type=jobtitle.level_code, emp_sexes=gender_code,
-                                    defaultsitecode=defaultobj.itemsite_code, site_code=Site_Codeid.itemsite_code)
+                                    defaultsitecode=defaultobj.itemsite_code, site_code=Site_Codeid.itemsite_code
+                                    )
                 s.emp_code = emp_code
                 s.save()
                 token = False
