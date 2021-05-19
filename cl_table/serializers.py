@@ -1403,6 +1403,7 @@ class EmpInfoSerializer(serializers.ModelSerializer):
         instance.emp_emerno = validated_data.get("emp_emerno", instance.emp_emerno)
         instance.emp_remarks = validated_data.get("emp_remarks", instance.emp_remarks)
         instance.emp_country = validated_data.get("emp_country", instance.emp_country)
+        instance.emp_race = validated_data.get("emp_race", instance.emp_race)
 
 
         # todo:
