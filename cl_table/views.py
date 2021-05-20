@@ -8957,6 +8957,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             return general_error_response(invalid_message)
 
     def destroy(self, request, pk=None):
+        print("delete")
         try:
             queryset = None
             total = None
@@ -9316,3 +9317,55 @@ def meta_country(request):
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
+class MonthlyWorkSchedule(APIView):
+    # authentication_classes = [ExpiringTokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        # result = {'status': state, "message": message, 'error': error, 'data': data}
+        try:
+            emp_obj = Employee.objects.get(emp_code=request.GET.get("emp_code"))
+        except:
+            return general_error_response("Invalid emp_code")
+
+
+
+        # month_schedule_qs = ScheduleMonth.objects.filter(emp_code=request.GET.get("emp_code"),
+        #                                                  # site_code=request.GET.get("site_code")
+        #                                                  )
+        try:
+            year = int(request.GET.get("year"))
+            month = int(request.GET.get("month"))
+            start_date = datetime.datetime(year=year,month=month,day=1)
+            end_date = datetime.datetime(year=year,month=month+1,day=1)
+            date_range = [start_date + datetime.timedelta(days=i) for i in range(0,(end_date-start_date).days)]
+        except Exception as e:
+            print(e)
+            return general_error_response("Invalid year and month format")
+        resData = []
+
+        # if site_code hasn't in request, get month schedule by default site_code
+        site_code = request.GET.get("site_code",emp_obj.site_code)
+
+        try:
+            for date in date_range:
+                month_schedule = ScheduleMonth.objects.filter(emp_code=request.GET.get("emp_code"),
+                                                              site_code=site_code,
+                                                              itm_date = date,
+                                                              ).first()
+                if not month_schedule:
+                    month_schedule = ScheduleMonth.objects.create(emp_code=request.GET.get("emp_code"),
+                                                              site_code=site_code,
+                                                              itm_date = date,)
+                resData.append({
+                            "id":month_schedule.id,
+                            "emp_code": month_schedule.emp_code,
+                            "itm_date": month_schedule.itm_date,
+                            "itm_type": month_schedule.itm_type,
+
+                        })
+        except Exception as e:
+            return general_error_response(e)
+
+        result = {'status':status.HTTP_200_OK,'message':"success",'error':False, "data":resData}
+        return Response(result,status=status.HTTP_200_OK)

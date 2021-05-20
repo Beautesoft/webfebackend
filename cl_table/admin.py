@@ -8,7 +8,8 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      Multistaff,
                      DepositType, ItemUomprice, TmpItemHelper, ItemUom, PackageDtl, PosDisc, FocReason, DepositAccount,
                      PrepaidAccount, PrepaidAccountCondition, VoucherCondition, Title, Systemsetup, PackageHdr,
-                     ItemBatch, Stktrn, Workschedule)
+                     ItemBatch, Stktrn, Workschedule, Securitycontrollist, Securitylevellist, MenuSecurity,
+                     MenuSecuritylevellist)
 from cl_app.models import ItemSitelist, SiteGroup
 
 # # Register your models here.
@@ -66,3 +67,7 @@ admin.site.register(PackageHdr)
 admin.site.register(ItemBatch)
 admin.site.register(Stktrn)
 admin.site.register(Workschedule)
+admin.site.register(Securitycontrollist)
+admin.site.register(Securitylevellist)
+admin.site.register(MenuSecurity)
+admin.site.register(MenuSecuritylevellist)

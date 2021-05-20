@@ -567,6 +567,57 @@ class Securities(models.Model):
     def __str__(self):
         return str(self.level_name)    
 
+class Securitycontrollist(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    controlname = models.CharField(db_column='ControlName', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    controldesc = models.CharField(db_column='ControlDesc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    controlindex = models.IntegerField(db_column='ControlIndex', blank=True, null=True)  # Field name made lowercase.
+    controlparent = models.CharField(db_column='ControlParent', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    control_status = models.BooleanField(db_column='Control_Status', blank=True, null=True)  # Field name made lowercase.
+    seq = models.IntegerField(db_column='SEQ', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'SecurityControlList'
+
+
+class Securitylevellist(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    controlname = models.CharField(db_column='ControlName', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    controldesc = models.CharField(db_column='ControlDesc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    controlparent = models.CharField(db_column='ControlParent', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    controlindex = models.IntegerField(db_column='ControlIndex', blank=True, null=True)  # Field name made lowercase.
+    controlstatus = models.BooleanField(db_column='ControlStatus')  # Field name made lowercase.
+    level_itemid = models.CharField(db_column='Level_ItemID', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    seq = models.CharField(db_column='SEQ', max_length=10, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'SecurityLevelList'
+
+class MenuSecurity(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    security_level_code = models.CharField(db_column='SECURITY_LEVEL_CODE', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    security_level_desc = models.CharField(db_column='SECURITY_LEVEL_DESC', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    is_active = models.BooleanField(db_column='IS_ACTIVE')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Menu_Security'
+
+
+class MenuSecuritylevellist(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    security_level_code = models.CharField(db_column='SECURITY_LEVEL_CODE', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    menu_list = models.CharField(db_column='MENU_LIST', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    menu_active = models.BooleanField(db_column='MENU_ACTIVE')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Menu_SecurityLevelList'
+
+
+
 class Fmspw(models.Model):
     pw_id = models.AutoField(db_column='PW_ID', primary_key=True)  # Field name made lowercase.
     pw_userlogin = models.CharField(db_column='PW_UserLogin', max_length=50, blank=True, null=True)  # Field name made lowercase.
