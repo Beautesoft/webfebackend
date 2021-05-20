@@ -9027,10 +9027,14 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             total = None
             serializer_class = None
             employee = self.get_object(pk)
+            is_alt = request.GET.get("is_alt","false")
 
-            work_schedule = Workschedule.objects.filter(emp_code=employee.emp_code).first()
+            is_alt = True if is_alt.lower() == "true" else False
+
+
+            work_schedule = Workschedule.objects.filter(emp_code=employee.emp_code,is_alternative=is_alt).first()
             if work_schedule is None:
-                work_schedule = Workschedule.objects.create(emp_code=employee.emp_code)
+                work_schedule = Workschedule.objects.create(emp_code=employee.emp_code,is_alternative=is_alt)
 
             if request.method == "PUT":
                 serializer = EmpWorkScheduleSerializer(work_schedule, data= request.data, partial=True,context={'request': self.request})
