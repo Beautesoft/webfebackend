@@ -2505,6 +2505,8 @@ class Workschedule(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
+    is_alternative = models.BooleanField(db_column='is_alter',default=False)
+
     class Meta:
         db_table = 'WorkSchedule'
 

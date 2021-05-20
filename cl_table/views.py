@@ -9318,8 +9318,8 @@ def meta_country(request):
 
 
 class MonthlyWorkSchedule(APIView):
-    # authentication_classes = [ExpiringTokenAuthentication]
-    # permission_classes = [IsAuthenticated & authenticated_only]
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self, request):
         # result = {'status': state, "message": message, 'error': error, 'data': data}
@@ -9328,11 +9328,6 @@ class MonthlyWorkSchedule(APIView):
         except:
             return general_error_response("Invalid emp_code")
 
-
-
-        # month_schedule_qs = ScheduleMonth.objects.filter(emp_code=request.GET.get("emp_code"),
-        #                                                  # site_code=request.GET.get("site_code")
-        #                                                  )
         try:
             year = int(request.GET.get("year"))
             month = int(request.GET.get("month"))
@@ -9357,6 +9352,8 @@ class MonthlyWorkSchedule(APIView):
                     month_schedule = ScheduleMonth.objects.create(emp_code=request.GET.get("emp_code"),
                                                               site_code=site_code,
                                                               itm_date = date,)
+
+
                 resData.append({
                             "id":month_schedule.id,
                             "emp_code": month_schedule.emp_code,
@@ -9369,3 +9366,36 @@ class MonthlyWorkSchedule(APIView):
 
         result = {'status':status.HTTP_200_OK,'message':"success",'error':False, "data":resData}
         return Response(result,status=status.HTTP_200_OK)
+
+    def post(self,request):
+        requestData = request.data
+
+        month_schedule_list = requestData.get("monthlySchedule")
+
+        for ms in month_schedule_list:
+            try:
+                h_schedule = ScheduleHour.objects.filter(itm_code=ms["itm_type"]).first()
+                m_schedule = ScheduleMonth.objects.get(id=ms['id'])
+                m_schedule.itm_type = ms["itm_type"]
+                m_schedule = h_schedule
+                m_schedule.save()
+            except Exception as e:
+                print(e)
+
+        result = {'status': status.HTTP_200_OK, 'message': "update success", 'error': False}
+        return Response(result, status=status.HTTP_200_OK)
+
+@api_view(['GET',])
+def schedule_hours(request):
+    try:
+        qs = ScheduleHour.objects.filter(itm_isactive=True).values('id','itm_code','itm_desc','fromtime','totime','offday','itm_color')
+        response_data = {
+            "schedules": list(qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data,status=status.HTTP_200_OK)
+    except:
+        response_data = {
+            "message": "error"
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)

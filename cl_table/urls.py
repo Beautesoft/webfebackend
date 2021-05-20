@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/meta/religion/', views.meta_religious, name='meta_religious'),
     path('api/meta/country/', views.meta_country, name='meta_country'),
     path('api/WorkScheduleMonth/', views.MonthlyWorkSchedule.as_view(), name='WorkScheduleMonth'),
+    path('api/WorkScheduleHours/', views.schedule_hours, name='WorkScheduleHours'),
 
 
 
