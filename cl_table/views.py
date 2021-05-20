@@ -9341,7 +9341,7 @@ class MonthlyWorkSchedule(APIView):
         except Exception as e:
             print(e)
             return general_error_response("Invalid year and month format")
-        resData = []
+        monthlySchedule = []
 
         # if site_code hasn't in request, get month schedule by default site_code
         site_code = request.GET.get("site_code",emp_obj.site_code)
@@ -9358,7 +9358,7 @@ class MonthlyWorkSchedule(APIView):
                                                               itm_date = date,)
 
 
-                resData.append({
+                monthlySchedule.append({
                             "id":month_schedule.id,
                             "emp_code": month_schedule.emp_code,
                             "itm_date": month_schedule.itm_date,
@@ -9367,6 +9367,22 @@ class MonthlyWorkSchedule(APIView):
                         })
         except Exception as e:
             return general_error_response(e)
+
+        work_schedule = Workschedule.objects.filter(emp_code=emp_obj.emp_code, is_alternative=False).first()
+        if work_schedule is None:
+            work_schedule = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=False)
+
+
+
+        work_schedule_alt = Workschedule.objects.filter(emp_code=emp_obj.emp_code, is_alternative=True).first()
+        if work_schedule_alt is None:
+            work_schedule_alt = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=True)
+
+        resData = {
+            "monthlySchedule":monthlySchedule,
+            "weekSchedule": EmpWorkScheduleSerializer(work_schedule).data,
+            "altWeekSchedule": EmpWorkScheduleSerializer(work_schedule_alt).data
+        }
 
         result = {'status':status.HTTP_200_OK,'message':"success",'error':False, "data":resData}
         return Response(result,status=status.HTTP_200_OK)
@@ -9385,6 +9401,34 @@ class MonthlyWorkSchedule(APIView):
                 m_schedule.save()
             except Exception as e:
                 print(e)
+
+        week_schedule_dict = requestData.get("weekSchedule")
+        try:
+            work_schedule = Workschedule.objects.get(id=week_schedule_dict['id'])
+            work_schedule.monday = week_schedule_dict.get("monday")
+            work_schedule.tuesday = week_schedule_dict.get("tuesday")
+            work_schedule.wednesday = week_schedule_dict.get("wednesday")
+            work_schedule.thursday = week_schedule_dict.get("thursday")
+            work_schedule.friday = week_schedule_dict.get("friday")
+            work_schedule.saturday = week_schedule_dict.get("saturday")
+            work_schedule.sunday = week_schedule_dict.get("sunday")
+            work_schedule.save()
+        except Exception as e:
+            return general_error_response(e)
+
+        alt_week_schedule_dict = requestData.get("altWeekSchedule")
+        try:
+            alt_work_schedule = Workschedule.objects.get(id=alt_week_schedule_dict['id'])
+            alt_work_schedule.monday = alt_week_schedule_dict.get("monday")
+            alt_work_schedule.tuesday = alt_week_schedule_dict.get("tuesday")
+            alt_work_schedule.wednesday = alt_week_schedule_dict.get("wednesday")
+            alt_work_schedule.thursday = alt_week_schedule_dict.get("thursday")
+            alt_work_schedule.friday = alt_week_schedule_dict.get("friday")
+            alt_work_schedule.saturday = alt_week_schedule_dict.get("saturday")
+            alt_work_schedule.sunday = alt_week_schedule_dict.get("sunday")
+            alt_work_schedule.save()
+        except Exception as e:
+            return general_error_response(e)
 
         result = {'status': status.HTTP_200_OK, 'message': "update success", 'error': False}
         return Response(result, status=status.HTTP_200_OK)
