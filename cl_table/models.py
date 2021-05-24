@@ -2198,6 +2198,18 @@ class Stock(models.Model):
     def __str__(self):
         return str(self.item_desc)
 
+class Skillstaff(models.Model):
+    id = models.BigAutoField(db_column='Id', primary_key=True)  # Field name made lowercase.
+    sitecode = models.CharField(db_column='siteCode', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    staffcode = models.CharField(db_column='staffCode', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    itemcode = models.CharField(db_column='itemCode', max_length=20, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'skillstaff'
+
+
+
 class ItemStocklist(models.Model):
     itemstocklist_id = models.AutoField(db_column='ItemStockList_ID', primary_key=True)  # Field name made lowercase.
     item_code = models.CharField(db_column='Item_Code', max_length=20, null=True)  # Field name made lowercase.

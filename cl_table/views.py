@@ -10,7 +10,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      ApptType, ItemHelper, Multistaff, DepositType, TmpItemHelper, PosDisc, FocReason, Holditemdetail,
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
-                     PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country)
+                     PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -9069,7 +9069,33 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             invalid_message = str(e)
             return general_error_response(invalid_message)
 
+    @action(detail=True, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[ExpiringTokenAuthentication], url_path='StaffSkills', url_name='StaffSkills')
+    def StaffSkills(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            employee = self.get_object(pk)
 
+            skill_qs = Skillstaff.objects.filter(staffcode=employee.emp_code)
+            responseData = {}
+            skills_list = []
+            for sk in skill_qs:
+                itm_code = str(sk.itemcode)
+                _stock = Stock.objects.filter(item_code=itm_code).values("item_code","item_name").first()
+                if _stock:
+                    skills_list.append(_stock)
+            state = status.HTTP_200_OK
+            message = "Listed Succesfully"
+            error = False
+            responseData["skills"] = skills_list
+            result = response(self, request, queryset, total, state, message, error, serializer_class, responseData,
+                          action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
 
         # from .models import (City,CustomerClass,State,Country,Maritalstatus,Races,Religious,Nationality,
 # CommType,EmpSocso,Days,ReverseHdr,ReverseDtl,ItemRange)
