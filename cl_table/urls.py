@@ -36,6 +36,7 @@ urlpatterns = [
     path('api/meta/country/', views.meta_country, name='meta_country'),
     path('api/WorkScheduleMonth/', views.MonthlyWorkSchedule.as_view(), name='WorkScheduleMonth'),
     path('api/WorkScheduleHours/', views.schedule_hours, name='WorkScheduleHours'),
+    path('api/SkillsItemTypeList/', views.SkillsItemTypeList, name='SkillsItemTypeList'),
 
     path('api/EmployeeSkills/', views.EmployeeSkillView.as_view(), name='EmployeeSkillView'),
 

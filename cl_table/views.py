@@ -10,7 +10,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      ApptType, ItemHelper, Multistaff, DepositType, TmpItemHelper, PosDisc, FocReason, Holditemdetail,
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
-                     PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff)
+                     PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -9474,6 +9474,21 @@ def schedule_hours(request):
         }
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['GET',])
+def SkillsItemTypeList(request):
+    try:
+        qs = ItemType.objects.all().values('itm_id','itm_name','itm_removable')
+        response_data = {
+            "skillsTypes": list(qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data,status=status.HTTP_200_OK)
+    except Exception as e:
+        response_data = {
+            "message": "error"
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EmployeeSkillView(APIView):
     authentication_classes = [ExpiringTokenAuthentication]
@@ -9517,3 +9532,5 @@ class EmployeeSkillView(APIView):
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
+
+
