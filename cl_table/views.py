@@ -9481,23 +9481,32 @@ class EmployeeSkillView(APIView):
 
     def get(self, request):
         try:
-            emp_qs = Employee.objects.all()
-            # todo: emp filters are needed
+            emp_qs = Employee.objects.filter(emp_isactive=True)
+            emp_type = request.GET.get("emp_type")
+            item_type = request.GET.get("item_type")
+            if emp_type:
+                emp_qs = emp_qs.filter(emp_type=emp_type)
+
             emp_list = []
             for emp in emp_qs:
                 skill_qs = Skillstaff.objects.filter(staffcode=emp.emp_code)
                 skills_list = []
                 for sk in skill_qs:
                     itm_code = str(sk.itemcode)
-                    _stock = Stock.objects.filter(item_code=itm_code).values("item_no","item_code", "item_name").first()
+                    if item_type:
+                        _stock = Stock.objects.filter(item_code=itm_code,Item_Typeid=item_type)
+                    else:
+                        _stock = Stock.objects.filter(item_code=itm_code)
                     if _stock:
-                        skills_list.append(_stock)
-                emp_list.append({
-                    "emp_no": emp.emp_no,
-                    "emp_code": emp.emp_code,
-                    "staffname": emp.display_name,
-                    "skills": skills_list
-                })
+                        skills_list.append(_stock.values("item_no","item_code", "item_name","item_type","Item_Typeid").first())
+                if skills_list:
+                    emp_list.append({
+                        "emp_no": emp.emp_no,
+                        "emp_code": emp.emp_code,
+                        "emp_type": emp.emp_type,
+                        "staffname": emp.display_name,
+                        "skills": skills_list
+                    })
 
         except Exception as e:
             return general_error_response(e)
