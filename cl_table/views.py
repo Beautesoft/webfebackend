@@ -9462,7 +9462,8 @@ class MonthlyWorkSchedule(APIView):
 @api_view(['GET',])
 def schedule_hours(request):
     try:
-        qs = ScheduleHour.objects.filter(itm_isactive=True).values('id','itm_code','itm_desc','fromtime','totime','offday','itm_color')
+        qs = ScheduleHour.objects.filter(itm_isactive=True).values('id','itm_code','itm_desc','fromtime','totime',
+                                                                   'offday','itm_color','shortDesc')
         response_data = {
             "schedules": list(qs),
             "message": "Listed successfuly"

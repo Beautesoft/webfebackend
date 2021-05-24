@@ -2447,6 +2447,7 @@ class ScheduleHour(models.Model):
     itm_type = models.CharField(max_length=50, blank=True, null=True)
     itm_color = models.CharField(db_column='itm_Color', max_length=50, blank=True, null=True)  # Field name made lowercase.
     timeframe = models.CharField(db_column='TimeFrame', max_length=20, null=True)  # Field name made lowercase.
+    shortDesc = models.CharField(db_column='shortDesc', max_length=20, null=True)  # Field name made lowercase.
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
