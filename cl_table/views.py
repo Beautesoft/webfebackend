@@ -9473,3 +9473,38 @@ def schedule_hours(request):
             "message": "error"
         }
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmployeeSkillView(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        try:
+            emp_qs = Employee.objects.all()
+            # todo: emp filters are needed
+            emp_list = []
+            for emp in emp_qs:
+                skill_qs = Skillstaff.objects.filter(staffcode=emp.emp_code)
+                skills_list = []
+                for sk in skill_qs:
+                    itm_code = str(sk.itemcode)
+                    _stock = Stock.objects.filter(item_code=itm_code).values("item_no","item_code", "item_name").first()
+                    if _stock:
+                        skills_list.append(_stock)
+                emp_list.append({
+                    "emp_no": emp.emp_no,
+                    "emp_code": emp.emp_code,
+                    "staffname": emp.display_name,
+                    "skills": skills_list
+                })
+
+        except Exception as e:
+            return general_error_response(e)
+
+        responseData = {
+            "data": emp_list
+        }
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)

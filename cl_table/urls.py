@@ -37,6 +37,8 @@ urlpatterns = [
     path('api/WorkScheduleMonth/', views.MonthlyWorkSchedule.as_view(), name='WorkScheduleMonth'),
     path('api/WorkScheduleHours/', views.schedule_hours, name='WorkScheduleHours'),
 
+    path('api/EmployeeSkills/', views.EmployeeSkillView, name='EmployeeSkillView'),
+
 
 
     
