@@ -2977,4 +2977,20 @@ class GstSetting(models.Model):
         return str(self.item_code)     
 
 
+class CustomerFormControl(models.Model):
+    id = models.AutoField(primary_key=True)
+    field_name = models.CharField(db_column='fieldName', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    display_field_name = models.CharField(db_column='displayFieldName', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    visible_in_registration = models.BooleanField(db_column='visibleInRegistration')  # Field name made lowercase.
+    visible_in_listing = models.BooleanField(db_column='visibleInListing')  # Field name made lowercase.
+    visible_in_profile = models.BooleanField(db_column='visibleInProfile')  # Field name made lowercase.
+    editable = models.BooleanField()
+    mandatory = models.BooleanField()
+    isActive = models.BooleanField(db_column='isActive')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'customerFormControl'
+
+
 

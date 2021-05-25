@@ -9,7 +9,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      DepositType, ItemUomprice, TmpItemHelper, ItemUom, PackageDtl, PosDisc, FocReason, DepositAccount,
                      PrepaidAccount, PrepaidAccountCondition, VoucherCondition, Title, Systemsetup, PackageHdr,
                      ItemBatch, Stktrn, Workschedule, Securitycontrollist, Securitylevellist, MenuSecurity,
-                     MenuSecuritylevellist, Skillstaff)
+                     MenuSecuritylevellist, Skillstaff, CustomerFormControl)
 from cl_app.models import ItemSitelist, SiteGroup
 
 # # Register your models here.
@@ -72,3 +72,4 @@ admin.site.register(Securitylevellist)
 admin.site.register(MenuSecurity)
 admin.site.register(MenuSecuritylevellist)
 admin.site.register(Skillstaff)
+admin.site.register(CustomerFormControl)

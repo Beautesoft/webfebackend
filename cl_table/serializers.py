@@ -3,7 +3,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      EmpSitelist, ItemClass, ItemRange, PackageDtl, Appointment, ItemDept, Treatment_Master, PayGroup,
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
-                     FocReason, Workschedule)
+                     FocReason, Workschedule, CustomerFormControl)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
 from django.contrib.auth.models import User
@@ -1521,4 +1521,11 @@ class AppointmentSortSerializer(serializers.ModelSerializer):
         model = Employee
         fields = ['id', 'display_name','emp_ids'] 
         extra_kwargs = {'emp_ids': {'required': True}}
+
+
+class CustomerFormControlSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerFormControl
+        fields = ['id','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory']
+        read_only_fields = ('field_name',)
 

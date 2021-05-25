@@ -10,7 +10,8 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      ApptType, ItemHelper, Multistaff, DepositType, TmpItemHelper, PosDisc, FocReason, Holditemdetail,
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
-                     PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType)
+                     PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType,
+                     CustomerFormControl)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -29,7 +30,7 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,
                           TreatmentApptSerializer,
                           AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer,
-                          EmpInfoSerializer, EmpWorkScheduleSerializer)
+                          EmpInfoSerializer, EmpWorkScheduleSerializer, CustomerFormControlSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -9533,5 +9534,35 @@ class EmployeeSkillView(APIView):
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
+
+
+class CustomerFormSettingsView(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+
+        query_set = CustomerFormControl.objects.filter(isActive=True)
+        print(query_set)
+        serializer = CustomerFormControlSerializer(query_set,many=True)
+
+
+        responseData = {
+            "data": serializer.data
+        }
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+    def get_object(self, pk):
+        try:
+            return CustomerFormControl.objects.get(pk=pk)
+        except CustomerFormControl.DoesNotExist:
+            raise Http404
+
+    # def put(self,request):
+    #     requestData = request.data
+
+
 
 
