@@ -148,7 +148,8 @@ CRONJOBS = [
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'MidysonTrain',
+        'NAME': 'healspahqtrain',
+        # 'NAME': 'MidysonTrain',
         'HOST': '103.253.15.184',
         'PORT': '1433',
         'USER': 'sa',
