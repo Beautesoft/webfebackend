@@ -1527,5 +1527,5 @@ class CustomerFormControlSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerFormControl
         fields = ['id','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory']
-        read_only_fields = ('field_name',)
+        read_only_fields = ('field_name','display_field_name')
 

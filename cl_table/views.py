@@ -9547,21 +9547,31 @@ class CustomerFormSettingsView(APIView):
         serializer = CustomerFormControlSerializer(query_set,many=True)
 
 
-        responseData = {
-            "data": serializer.data
-        }
 
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
     def get_object(self, pk):
         try:
-            return CustomerFormControl.objects.get(pk=pk)
+            return CustomerFormControl.objects.get(id=pk)
         except CustomerFormControl.DoesNotExist:
             raise Http404
 
-    # def put(self,request):
-    #     requestData = request.data
+    def put(self,request):
+        control_list = request.data.get("customerControlList",[])
+
+        for control in control_list:
+            cf_obj = self.get_object(control['id'])
+            serializer = CustomerFormControlSerializer(cf_obj,data=control,partial=True)
+            if serializer.is_valid():
+                print("yes")
+                serializer.save()
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False,} #"data": serializer.data}
+        return Response(result, status=status.HTTP_200_OK)
+
+
 
 
 
