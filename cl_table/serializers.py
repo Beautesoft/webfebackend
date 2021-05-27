@@ -203,6 +203,92 @@ class CustomerSerializer(serializers.ModelSerializer):
         return data    
 
 
+class CustomerPlusSerializer(serializers.ModelSerializer):
+
+    id = serializers.IntegerField(source='pk',required=False)
+    gender = serializers.CharField(source='Cust_sexesid.itm_name',required=False)
+    site_name = serializers.CharField(source='Site_Codeid.itemsite_desc',required=False)
+    class_name = serializers.CharField(source='Cust_Classid.class_desc',required=False)
+
+    class Meta:
+        model = Customer
+        fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit','class_name',
+        'upcoming_appointments','cust_dob','cust_phone2','Cust_sexesid','gender','cust_email','prepaid_card','cust_occupation',
+        'creditnote','voucher_available','oustanding_payment','cust_refer','custallowsendsms','cust_maillist','Cust_Classid']
+        read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
+        'Site_Code','cust_code','ProneToComplain')
+        extra_kwargs = {'cust_name': {'required': True},'cust_address':{'required': True}}
+
+
+    def validate(self, data):
+        request = self.context['request']
+        if not 'cust_name' in request.data:
+            raise serializers.ValidationError("cust_name Field is required.")
+        else:
+            if request.data['cust_name'] is None:
+                raise serializers.ValidationError("cust_name Field is required.")
+        # if not 'cust_address' in request.data:
+        #     raise serializers.ValidationError("cust_address Field is required.")
+        # else:
+        #     if request.data['cust_address'] is None:
+        #         raise serializers.ValidationError("cust_address Field is required.")
+        # if not 'cust_dob' in request.data:
+        #     raise serializers.ValidationError("cust_dob Field is required.")
+        # else:
+        #     if request.data['cust_dob'] is None:
+        #         raise serializers.ValidationError("cust_dob Field is required.")
+        if not 'cust_phone2' in request.data:
+            raise serializers.ValidationError("cust_phone2 Field is required.")
+        else:
+            if request.data['cust_phone2'] is None:
+                raise serializers.ValidationError("cust_phone2 Field is required.")
+        # if not 'Cust_sexesid' in request.data:
+        #     raise serializers.ValidationError("Cust_sexesid Field is required.")
+        # else:
+        #     if request.data['Cust_sexesid'] is None:
+        #         raise serializers.ValidationError("Cust_sexesid Field is required.")
+        if not 'Site_Codeid' in request.data:
+            raise serializers.ValidationError("Site_Codeid Field is required.")
+        else:
+            if request.data['Site_Codeid'] is None:
+                raise serializers.ValidationError("Site_Codeid Field is required.")
+
+        if 'Cust_sexesid' in data:
+            if data['Cust_sexesid'] is not None:
+                if Gender.objects.filter(pk=data['Cust_sexesid'].pk,itm_isactive=False):
+                    raise serializers.ValidationError("Gender ID Does not exist!!")
+
+                if not Gender.objects.filter(pk=data['Cust_sexesid'].pk,itm_isactive=True):
+                    result = {'status': status.HTTP_400_BAD_REQUEST,"message":"Gender Id does not exist!!",'error': True}
+                    raise serializers.ValidationError(result)
+        if 'Site_Codeid' in data:
+            if data['Site_Codeid'] is not None:
+                if ItemSitelist.objects.filter(pk=data['Site_Codeid'].pk,itemsite_isactive=False):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+                if not ItemSitelist.objects.filter(pk=data['Site_Codeid'].pk,itemsite_isactive=True):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+
+        # if not 'cust_maillist' in request.data:
+        #     raise serializers.ValidationError("cust_maillist Field is required.")
+        # else:
+        #     if request.data['cust_maillist'] is None:
+        #         raise serializers.ValidationError("cust_maillist Field is required.")
+        # if not 'custallowsendsms' in request.data:
+        #     raise serializers.ValidationError("custallowsendsms Field is required.")
+        # else:
+        #     if request.data['custallowsendsms'] is None:
+        #         raise serializers.ValidationError("custallowsendsms Field is required.")
+        # Email and Mobile number validation
+        if request.data['cust_email']:
+            customer_mail =  Customer.objects.filter(cust_email=request.data['cust_email'])
+            if len(customer_mail) > 0:
+                raise serializers.ValidationError("Email id is already associated with another account")
+        customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'])
+        if len(customer) > 0:
+            raise serializers.ValidationError("Mobile number is already associated with another account")
+        return data
+
+
 class CustomerUpdateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk',required=False)
     gender = serializers.CharField(source='Cust_sexesid.itm_name',required=False)
@@ -1526,6 +1612,6 @@ class AppointmentSortSerializer(serializers.ModelSerializer):
 class CustomerFormControlSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerFormControl
-        fields = ['id','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory']
+        fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory']
         read_only_fields = ('field_name','display_field_name')
 

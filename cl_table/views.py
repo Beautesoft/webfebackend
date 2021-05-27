@@ -30,7 +30,8 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,
                           TreatmentApptSerializer,
                           AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer,
-                          EmpInfoSerializer, EmpWorkScheduleSerializer, CustomerFormControlSerializer)
+                          EmpInfoSerializer, EmpWorkScheduleSerializer, CustomerFormControlSerializer,
+                          CustomerPlusSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -9543,11 +9544,7 @@ class CustomerFormSettingsView(APIView):
     def get(self, request):
 
         query_set = CustomerFormControl.objects.filter(isActive=True)
-        print(query_set)
         serializer = CustomerFormControlSerializer(query_set,many=True)
-
-
-
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
@@ -9571,6 +9568,235 @@ class CustomerFormSettingsView(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False,} #"data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
+
+
+class CustomerPlusViewset(viewsets.ModelViewSet):
+    # authentication_classes = [ExpiringTokenAuthentication]
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+    queryset = Customer.objects.filter(cust_isactive=True).order_by('-pk')
+    serializer_class = CustomerPlusSerializer
+
+    def get_queryset(self):
+        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        site = fmspw[0].loginsite
+
+        queryset = Customer.objects.filter(cust_isactive=True,
+                                           Site_Codeid__pk=site.pk).only('cust_isactive', 'Site_Codeid').order_by('-pk')
+        if int(fmspw[0].LEVEL_ItmIDid.level_code) == 24:
+            queryset = Customer.objects.filter(cust_isactive=True).only('cust_isactive').order_by('-pk')
+        elif int(fmspw[0].LEVEL_ItmIDid.level_code) in [27, 31]:
+            queryset = Customer.objects.filter(cust_isactive=True,
+                                               Site_Codeid__pk=site.pk).only('cust_isactive', 'Site_Codeid').order_by(
+                '-pk')
+
+        q = self.request.GET.get('search', None)
+        value = self.request.GET.get('sortValue', None)
+        key = self.request.GET.get('sortKey', None)
+
+        if q is not None:
+            queryset = queryset.filter(Q(cust_name__icontains=q) | Q(cust_address__icontains=q)).order_by('-pk')
+        elif value and key is not None:
+            if value == "asc":
+                if key == 'cust_name':
+                    queryset = queryset.order_by('cust_name')
+                elif key == 'cust_address':
+                    queryset = queryset.order_by('cust_address')
+            elif value == "desc":
+                if key == 'cust_name':
+                    queryset = queryset.order_by('-cust_name')
+                elif key == 'cust_address':
+                    queryset = queryset.order_by('-cust_address')
+
+        return queryset
+
+    def list(self, request):
+        try:
+            serializer_class = CustomerPlusSerializer
+            queryset = self.filter_queryset(self.get_queryset())
+            total = len(queryset)
+            state = status.HTTP_200_OK
+            message = "Listed Succesfully"
+            error = False
+            data = None
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def create(self, request):
+        try:
+            state = status.HTTP_400_BAD_REQUEST
+            fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
+            queryset = None
+            serializer_class = None
+            total = None
+            serializer = self.get_serializer(data=request.data, context={'request': self.request})
+            if serializer.is_valid():
+                self.perform_create(serializer)
+                site = fmspw[0].loginsite
+                if not site:
+                    result = {'status': status.HTTP_400_BAD_REQUEST,
+                              "message": "Users Employee Site_Codeid is not mapped!!", 'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                control_obj = ControlNo.objects.filter(control_description__iexact="VIP CODE",
+                                                       Site_Codeid__pk=site.pk).first()
+                if not control_obj:
+                    result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Customer Control No does not exist!!",
+                              'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                cus_code = str(control_obj.Site_Codeid.itemsite_code) + str(control_obj.control_no)
+                gender = False
+                if request.data['Cust_sexesid']:
+                    gender = Gender.objects.filter(pk=request.data['Cust_sexesid'], itm_isactive=True).first()
+                k = serializer.save(site_code=site.itemsite_code, cust_code=cus_code,
+                                    cust_sexes=gender.itm_code if gender else None, cust_joindate=timezone.now())
+                if k.pk:
+                    control_obj.control_no = int(control_obj.control_no) + 1
+                    control_obj.save()
+                state = status.HTTP_201_CREATED
+                message = "Created Succesfully"
+                error = False
+                data = serializer.data
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_201_CREATED)
+
+            error = True
+            # print(serializer.errors,"serializer.errors")
+            data = serializer.errors
+            # print(data,"data")
+            if 'non_field_errors' in data:
+                message = data['non_field_errors'][0]
+            else:
+                message = "Invalid Input"
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def get_object(self, pk):
+        try:
+            return Customer.objects.get(pk=pk, cust_isactive=True)
+        except Customer.DoesNotExist:
+            raise Http404
+
+    def retrieve(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            customer = self.get_object(pk)
+            serializer = CustomerPlusSerializer(customer)
+            data = serializer.data
+            state = status.HTTP_200_OK
+            message = "Listed Succesfully"
+            error = False
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def update(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            customer = self.get_object(pk)
+            serializer = CustomerUpdateSerializer(customer, data=request.data, context={'request': self.request})
+            if serializer.is_valid():
+                serializer.save()
+                state = status.HTTP_200_OK
+                message = "Updated Succesfully"
+                error = False
+                data = serializer.data
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+
+            data = serializer.errors
+            message = data['non_field_errors'][0]
+            state = status.HTTP_204_NO_CONTENT
+            error = True
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def partial_update(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            customer = self.get_object(pk)
+            serializer = CustomerUpdateSerializer(customer, data=request.data, partial=True,
+                                                  context={'request': self.request})
+            if serializer.is_valid():
+                serializer.save()
+                state = status.HTTP_200_OK
+                message = "Updated Succesfully"
+                error = False
+                data = serializer.data
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+
+            state = status.HTTP_204_NO_CONTENT
+            message = "Invalid Input"
+            error = True
+            data = serializer.errors
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def destroy(self, request, pk=None):
+        try:
+            queryset = None
+            total = None
+            serializer_class = None
+            data = None
+            state = status.HTTP_204_NO_CONTENT
+            instance = self.get_object(pk)
+            if instance:
+                result = {'status': status.HTTP_400_BAD_REQUEST, "message": "You are not allowed to delete customer!!",
+                          'error': True}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                self.perform_destroy(instance)
+                message = "Deleted Succesfully"
+                error = False
+                result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                                  action=self.action)
+                return Response(result, status=status.HTTP_200_OK)
+            except Exception as e:
+                pass
+
+            message = "No Content"
+            error = True
+            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+                              action=self.action)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            invalid_message = str(e)
+            return general_error_response(invalid_message)
+
+    def perform_destroy(self, instance):
+        instance.cust_isactive = False
+        instance.save()
 
 
 

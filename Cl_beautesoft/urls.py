@@ -30,6 +30,7 @@ router.register(r'empappointmentview', views.EmployeeAppointmentView, basename='
 router.register(r'appointmentresources', views.AppointmentResourcesViewset, basename='appointmentresources')
 
 router.register(r'staffPlus', views.StaffPlusViewSet, basename='staffPlus')
+router.register(r'CustomerPlus', views.CustomerPlusViewset, basename='CustomerPlus')
 
 
     
