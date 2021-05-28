@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/WorkScheduleHours/', views.schedule_hours, name='WorkScheduleHours'),
     path('api/SkillsItemTypeList/', views.SkillsItemTypeList, name='SkillsItemTypeList'),
 
+
     path('api/EmployeeSkills/', views.EmployeeSkillView.as_view(), name='EmployeeSkillView'),
     path('api/CustomerFormSettings/', views.CustomerFormSettingsView.as_view(), name='CustomerFormSettingsView'),
 

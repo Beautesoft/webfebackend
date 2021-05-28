@@ -65,6 +65,19 @@ class CustomerClass(models.Model):
 
     def __str__(self):
         return str(self.class_desc)
+
+class CustomerTitle(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    itm_code = models.CharField(db_column='ITM_CODE', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    itm_desc = models.CharField(db_column='ITM_DESC', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    seq = models.FloatField(db_column='SEQ')  # Field name made lowercase.
+    isactive = models.BooleanField(db_column='ISACTIVE')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Customer_Title'
+
+
     
 class Source(models.Model):
     id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.

@@ -3,7 +3,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      EmpSitelist, ItemClass, ItemRange, PackageDtl, Appointment, ItemDept, Treatment_Master, PayGroup,
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
-                     FocReason, Workschedule, CustomerFormControl)
+                     FocReason, Workschedule, CustomerFormControl, CustomerClass)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
 from django.contrib.auth.models import User
@@ -202,19 +202,26 @@ class CustomerSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Mobile number is already associated with another account")
         return data    
 
+class CustomerClassSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= CustomerClass
+        fields = ["id","class_desc","class_code"]
+
 
 class CustomerPlusSerializer(serializers.ModelSerializer):
 
     id = serializers.IntegerField(source='pk',required=False)
     gender = serializers.CharField(source='Cust_sexesid.itm_name',required=False)
     site_name = serializers.CharField(source='Site_Codeid.itemsite_desc',required=False)
-    class_name = serializers.CharField(source='Cust_Classid.class_desc',required=False)
+    # class_name = serializers.CharField(source='Cust_Classid.class_desc',required=False)
+    custClass = CustomerClassSerializer(source="Cust_Classid",read_only=True)
 
     class Meta:
         model = Customer
-        fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit','class_name',
+        fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit','custClass',
+                  # 'class_name',
         'upcoming_appointments','cust_dob','cust_phone2','Cust_sexesid','gender','cust_email','prepaid_card','cust_occupation',
-        'creditnote','voucher_available','oustanding_payment','cust_refer','custallowsendsms','cust_maillist','Cust_Classid']
+        'creditnote','voucher_available','oustanding_payment','cust_refer','custallowsendsms','cust_maillist','cust_title']
         read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
         'Site_Code','cust_code','ProneToComplain')
         extra_kwargs = {'cust_name': {'required': True},'cust_address':{'required': True}}
