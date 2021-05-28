@@ -9577,6 +9577,9 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
     queryset = Customer.objects.filter(cust_isactive=True).order_by('-pk')
     serializer_class = CustomerPlusSerializer
 
+    # filter_backends = [DjangoFilterBackend, ]
+
+
     def get_queryset(self):
         fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
         site = fmspw[0].loginsite
@@ -9614,6 +9617,13 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         try:
             serializer_class = CustomerPlusSerializer
             queryset = self.filter_queryset(self.get_queryset())
+            query_parm_dict = request.GET
+            for k, v in query_parm_dict.items():
+                if hasattr(Customer, k):
+                    try:
+                        queryset = queryset.filter(**{k: v})
+                    except FieldError:
+                        continue
             total = len(queryset)
             state = status.HTTP_200_OK
             message = "Listed Succesfully"
