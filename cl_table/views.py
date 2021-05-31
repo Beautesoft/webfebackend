@@ -9363,14 +9363,17 @@ class MonthlyWorkSchedule(APIView):
             return general_error_response("Invalid emp_code")
 
         try:
-            year = int(request.GET.get("year"))
-            month = int(request.GET.get("month"))
-            start_date = datetime.datetime(year=year,month=month,day=1)
-            end_date = datetime.datetime(year=year,month=month+1,day=1)
-            date_range = [start_date + datetime.timedelta(days=i) for i in range(0,(end_date-start_date).days)]
+            # year = int(request.GET.get("year"))
+            # month = int(request.GET.get("month"))
+            # start_date = datetime.datetime(year=year,month=month,day=1)
+            # end_date = datetime.datetime(year=year,month=month+1,day=1)
+            # change to date range
+            start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
+            date_range = [start_date + datetime.timedelta(days=i) for i in range(0,(end_date-start_date).days+1)]
         except Exception as e:
             print(e)
-            return general_error_response("Invalid year and month format")
+            return general_error_response("Invalid start and end date format")
         monthlySchedule = []
 
         # if site_code hasn't in request, get month schedule by default site_code
