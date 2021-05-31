@@ -9486,8 +9486,12 @@ def schedule_hours(request):
 def SkillsItemTypeList(request):
     try:
         qs = ItemType.objects.all().values('itm_id','itm_name','itm_removable')
+        qs = list(qs)
+        for obj in qs:
+            obj['skillCount'] = Stock.objects.filter(Item_Typeid=obj['itm_id']).count()
+
         response_data = {
-            "skillsTypes": list(qs),
+            "skillsTypes": qs,
             "message": "Listed successfuly"
         }
         return JsonResponse(response_data,status=status.HTTP_200_OK)
