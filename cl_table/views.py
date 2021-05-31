@@ -9512,7 +9512,7 @@ class EmployeeSkillView(APIView):
             emp_type = request.GET.get("emp_type")
             item_type = request.GET.get("item_type")
             if emp_type:
-                emp_qs = emp_qs.filter(emp_type=emp_type)
+                emp_qs = emp_qs.filter(EMP_TYPEid=emp_type)
 
             emp_list = []
             for emp in emp_qs:
@@ -9531,6 +9531,7 @@ class EmployeeSkillView(APIView):
                         "emp_no": emp.emp_no,
                         "emp_code": emp.emp_code,
                         "emp_type": emp.emp_type,
+                        "emp_type_id": emp.EMP_TYPEid,
                         "staffname": emp.display_name,
                         "skills": skills_list
                     })
