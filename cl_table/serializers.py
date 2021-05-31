@@ -3,7 +3,8 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      EmpSitelist, ItemClass, ItemRange, PackageDtl, Appointment, ItemDept, Treatment_Master, PayGroup,
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
-                     FocReason, Workschedule, CustomerFormControl, CustomerClass)
+                     FocReason, Workschedule, CustomerFormControl,
+                     CustomerClass)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
 from django.contrib.auth.models import User
@@ -229,6 +230,8 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         request = self.context['request']
+
+        action = self.context.get('action')
         if not 'cust_name' in request.data:
             raise serializers.ValidationError("cust_name Field is required.")
         else:

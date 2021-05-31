@@ -11,7 +11,8 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
                      PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType,
-                     CustomerFormControl)
+                     CustomerFormControl
+                     )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -30,7 +31,8 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,
                           TreatmentApptSerializer,
                           AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer,
-                          EmpInfoSerializer, EmpWorkScheduleSerializer, CustomerFormControlSerializer,
+                          EmpInfoSerializer, EmpWorkScheduleSerializer,
+                          CustomerFormControlSerializer,
                           CustomerPlusSerializer)
 from datetime import date, timedelta, datetime
 import datetime
@@ -9542,8 +9544,13 @@ class CustomerFormSettingsView(APIView):
     permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self, request):
-
-        query_set = CustomerFormControl.objects.filter(isActive=True)
+        try:
+            fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+            site = fmspw[0].loginsite
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user has no site", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_200_OK)
+        query_set = CustomerFormControl.objects.filter(isActive=True,Site_Codeid=site)
         serializer = CustomerFormControlSerializer(query_set,many=True)
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
@@ -9643,7 +9650,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             queryset = None
             serializer_class = None
             total = None
-            serializer = self.get_serializer(data=request.data, context={'request': self.request})
+            serializer = self.get_serializer(data=request.data, context={'request': self.request, "action":self.action})
             if serializer.is_valid():
                 self.perform_create(serializer)
                 site = fmspw[0].loginsite

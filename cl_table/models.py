@@ -3000,6 +3000,8 @@ class CustomerFormControl(models.Model):
     editable = models.BooleanField()
     mandatory = models.BooleanField()
     isActive = models.BooleanField(db_column='isActive')  # Field name made lowercase.
+    Site_Codeid = models.ForeignKey('cl_app.ItemSitelist',db_column='Site_Codeid_id',related_name='customer_form_control', on_delete=models.PROTECT, null=True)
+
 
     class Meta:
         managed = False
