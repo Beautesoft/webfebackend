@@ -9486,12 +9486,9 @@ def schedule_hours(request):
 def SkillsItemTypeList(request):
     try:
         qs = ItemType.objects.all().values('itm_id','itm_name','itm_removable')
-        qs = list(qs)
-        for obj in qs:
-            obj['skillCount'] = Stock.objects.filter(Item_Typeid=obj['itm_id']).count()
 
         response_data = {
-            "skillsTypes": qs,
+            "skillsTypes": list(qs),
             "message": "Listed successfuly"
         }
         return JsonResponse(response_data,status=status.HTTP_200_OK)
@@ -9848,12 +9845,28 @@ class RedeemPolicyView(APIView):
         try:
             qs = RedeemPolicy.objects.all()
             serializer = RedeemPolicySerializer(qs,many=True)
-            data = serializer.data
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
             return Response(result, status=status.HTTP_200_OK)
         except:
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SkillsView(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        print("hi")
+        try:
+            item_type = ItemType.objects.get(itm_id=request.GET.get('item_type'))
+            qs = Stock.objects.filter(Item_Typeid=item_type)
+        except Exception as e:
+            return general_error_response(e)
+        serializer = StockListSerializer(qs,many=True)
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        return Response(result, status=status.HTTP_200_OK)
+
 
 
 
