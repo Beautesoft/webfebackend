@@ -9531,7 +9531,7 @@ class EmployeeSkillView(APIView):
                         "emp_no": emp.emp_no,
                         "emp_code": emp.emp_code,
                         "emp_type": emp.emp_type,
-                        "emp_type_id": emp.EMP_TYPEid,
+                        "emp_type_id": emp.EMP_TYPEid.id,
                         "staffname": emp.display_name,
                         "skills": skills_list
                     })
