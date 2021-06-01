@@ -3022,3 +3022,14 @@ class RewardPolicy(models.Model):
         db_table = 'Reward_Policy'
 
 
+class RedeemPolicy(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    redeem_code = models.CharField(db_column='Redeem_Code', max_length=20)  # Field name made lowercase.
+    cust_type = models.CharField(db_column='Cust_Type', max_length=20)  # Field name made lowercase.
+    cur_value = models.FloatField(db_column='Cur_Value')  # Field name made lowercase.
+    point_value = models.FloatField(db_column='Point_Value')  # Field name made lowercase.
+    isactive = models.BooleanField(db_column='IsActive')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Redeem_Policy'

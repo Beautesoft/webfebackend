@@ -4,7 +4,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
                      FocReason, Workschedule, CustomerFormControl,
-                     CustomerClass, RewardPolicy)
+                     CustomerClass, RewardPolicy, RedeemPolicy)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
 from django.contrib.auth.models import User
@@ -1645,4 +1645,10 @@ class CustomerFormControlSerializer(serializers.ModelSerializer):
 class RewardPolicySerializer(serializers.ModelSerializer):
     class Meta:
         model = RewardPolicy
+        fields = '__all__'
+
+
+class RedeemPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RedeemPolicy
         fields = '__all__'
