@@ -3008,4 +3008,17 @@ class CustomerFormControl(models.Model):
         db_table = 'customerFormControl'
 
 
+class RewardPolicy(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    reward_code = models.CharField(db_column='Reward_Code', max_length=20)  # Field name made lowercase.
+    cust_type = models.CharField(db_column='Cust_Type', max_length=20)  # Field name made lowercase.
+    cur_value = models.FloatField(db_column='Cur_Value')  # Field name made lowercase.
+    point_value = models.FloatField(db_column='Point_Value')  # Field name made lowercase.
+    isactive = models.BooleanField(db_column='IsActive')  # Field name made lowercase.
+    reward_item_type = models.CharField(db_column='Reward_Item_Type', max_length=20, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Reward_Policy'
+
 

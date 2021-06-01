@@ -11,7 +11,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
                      PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType,
-                     CustomerFormControl
+                     CustomerFormControl, RewardPolicy
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
@@ -33,7 +33,7 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer,
                           EmpInfoSerializer, EmpWorkScheduleSerializer,
                           CustomerFormControlSerializer,
-                          CustomerPlusSerializer)
+                          CustomerPlusSerializer, RewardPolicySerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -9822,6 +9822,23 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         instance.cust_isactive = False
         instance.save()
+
+
+class RewardPolicyView(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        try:
+            qs = RewardPolicy.objects.all()
+            serializer = RewardPolicySerializer(qs,many=True)
+            data = serializer.data
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 

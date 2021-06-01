@@ -4,7 +4,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
                      FocReason, Workschedule, CustomerFormControl,
-                     CustomerClass)
+                     CustomerClass, RewardPolicy)
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
 from django.contrib.auth.models import User
@@ -232,6 +232,23 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         request = self.context['request']
 
         action = self.context.get('action')
+
+        # customer form settings validation
+        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        site = fmspw[0].loginsite
+        form_control_qs = CustomerFormControl.objects.filter(isActive=True,Site_Codeid=site)
+        allowed_fields = []
+
+        # if action == "list":
+        #     allowed_fields = form_control_qs.filter(visible_in_listing=True).values_list("field_name",flat=True)
+        # elif action == "retrieve":
+        #     allowed_fields = form_control_qs.filter(visible_in_profile=True).values_list("field_name",flat=True)
+        if action == "create":
+            allowed_fields = form_control_qs.filter(visible_in_registration=True) #.values_list("field_name",flat=True)
+
+
+
+
         if not 'cust_name' in request.data:
             raise serializers.ValidationError("cust_name Field is required.")
         else:
@@ -1625,3 +1642,7 @@ class CustomerFormControlSerializer(serializers.ModelSerializer):
         fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory']
         read_only_fields = ('field_name','display_field_name')
 
+class RewardPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RewardPolicy
+        fields = '__all__'

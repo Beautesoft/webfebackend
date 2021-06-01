@@ -41,6 +41,7 @@ urlpatterns = [
 
     path('api/EmployeeSkills/', views.EmployeeSkillView.as_view(), name='EmployeeSkillView'),
     path('api/CustomerFormSettings/', views.CustomerFormSettingsView.as_view(), name='CustomerFormSettingsView'),
+    path('api/RewardPolicy/', views.RewardPolicyView.as_view(), name='RewardPolicyView'),
 
 
 
