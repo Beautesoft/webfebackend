@@ -1185,6 +1185,15 @@ class StockListSerializer(serializers.ModelSerializer):
         fields = ['id','item_desc','item_name','item_price','Stock_PIC','Item_Classid','Item_Class','srv_duration']
         read_only_fields = ('item_code',)
 
+class SkillSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    # Item_Class = serializers.CharField(source='Item_Classid.itm_desc',required=False)
+
+    class Meta:
+        model = Stock
+        fields = ['id','item_desc','item_name','item_price','item_code']
+        read_only_fields = ('item_code',)
+
 
 class TreatmentMasterSerializer(serializers.ModelSerializer): 
     item_class = serializers.CharField(source='Item_Class.itm_desc',required=False)

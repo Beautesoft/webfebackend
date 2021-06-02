@@ -33,7 +33,7 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           AppointmentResourcesSerializer, AppointmentSortSerializer, StaffPlusSerializer,
                           EmpInfoSerializer, EmpWorkScheduleSerializer,
                           CustomerFormControlSerializer,
-                          CustomerPlusSerializer, RewardPolicySerializer, RedeemPolicySerializer)
+                          CustomerPlusSerializer, RewardPolicySerializer, RedeemPolicySerializer, SkillSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -9857,13 +9857,12 @@ class SkillsView(APIView):
     permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self, request):
-        print("hi")
         try:
             item_type = ItemType.objects.get(itm_id=request.GET.get('item_type'))
             qs = Stock.objects.filter(Item_Typeid=item_type)
         except Exception as e:
             return general_error_response(e)
-        serializer = StockListSerializer(qs,many=True)
+        serializer = SkillSerializer(qs,many=True)
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
