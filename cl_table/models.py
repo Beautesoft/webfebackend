@@ -3033,3 +3033,58 @@ class RedeemPolicy(models.Model):
     class Meta:
         managed = False
         db_table = 'Redeem_Policy'
+
+
+class Diagnosis(models.Model):
+    sys_code = models.AutoField(db_column='Sys_Code', primary_key=True)  # Field name made lowercase.
+    diagnosis_date = models.DateTimeField(db_column='Diagnosis_Date', blank=True, null=True)  # Field name made lowercase.
+    next_appt = models.DateTimeField(db_column='Next_Appt', blank=True, null=True)  # Field name made lowercase.
+    remarks = models.CharField(db_column='Remarks', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    homecare = models.CharField(db_column='HomeCare', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    pic_path = models.CharField(db_column='PIC_path', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    date_pic_take = models.DateTimeField(db_column='Date_Pic_Take', blank=True, null=True)  # Field name made lowercase.
+    treatment_code = models.CharField(db_column='Treatment_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    cust_name = models.CharField(db_column='Cust_Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    cust_code = models.CharField(db_column='Cust_Code', max_length=50)  # Field name made lowercase.
+    cust_no = models.ForeignKey(Customer, on_delete=models.PROTECT, null=True)
+    diagnosis_code = models.CharField(db_column='Diagnosis_Code', max_length=50)  # Field name made lowercase.
+    left_desc1 = models.CharField(db_column='Left_Desc1', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    left_desc2 = models.CharField(db_column='Left_Desc2', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    right_desc1 = models.CharField(db_column='Right_Desc1', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    right_desc2 = models.CharField(db_column='Right_Desc2', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    treatment_name = models.CharField(db_column='Treatment_Name', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    remark1 = models.CharField(db_column='Remark1', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    remark2 = models.CharField(db_column='Remark2', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    remark3 = models.CharField(db_column='Remark3', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    remark4 = models.CharField(db_column='Remark4', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    remark5 = models.CharField(db_column='Remark5', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    remark6 = models.CharField(db_column='Remark6', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    pic_path = models.ImageField(db_column='PIC_path', max_length=255, blank=True, null=True,upload_to='img')
+    pic_path2 = models.ImageField(db_column='PIC_Path2', max_length=255, blank=True, null=True,upload_to='img')
+    pic_path3 = models.ImageField(db_column='PIC_Path3', max_length=255, blank=True, null=True,upload_to='img')
+    pic_path4 = models.ImageField(db_column='PIC_Path4', max_length=255, blank=True, null=True,upload_to='img')
+    pic_path5 = models.ImageField(db_column='PIC_Path5', max_length=255, blank=True, null=True,upload_to='img')
+    pic_path6 = models.ImageField(db_column='PIC_Path6', max_length=255, blank=True, null=True,upload_to='img')
+    pic1 = models.BinaryField(db_column='PIC1', blank=True, null=True)  # Field name made lowercase.
+    pic2 = models.BinaryField(db_column='PIC2', blank=True, null=True)  # Field name made lowercase.
+    pic3 = models.BinaryField(db_column='PIC3', blank=True, null=True)  # Field name made lowercase.
+    pic4 = models.BinaryField(db_column='PIC4', blank=True, null=True)  # Field name made lowercase.
+    pic5 = models.BinaryField(db_column='PIC5', blank=True, null=True)  # Field name made lowercase.
+    pic6 = models.BinaryField(db_column='PIC6', blank=True, null=True)  # Field name made lowercase.
+    # pic1 = models.ImageField(db_column='PIC1', blank=True, null=True,upload_to='img')
+    # pic2 = models.ImageField(db_column='PIC2', blank=True, null=True,upload_to='img')
+    # pic3 = models.ImageField(db_column='PIC3', blank=True, null=True,upload_to='img')
+    # pic4 = models.ImageField(db_column='PIC4', blank=True, null=True,upload_to='img')
+    # pic5 = models.ImageField(db_column='PIC5', blank=True, null=True,upload_to='img')
+    # pic6 = models.ImageField(db_column='PIC6', blank=True, null=True,upload_to='img')
+    site_code = models.CharField(db_column='Site_Code', max_length=50)  # Field name made lowercase.
+
+    def save(self, *args, **kwargs):
+        self.cust_code = self.cust_no.cust_code
+        self.cust_name = self.cust_no.cust_name
+        super(Diagnosis, self).save(*args, **kwargs)
+
+    class Meta:
+        # managed = False
+        db_table = 'Diagnosis'
+        unique_together = (('cust_code', 'diagnosis_code', 'site_code'),)

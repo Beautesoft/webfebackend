@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/WorkScheduleHours/', views.schedule_hours, name='WorkScheduleHours'),
     path('api/SkillsItemTypeList/', views.SkillsItemTypeList, name='SkillsItemTypeList'),
     path('api/SkillsView/', views.SkillsView.as_view(), name='SkillsView'),
+    path('api/PhotoDiagnosis/', views.PhotoDiagnosis.as_view(), name='PhotoDiagnosis'),
 
 
     path('api/EmployeeSkills/', views.EmployeeSkillView.as_view(), name='EmployeeSkillView'),
