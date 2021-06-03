@@ -9488,12 +9488,17 @@ class MonthlyWorkSchedule(APIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
-class MonthlyCommonSchedule(APIView):
+class MonthlyAllSchedule(APIView):
     authentication_classes = [ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self, request):
         # result = {'status': state, "message": message, 'error': error, 'data': data}
+        try:
+            site = ItemSitelist.objects.get(itemsite_code=request.GET.get("siteCode"))
+        except Exception as e:
+            print(e)
+            return general_error_response("Invalid start and end date format")
 
         try:
             year = int(request.GET.get("year"))
@@ -9503,7 +9508,7 @@ class MonthlyCommonSchedule(APIView):
             # change to date range
             # start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
             # end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
-            # date_range = [start_date + datetime.timedelta(days=i) for i in range(0,(end_date-start_date).days+1)]
+            date_range = [start_date + datetime.timedelta(days=i) for i in range(0,(end_date-start_date).days+1)]
         except Exception as e:
             print(e)
             return general_error_response("Invalid start and end date format")
@@ -9513,38 +9518,42 @@ class MonthlyCommonSchedule(APIView):
         # site_code = request.GET.get("site_code",emp_obj.site_code)
 
         try:
-            for date in date_range:
-                month_schedule = ScheduleMonth.objects.filter(emp_code=emp_obj.emp_code,
-                                                              site_code=site_code,
-                                                              itm_date=date,
-                                                              ).first()
-                if not month_schedule:
-                    month_schedule = ScheduleMonth.objects.create(emp_code=request.GET.get("emp_code"),
-                                                                  site_code=site_code,
-                                                                  itm_date=date, )
 
-                monthlySchedule.append({
-                    "id": month_schedule.id,
-                    "emp_code": month_schedule.emp_code,
-                    "itm_date": month_schedule.itm_date,
-                    "itm_type": month_schedule.itm_type,
+            emp_qs = Employee.objects.filter(Site_Codeid=site)[0:10]
+            # todo: should be implement paginater or more filters to reduce qs lenght.
+            #  emp_qs = Employee.objects.filter(Site_Codeid=site)[0:10]
+            emp_schedule_list = []
+            for emp in emp_qs:
+                date_list = []
 
+                for date in date_range:
+                    month_schedule = ScheduleMonth.objects.filter(emp_code=emp.emp_code,
+                                                                  site_code=site.itemsite_code,
+                                                                  itm_date=date,
+                                                                  ).first()
+                    if not month_schedule:
+                        month_schedule = ScheduleMonth.objects.create(emp_code=request.GET.get("emp_code"),
+                                                                      site_code=site.itemsite_code,
+                                                                      itm_date=date, )
+
+                    date_list.append({
+                        "id": month_schedule.id,
+                        "itm_date": month_schedule.itm_date,
+                        "itm_type": month_schedule.itm_type,
+                    })
+                emp_schedule_list.append({
+                    "emp_name": emp.emp_name,
+                    "emp_code": emp.emp_code,
+                    "schedules": date_list
                 })
         except Exception as e:
             return general_error_response(e)
 
-        work_schedule = Workschedule.objects.filter(emp_code=emp_obj.emp_code, is_alternative=False).first()
-        if work_schedule is None:
-            work_schedule = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=False)
-
-        work_schedule_alt = Workschedule.objects.filter(emp_code=emp_obj.emp_code, is_alternative=True).first()
-        if work_schedule_alt is None:
-            work_schedule_alt = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=True)
-
         resData = {
-            "monthlySchedule": monthlySchedule,
-            "weekSchedule": EmpWorkScheduleSerializer(work_schedule).data,
-            "altWeekSchedule": EmpWorkScheduleSerializer(work_schedule_alt).data
+            "fullSchedule": emp_schedule_list,
+            "total_emp": len(emp_schedule_list),
+            "total_dates": len(date_range)
+
         }
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
