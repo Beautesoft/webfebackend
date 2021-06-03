@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework import status, viewsets
 from rest_framework.response import Response
+
+from .configuration import DYNAMIC_FIELD_CHOICES
 from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Treatment, Stock, Systemloginlog,
                      EmpSitelist, Appointment, ItemDept, ControlNo, Treatment_Master, ItemClass, Paytable, PosTaud,
                      PayGroup,
@@ -9577,7 +9579,6 @@ class MonthlyAllSchedule(APIView):
             }
 
         }
-
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
 
@@ -9772,8 +9773,8 @@ def CustomerFormSettings(request):
 
         _choices = None
         if _data_type == "ForeignKey":
-            # Site_Codeid, Cust_sexesid, Cust_Classid, Cust_Sourceid current (03/06/2020) fks.
-            _setting["data_type"] = "Selection"
+            # Site_Codeid, Cust_sexesid(Gender), Cust_Classid(CustomerClass), Cust_Sourceid(Source) current (03/06/2020) fks.
+
             _related_model_class = _attr.field.related_model
             _qs = _related_model_class.objects.all()
             _isactive_fileds = [x.name for x in _related_model_class._meta.get_fields() if "isactive" in x.name]
@@ -9785,12 +9786,12 @@ def CustomerFormSettings(request):
                 #       choose needed one. and should be implement logger instead print
                 print(f"Warning: CustomerFormSettings, {_setting['field_name']}: {_related_model_class} "
                       f"have more than one isactive fields")
-            _choices = list(_qs.values())
-        elif _data_type == "ManyToManyField":
-            # currently there aren't any ManyToManyFields in Customer model
-            pass
-        else:
-            _setting["data_type"] = _data_type.rstrip("Field")
+            _choices = [obj.choice_dict for obj in _qs]
+        # elif _data_type == "ManyToManyField":
+        #     # currently there aren't any ManyToManyFields in Customer model
+        #     pass
+
+        _setting["data_type"] = DYNAMIC_FIELD_CHOICES.get(_data_type, "DATA TYPE NOTE DEFINED")
         _setting["selection"] = _choices
 
     result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": settings_list}

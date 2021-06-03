@@ -66,6 +66,14 @@ class CustomerClass(models.Model):
     def __str__(self):
         return str(self.class_desc)
 
+    @property
+    def choice_dict(self):
+        """
+        this property method for generate FE choice dropdowns
+        :return:
+        """
+        return {"value": self.id, "label": self.class_desc}
+
 class CustomerTitle(models.Model):
     id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
     itm_code = models.CharField(db_column='ITM_CODE', max_length=20, blank=True, null=True)  # Field name made lowercase.
@@ -92,7 +100,15 @@ class Source(models.Model):
         unique_together = (('source_code'),)
 
     def __str__(self):
-        return str(self.source_desc)     
+        return str(self.source_desc)
+
+    @property
+    def choice_dict(self):
+        """
+        this property method for generate FE choice dropdowns
+        :return:
+        """
+        return {"value": self.id, "label": self.source_desc}
 
 class ItemStatus(models.Model):
     itm_id = models.AutoField(primary_key=True)
@@ -124,6 +140,14 @@ class Gender(models.Model):
 
     def __str__(self):
         return str(self.itm_name)
+
+    @property
+    def choice_dict(self):
+        """
+        this property method for generate FE choice dropdowns
+        :return:
+        """
+        return {"value": self.itm_id, "label": self.itm_name}
 
 
 class Maritalstatus(models.Model):

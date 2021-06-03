@@ -76,6 +76,14 @@ class ItemSitelist(models.Model):
     def __str__(self):
         return str(self.itemsite_code)
 
+    @property
+    def choice_dict(self):
+        """
+        this property method for generate FE choice dropdowns
+        :return:
+        """
+        return {"value": self.itemsite_id, "label": self.itemsite_code}
+
 
 # class TempUomPrice(models.Model):
 #     id = models.AutoField(db_column='ID',primary_key=True)
