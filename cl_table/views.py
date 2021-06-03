@@ -9517,55 +9517,53 @@ class MonthlyAllSchedule(APIView):
         # if site_code hasn't in request, get month schedule by default site_code
         # site_code = request.GET.get("site_code",emp_obj.site_code)
 
-        # try:
-
-        emp_qs = Employee.objects.filter(Site_Codeid=site,emp_isactive=True)
-
-        full_tot = emp_qs.count()
-
         try:
-            limit = int(request.GET.get("limit",8))
-        except:
-            limit = 8
-        try:
-            page = int(request.GET.get("page",1))
-        except:
-            page = 1
+            emp_qs = Employee.objects.filter(Site_Codeid=site,emp_isactive=True)
+            # todo: more filters
+            full_tot = emp_qs.count()
+            try:
+                limit = int(request.GET.get("limit",8))
+            except:
+                limit = 8
+            try:
+                page = int(request.GET.get("page",1))
+            except:
+                page = 1
 
-        paginator = Paginator(emp_qs, limit)
-        total_page = paginator.num_pages
+            paginator = Paginator(emp_qs, limit)
+            total_page = paginator.num_pages
 
-        try:
-            emp_qs = paginator.page(page)
-        except (EmptyPage, InvalidPage):
-            emp_qs = paginator.page(total_page) # last page
+            try:
+                emp_qs = paginator.page(page)
+            except (EmptyPage, InvalidPage):
+                emp_qs = paginator.page(total_page) # last page
 
-        emp_schedule_list = []
-        for emp in emp_qs:
-            date_list = []
+            emp_schedule_list = []
+            for emp in emp_qs:
+                date_list = []
 
-            for date in date_range:
-                month_schedule = ScheduleMonth.objects.filter(emp_code=emp.emp_code,
-                                                              site_code=site.itemsite_code,
-                                                              itm_date=date,
-                                                              ).first()
-                # if not month_schedule:
-                #     month_schedule = ScheduleMonth.objects.create(emp_code=emp.emp_code,
-                #                                                   site_code=site.itemsite_code,
-                #                                                   itm_date=date, )
+                for date in date_range:
+                    month_schedule = ScheduleMonth.objects.filter(emp_code=emp.emp_code,
+                                                                  site_code=site.itemsite_code,
+                                                                  itm_date=date,
+                                                                  ).first()
+                    # if not month_schedule:
+                    #     month_schedule = ScheduleMonth.objects.create(emp_code=emp.emp_code,
+                    #                                                   site_code=site.itemsite_code,
+                    #                                                   itm_date=date, )
 
-                date_list.append({
-                    "id": month_schedule.id if month_schedule else None,
-                    "date": date,
-                    "itm_type": month_schedule.itm_type if month_schedule else None,
+                    date_list.append({
+                        "id": month_schedule.id if month_schedule else None,
+                        "date": date,
+                        "itm_type": month_schedule.itm_type if month_schedule else None,
+                    })
+                emp_schedule_list.append({
+                    "emp_name": emp.emp_name,
+                    "emp_code": emp.emp_code,
+                    "schedules": date_list
                 })
-            emp_schedule_list.append({
-                "emp_name": emp.emp_name,
-                "emp_code": emp.emp_code,
-                "schedules": date_list
-            })
-        # except Exception as e:
-        #     return general_error_response(e)
+        except Exception as e:
+            return general_error_response(e)
 
         resData = {
             "fullSchedule": emp_schedule_list,
@@ -9583,51 +9581,56 @@ class MonthlyAllSchedule(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
 
-    def post(self, request):
-        requestData = request.data
-
-        month_schedule_list = requestData.get("monthlySchedule")
-
-        for ms in month_schedule_list:
-            try:
-                h_schedule = ScheduleHour.objects.filter(itm_code=ms["itm_type"]).first()
-                m_schedule = ScheduleMonth.objects.get(id=ms['id'])
-                m_schedule.itm_type = ms["itm_type"]
-                m_schedule = h_schedule
-                m_schedule.save()
-            except Exception as e:
-                print(e)
-
-        week_schedule_dict = requestData.get("weekSchedule")
-        try:
-            work_schedule = Workschedule.objects.get(id=week_schedule_dict['id'])
-            work_schedule.monday = week_schedule_dict.get("monday")
-            work_schedule.tuesday = week_schedule_dict.get("tuesday")
-            work_schedule.wednesday = week_schedule_dict.get("wednesday")
-            work_schedule.thursday = week_schedule_dict.get("thursday")
-            work_schedule.friday = week_schedule_dict.get("friday")
-            work_schedule.saturday = week_schedule_dict.get("saturday")
-            work_schedule.sunday = week_schedule_dict.get("sunday")
-            work_schedule.save()
-        except Exception as e:
-            return general_error_response(e)
-
-        alt_week_schedule_dict = requestData.get("altWeekSchedule")
-        try:
-            alt_work_schedule = Workschedule.objects.get(id=alt_week_schedule_dict['id'])
-            alt_work_schedule.monday = alt_week_schedule_dict.get("monday")
-            alt_work_schedule.tuesday = alt_week_schedule_dict.get("tuesday")
-            alt_work_schedule.wednesday = alt_week_schedule_dict.get("wednesday")
-            alt_work_schedule.thursday = alt_week_schedule_dict.get("thursday")
-            alt_work_schedule.friday = alt_week_schedule_dict.get("friday")
-            alt_work_schedule.saturday = alt_week_schedule_dict.get("saturday")
-            alt_work_schedule.sunday = alt_week_schedule_dict.get("sunday")
-            alt_work_schedule.save()
-        except Exception as e:
-            return general_error_response(e)
-
-        result = {'status': status.HTTP_200_OK, 'message': "update success", 'error': False}
-        return Response(result, status=status.HTTP_200_OK)
+    # def post(self, request):
+    #     requestData = request.data
+    #
+    #     month_schedule_list = requestData.get("monthlySchedule")
+    #
+    #     for ms in month_schedule_list:
+    #         try:
+    #             h_schedule = ScheduleHour.objects.filter(itm_code=ms["itm_type"]).first()
+    #             m_schedule_id = ms.get('id')
+    #             if m_schedule_id:
+    #                 m_schedule = ScheduleMonth.objects.get(id=ms['id'])
+    #                 m_schedule.itm_type = ms["itm_type"]
+    #                 m_schedule.itm_Typeid = h_schedule
+    #                 m_schedule.save()
+    #             else:
+    #
+    #                 m_schedule = ScheduleMonth.objects.create()
+    #         except Exception as e:
+    #             print(e)
+    #
+    #     week_schedule_dict = requestData.get("weekSchedule")
+    #     try:
+    #         work_schedule = Workschedule.objects.get(id=week_schedule_dict['id'])
+    #         work_schedule.monday = week_schedule_dict.get("monday")
+    #         work_schedule.tuesday = week_schedule_dict.get("tuesday")
+    #         work_schedule.wednesday = week_schedule_dict.get("wednesday")
+    #         work_schedule.thursday = week_schedule_dict.get("thursday")
+    #         work_schedule.friday = week_schedule_dict.get("friday")
+    #         work_schedule.saturday = week_schedule_dict.get("saturday")
+    #         work_schedule.sunday = week_schedule_dict.get("sunday")
+    #         work_schedule.save()
+    #     except Exception as e:
+    #         return general_error_response(e)
+    #
+    #     alt_week_schedule_dict = requestData.get("altWeekSchedule")
+    #     try:
+    #         alt_work_schedule = Workschedule.objects.get(id=alt_week_schedule_dict['id'])
+    #         alt_work_schedule.monday = alt_week_schedule_dict.get("monday")
+    #         alt_work_schedule.tuesday = alt_week_schedule_dict.get("tuesday")
+    #         alt_work_schedule.wednesday = alt_week_schedule_dict.get("wednesday")
+    #         alt_work_schedule.thursday = alt_week_schedule_dict.get("thursday")
+    #         alt_work_schedule.friday = alt_week_schedule_dict.get("friday")
+    #         alt_work_schedule.saturday = alt_week_schedule_dict.get("saturday")
+    #         alt_work_schedule.sunday = alt_week_schedule_dict.get("sunday")
+    #         alt_work_schedule.save()
+    #     except Exception as e:
+    #         return general_error_response(e)
+    #
+    #     result = {'status': status.HTTP_200_OK, 'message': "update success", 'error': False}
+    #     return Response(result, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
