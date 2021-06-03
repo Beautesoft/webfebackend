@@ -9786,7 +9786,14 @@ def CustomerFormSettings(request):
                 #       choose needed one. and should be implement logger instead print
                 print(f"Warning: CustomerFormSettings, {_setting['field_name']}: {_related_model_class} "
                       f"have more than one isactive fields")
-            _choices = [obj.choice_dict for obj in _qs]
+            try:
+                _choices = [obj.choice_dict for obj in _qs]
+            except:
+                result = {'status': status.HTTP_400_BAD_REQUEST, 'message': f"{_related_model_class} has not 'choice_dict' called property", 'error': True,
+                          "data": None}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+
         # elif _data_type == "ManyToManyField":
         #     # currently there aren't any ManyToManyFields in Customer model
         #     pass
