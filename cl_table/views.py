@@ -46,7 +46,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout, get_user_model
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator, InvalidPage
 import math
 from custom.views import response, get_client_ip, round_calc
 from rest_framework import filters
@@ -9117,7 +9117,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             responseData["skills"] = skills_list
             result = {'status': state, 'message': message,
                       'error': False, "data": responseData}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            return Response(result, status=status.HTTP_200_OK)
 
         except Exception as e:
             invalid_message = str(e)
@@ -9519,9 +9519,27 @@ class MonthlyAllSchedule(APIView):
 
         # try:
 
-        emp_qs = Employee.objects.filter(Site_Codeid=site,emp_isactive=True)[:5]
-        # todo: should be implement paginater or more filters to reduce qs lenght.
-        #  emp_qs = Employee.objects.filter(Site_Codeid=site)[0:10]
+        emp_qs = Employee.objects.filter(Site_Codeid=site,emp_isactive=True)
+
+        full_tot = emp_qs.count()
+
+        try:
+            limit = int(request.GET.get("limit",8))
+        except:
+            limit = 8
+        try:
+            page = int(request.GET.get("page",1))
+        except:
+            page = 1
+
+        paginator = Paginator(emp_qs, limit)
+        total_page = paginator.num_pages
+
+        try:
+            emp_qs = paginator.page(page)
+        except (EmptyPage, InvalidPage):
+            emp_qs = paginator.page(total_page) # last page
+
         emp_schedule_list = []
         for emp in emp_qs:
             date_list = []
@@ -9552,7 +9570,13 @@ class MonthlyAllSchedule(APIView):
         resData = {
             "fullSchedule": emp_schedule_list,
             "total_emp": len(emp_schedule_list),
-            "total_dates": len(date_range)
+            "total_dates": len(date_range),
+            'pagination': {
+                           "per_page":limit,
+                           "current_page":page,
+                           "total":full_tot,
+                           "total_pages":total_page
+            }
 
         }
 
