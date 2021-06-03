@@ -9906,13 +9906,23 @@ class SkillsView(APIView):
     permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self, request):
+        _type = request.GET.get('item_type')
+        if not _type:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "<query param: item_type> is required", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
         try:
-            item_type = ItemType.objects.get(itm_id=request.GET.get('item_type'))
-            qs = Stock.objects.filter(Item_Typeid=item_type)
+            item_type = ItemType.objects.get(itm_id=_type)
+        except ItemType.DoesNotExist:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid item_type",
+                      'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return general_error_response(e)
+
+        qs = Stock.objects.filter(Item_Typeid=item_type,item_isactive=True)
         serializer = SkillSerializer(qs,many=True)
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        resData = serializer.data
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
 
 

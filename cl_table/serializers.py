@@ -1191,13 +1191,12 @@ class StockListSerializer(serializers.ModelSerializer):
         read_only_fields = ('item_code',)
 
 class SkillSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
     # Item_Class = serializers.CharField(source='Item_Classid.itm_desc',required=False)
 
     class Meta:
         model = Stock
-        fields = ['id','item_desc','item_name','item_price','item_code']
-        read_only_fields = ('item_code',)
+        fields = ['item_no','item_desc','item_name','item_price','item_code']
+        read_only_fields = ('item_code','item_no')
 
 
 class TreatmentMasterSerializer(serializers.ModelSerializer): 
