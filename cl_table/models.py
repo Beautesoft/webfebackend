@@ -3004,8 +3004,11 @@ class CustomerFormControl(models.Model):
 
 
     class Meta:
-        managed = False
         db_table = 'customerFormControl'
+
+    def __str__(self):
+        return str(self.field_name)
+
 
 
 class RewardPolicy(models.Model):

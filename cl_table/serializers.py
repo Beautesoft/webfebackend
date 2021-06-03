@@ -234,7 +234,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         action = self.context.get('action')
 
         # customer form settings validation
-        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
         site = fmspw[0].loginsite
         form_control_qs = CustomerFormControl.objects.filter(isActive=True,Site_Codeid=site)
         allowed_fields = []
@@ -243,32 +243,37 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         #     allowed_fields = form_control_qs.filter(visible_in_listing=True).values_list("field_name",flat=True)
         # elif action == "retrieve":
         #     allowed_fields = form_control_qs.filter(visible_in_profile=True).values_list("field_name",flat=True)
-        if action == "create":
-            allowed_fields = form_control_qs.filter(visible_in_registration=True) #.values_list("field_name",flat=True)
+        # if action == "create":
+        #     allowed_fields = form_control_qs.filter(visible_in_registration=True) #.values_list("field_name",flat=True)
+        mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name",flat=True)
+
+        for _field in mandatory_fields:
+            if request.data.get(_field) is None:
+                raise serializers.ValidationError(f"{_field} Field is required.")
 
 
 
 
-        if not 'cust_name' in request.data:
-            raise serializers.ValidationError("cust_name Field is required.")
-        else:
-            if request.data['cust_name'] is None:
-                raise serializers.ValidationError("cust_name Field is required.")
-        # if not 'cust_address' in request.data:
-        #     raise serializers.ValidationError("cust_address Field is required.")
+        # if not 'cust_name' in request.data:
+        #     raise serializers.ValidationError("cust_name Field is required.")
         # else:
-        #     if request.data['cust_address'] is None:
-        #         raise serializers.ValidationError("cust_address Field is required.")
-        # if not 'cust_dob' in request.data:
-        #     raise serializers.ValidationError("cust_dob Field is required.")
+        #     if request.data['cust_name'] is None:
+        #         raise serializers.ValidationError("cust_name Field is required.")
+        # # if not 'cust_address' in request.data:
+        # #     raise serializers.ValidationError("cust_address Field is required.")
+        # # else:
+        # #     if request.data['cust_address'] is None:
+        # #         raise serializers.ValidationError("cust_address Field is required.")
+        # # if not 'cust_dob' in request.data:
+        # #     raise serializers.ValidationError("cust_dob Field is required.")
+        # # else:
+        # #     if request.data['cust_dob'] is None:
+        # #         raise serializers.ValidationError("cust_dob Field is required.")
+        # if not 'cust_phone2' in request.data:
+        #     raise serializers.ValidationError("cust_phone2 Field is required.")
         # else:
-        #     if request.data['cust_dob'] is None:
-        #         raise serializers.ValidationError("cust_dob Field is required.")
-        if not 'cust_phone2' in request.data:
-            raise serializers.ValidationError("cust_phone2 Field is required.")
-        else:
-            if request.data['cust_phone2'] is None:
-                raise serializers.ValidationError("cust_phone2 Field is required.")
+        #     if request.data['cust_phone2'] is None:
+        #         raise serializers.ValidationError("cust_phone2 Field is required.")
         # if not 'Cust_sexesid' in request.data:
         #     raise serializers.ValidationError("Cust_sexesid Field is required.")
         # else:
@@ -306,13 +311,13 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         #     if request.data['custallowsendsms'] is None:
         #         raise serializers.ValidationError("custallowsendsms Field is required.")
         # Email and Mobile number validation
-        if request.data['cust_email']:
-            customer_mail =  Customer.objects.filter(cust_email=request.data['cust_email'])
-            if len(customer_mail) > 0:
-                raise serializers.ValidationError("Email id is already associated with another account")
-        customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'])
-        if len(customer) > 0:
-            raise serializers.ValidationError("Mobile number is already associated with another account")
+        # if request.data['cust_email']:
+        #     customer_mail =  Customer.objects.filter(cust_email=request.data['cust_email'])
+        #     if len(customer_mail) > 0:
+        #         raise serializers.ValidationError("Email id is already associated with another account")
+        # customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'])
+        # if len(customer) > 0:
+        #     raise serializers.ValidationError("Mobile number is already associated with another account")
         return data
 
 
