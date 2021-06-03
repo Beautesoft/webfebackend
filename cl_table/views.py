@@ -8612,6 +8612,7 @@ class TmpItemHelperViewset(viewsets.ModelViewSet):
             invalid_message = str(e)
             return general_error_response(invalid_message)
 
+
 class FocReasonAPIView(generics.ListAPIView):
     authentication_classes = [ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated & authenticated_only]
@@ -8995,14 +8996,14 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['PUT'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[ExpiringTokenAuthentication], url_path='EmpInfo', url_name='EmpInfo')
-    def EmpInfo(self,request,pk=None):
+    def EmpInfo(self, request, pk=None):
         try:
             queryset = None
             total = None
             serializer_class = None
             employee = self.get_object(pk)
             serializer = EmpInfoSerializer(employee, data=request.data, partial=True,
-                                             context={'request': self.request})
+                                           context={'request': self.request})
             if serializer.is_valid():
                 serializer.save()
                 state = status.HTTP_200_OK
@@ -9024,7 +9025,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             invalid_message = str(e)
             return general_error_response(invalid_message)
 
-    @action(detail=True, methods=['GET','PUT'], permission_classes=[IsAuthenticated & authenticated_only],
+    @action(detail=True, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[ExpiringTokenAuthentication], url_path='WorkSchedule', url_name='WorkSchedule')
     def WorkSchedule(self, request, pk=None):
         try:
@@ -9032,17 +9033,17 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             total = None
             serializer_class = None
             employee = self.get_object(pk)
-            is_alt = request.GET.get("is_alt","false")
+            is_alt = request.GET.get("is_alt", "false")
 
             is_alt = True if is_alt.lower() == "true" else False
 
-
-            work_schedule = Workschedule.objects.filter(emp_code=employee.emp_code,is_alternative=is_alt).first()
+            work_schedule = Workschedule.objects.filter(emp_code=employee.emp_code, is_alternative=is_alt).first()
             if work_schedule is None:
-                work_schedule = Workschedule.objects.create(emp_code=employee.emp_code,is_alternative=is_alt)
+                work_schedule = Workschedule.objects.create(emp_code=employee.emp_code, is_alternative=is_alt)
 
             if request.method == "PUT":
-                serializer = EmpWorkScheduleSerializer(work_schedule, data= request.data, partial=True,context={'request': self.request})
+                serializer = EmpWorkScheduleSerializer(work_schedule, data=request.data, partial=True,
+                                                       context={'request': self.request})
                 if serializer.is_valid():
                     print("valid")
                     serializer.save()
@@ -9078,31 +9079,53 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             authentication_classes=[ExpiringTokenAuthentication], url_path='StaffSkills', url_name='StaffSkills')
     def StaffSkills(self, request, pk=None):
         try:
-            queryset = None
-            total = None
-            serializer_class = None
             employee = self.get_object(pk)
+            if request.method == "PUT":
+                skill_list = request.data.get("skillsCodeList", [])
+                for skill_code in skill_list:
+                    try:
+                        _skill = Stock.objects.get(item_code=skill_code)
+                        if not _skill.item_isactive:
+                            result = {'status': status.HTTP_400_BAD_REQUEST,
+                                      'message': f"{skill_code} skill is inactive",
+                                      'error': True, "data": None}
+                            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                        skillstaff_obj = Skillstaff(sitecode=employee.site_code,
+                                                    staffcode=employee.emp_code,
+                                                    itemcode=skill_code)
+                        skillstaff_obj.save()
+                    except Exception as e:
+                        result = {'status': status.HTTP_400_BAD_REQUEST,
+                                  'message': f"invalid skill code {skill_code}, {e}",
+                                  'error': True, "data": None}
+                        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                message = "updated Succesfully"
+
+            elif request.method == "GET":
+                message = "Listed Succesfully"
 
             skill_qs = Skillstaff.objects.filter(staffcode=employee.emp_code)
             responseData = {}
             skills_list = []
             for sk in skill_qs:
                 itm_code = str(sk.itemcode)
-                _stock = Stock.objects.filter(item_code=itm_code).values("item_code","item_name").first()
+                _stock = Stock.objects.filter(item_code=itm_code).values("item_code", "item_name").first()
                 if _stock:
                     skills_list.append(_stock)
             state = status.HTTP_200_OK
-            message = "Listed Succesfully"
-            error = False
             responseData["skills"] = skills_list
-            result = response(self, request, queryset, total, state, message, error, serializer_class, responseData,
-                          action=self.action)
-            return Response(result, status=status.HTTP_200_OK)
+            result = {'status': state, 'message': message,
+                      'error': False, "data": responseData}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             invalid_message = str(e)
             return general_error_response(invalid_message)
 
         # from .models import (City,CustomerClass,State,Country,Maritalstatus,Races,Religious,Nationality,
+
+
 # CommType,EmpSocso,Days,ReverseHdr,ReverseDtl,ItemRange)
 
 # class UpdateTablesAPIView(APIView):
@@ -9288,15 +9311,15 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
 #         return Response(data=result, status=status.HTTP_200_OK)
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def meta_race(request):
     try:
-        race_qs = Races.objects.filter(itm_isactive=True).values('itm_id','itm_name','itm_code')
+        race_qs = Races.objects.filter(itm_isactive=True).values('itm_id', 'itm_name', 'itm_code')
         response_data = {
             "races": list(race_qs),
             "message": "Listed successfuly"
         }
-        return JsonResponse(response_data,status=status.HTTP_200_OK)
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
     except:
         response_data = {
             "message": "error"
@@ -9304,15 +9327,15 @@ def meta_race(request):
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def meta_nationality(request):
     try:
-        qs = Nationality.objects.filter(itm_isactive=True).values('itm_id','itm_name','itm_code')
+        qs = Nationality.objects.filter(itm_isactive=True).values('itm_id', 'itm_name', 'itm_code')
         response_data = {
             "nationalities": list(qs),
             "message": "Listed successfuly"
         }
-        return JsonResponse(response_data,status=status.HTTP_200_OK)
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
     except:
         response_data = {
             "message": "error"
@@ -9320,15 +9343,15 @@ def meta_nationality(request):
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def meta_religious(request):
     try:
-        qs = Religious.objects.filter(itm_isactive=True).values('itm_id','itm_name','itm_code')
+        qs = Religious.objects.filter(itm_isactive=True).values('itm_id', 'itm_name', 'itm_code')
         response_data = {
             "religions": list(qs),
             "message": "Listed successfuly"
         }
-        return JsonResponse(response_data,status=status.HTTP_200_OK)
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
     except:
         response_data = {
             "message": "error"
@@ -9336,15 +9359,15 @@ def meta_religious(request):
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def meta_country(request):
     try:
-        qs = Country.objects.filter(itm_isactive=True).values('itm_id','itm_desc','itm_code','phonecode')
+        qs = Country.objects.filter(itm_isactive=True).values('itm_id', 'itm_desc', 'itm_code', 'phonecode')
         response_data = {
             "countries": list(qs),
             "message": "Listed successfuly"
         }
-        return JsonResponse(response_data,status=status.HTTP_200_OK)
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
     except:
         response_data = {
             "message": "error"
@@ -9371,34 +9394,33 @@ class MonthlyWorkSchedule(APIView):
             # change to date range
             start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
             end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
-            date_range = [start_date + datetime.timedelta(days=i) for i in range(0,(end_date-start_date).days+1)]
+            date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
         except Exception as e:
             print(e)
             return general_error_response("Invalid start and end date format")
         monthlySchedule = []
 
         # if site_code hasn't in request, get month schedule by default site_code
-        site_code = request.GET.get("site_code",emp_obj.site_code)
+        site_code = request.GET.get("site_code", emp_obj.site_code)
 
         try:
             for date in date_range:
-                month_schedule = ScheduleMonth.objects.filter(emp_code=request.GET.get("emp_code"),
+                month_schedule = ScheduleMonth.objects.filter(emp_code=emp_obj.emp_code,
                                                               site_code=site_code,
-                                                              itm_date = date,
+                                                              itm_date=date,
                                                               ).first()
                 if not month_schedule:
                     month_schedule = ScheduleMonth.objects.create(emp_code=request.GET.get("emp_code"),
-                                                              site_code=site_code,
-                                                              itm_date = date,)
-
+                                                                  site_code=site_code,
+                                                                  itm_date=date, )
 
                 monthlySchedule.append({
-                            "id":month_schedule.id,
-                            "emp_code": month_schedule.emp_code,
-                            "itm_date": month_schedule.itm_date,
-                            "itm_type": month_schedule.itm_type,
+                    "id": month_schedule.id,
+                    "emp_code": month_schedule.emp_code,
+                    "itm_date": month_schedule.itm_date,
+                    "itm_type": month_schedule.itm_type,
 
-                        })
+                })
         except Exception as e:
             return general_error_response(e)
 
@@ -9406,22 +9428,20 @@ class MonthlyWorkSchedule(APIView):
         if work_schedule is None:
             work_schedule = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=False)
 
-
-
         work_schedule_alt = Workschedule.objects.filter(emp_code=emp_obj.emp_code, is_alternative=True).first()
         if work_schedule_alt is None:
             work_schedule_alt = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=True)
 
         resData = {
-            "monthlySchedule":monthlySchedule,
+            "monthlySchedule": monthlySchedule,
             "weekSchedule": EmpWorkScheduleSerializer(work_schedule).data,
             "altWeekSchedule": EmpWorkScheduleSerializer(work_schedule_alt).data
         }
 
-        result = {'status':status.HTTP_200_OK,'message':"success",'error':False, "data":resData}
-        return Response(result,status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+        return Response(result, status=status.HTTP_200_OK)
 
-    def post(self,request):
+    def post(self, request):
         requestData = request.data
 
         month_schedule_list = requestData.get("monthlySchedule")
@@ -9467,32 +9487,143 @@ class MonthlyWorkSchedule(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "update success", 'error': False}
         return Response(result, status=status.HTTP_200_OK)
 
-@api_view(['GET',])
+
+class MonthlyCommonSchedule(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        # result = {'status': state, "message": message, 'error': error, 'data': data}
+
+        try:
+            year = int(request.GET.get("year"))
+            month = int(request.GET.get("month"))
+            start_date = datetime.datetime(year=year, month=month, day=1)
+            end_date = datetime.datetime(year=year, month=month + 1, day=1)
+            # change to date range
+            # start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
+            # end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
+            # date_range = [start_date + datetime.timedelta(days=i) for i in range(0,(end_date-start_date).days+1)]
+        except Exception as e:
+            print(e)
+            return general_error_response("Invalid start and end date format")
+        monthlySchedule = []
+
+        # if site_code hasn't in request, get month schedule by default site_code
+        # site_code = request.GET.get("site_code",emp_obj.site_code)
+
+        try:
+            for date in date_range:
+                month_schedule = ScheduleMonth.objects.filter(emp_code=emp_obj.emp_code,
+                                                              site_code=site_code,
+                                                              itm_date=date,
+                                                              ).first()
+                if not month_schedule:
+                    month_schedule = ScheduleMonth.objects.create(emp_code=request.GET.get("emp_code"),
+                                                                  site_code=site_code,
+                                                                  itm_date=date, )
+
+                monthlySchedule.append({
+                    "id": month_schedule.id,
+                    "emp_code": month_schedule.emp_code,
+                    "itm_date": month_schedule.itm_date,
+                    "itm_type": month_schedule.itm_type,
+
+                })
+        except Exception as e:
+            return general_error_response(e)
+
+        work_schedule = Workschedule.objects.filter(emp_code=emp_obj.emp_code, is_alternative=False).first()
+        if work_schedule is None:
+            work_schedule = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=False)
+
+        work_schedule_alt = Workschedule.objects.filter(emp_code=emp_obj.emp_code, is_alternative=True).first()
+        if work_schedule_alt is None:
+            work_schedule_alt = Workschedule.objects.create(emp_code=emp_obj.emp_code, is_alternative=True)
+
+        resData = {
+            "monthlySchedule": monthlySchedule,
+            "weekSchedule": EmpWorkScheduleSerializer(work_schedule).data,
+            "altWeekSchedule": EmpWorkScheduleSerializer(work_schedule_alt).data
+        }
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+        return Response(result, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        requestData = request.data
+
+        month_schedule_list = requestData.get("monthlySchedule")
+
+        for ms in month_schedule_list:
+            try:
+                h_schedule = ScheduleHour.objects.filter(itm_code=ms["itm_type"]).first()
+                m_schedule = ScheduleMonth.objects.get(id=ms['id'])
+                m_schedule.itm_type = ms["itm_type"]
+                m_schedule = h_schedule
+                m_schedule.save()
+            except Exception as e:
+                print(e)
+
+        week_schedule_dict = requestData.get("weekSchedule")
+        try:
+            work_schedule = Workschedule.objects.get(id=week_schedule_dict['id'])
+            work_schedule.monday = week_schedule_dict.get("monday")
+            work_schedule.tuesday = week_schedule_dict.get("tuesday")
+            work_schedule.wednesday = week_schedule_dict.get("wednesday")
+            work_schedule.thursday = week_schedule_dict.get("thursday")
+            work_schedule.friday = week_schedule_dict.get("friday")
+            work_schedule.saturday = week_schedule_dict.get("saturday")
+            work_schedule.sunday = week_schedule_dict.get("sunday")
+            work_schedule.save()
+        except Exception as e:
+            return general_error_response(e)
+
+        alt_week_schedule_dict = requestData.get("altWeekSchedule")
+        try:
+            alt_work_schedule = Workschedule.objects.get(id=alt_week_schedule_dict['id'])
+            alt_work_schedule.monday = alt_week_schedule_dict.get("monday")
+            alt_work_schedule.tuesday = alt_week_schedule_dict.get("tuesday")
+            alt_work_schedule.wednesday = alt_week_schedule_dict.get("wednesday")
+            alt_work_schedule.thursday = alt_week_schedule_dict.get("thursday")
+            alt_work_schedule.friday = alt_week_schedule_dict.get("friday")
+            alt_work_schedule.saturday = alt_week_schedule_dict.get("saturday")
+            alt_work_schedule.sunday = alt_week_schedule_dict.get("sunday")
+            alt_work_schedule.save()
+        except Exception as e:
+            return general_error_response(e)
+
+        result = {'status': status.HTTP_200_OK, 'message': "update success", 'error': False}
+        return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
 def schedule_hours(request):
     try:
-        qs = ScheduleHour.objects.filter(itm_isactive=True).values('id','itm_code','itm_desc','fromtime','totime',
-                                                                   'offday','itm_color','shortDesc')
+        qs = ScheduleHour.objects.filter(itm_isactive=True).values('id', 'itm_code', 'itm_desc', 'fromtime', 'totime',
+                                                                   'offday', 'itm_color', 'shortDesc')
         response_data = {
             "schedules": list(qs),
             "message": "Listed successfuly"
         }
-        return JsonResponse(response_data,status=status.HTTP_200_OK)
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
     except:
         response_data = {
             "message": "error"
         }
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET',])
+
+@api_view(['GET', ])
 def SkillsItemTypeList(request):
     try:
-        qs = ItemType.objects.all().values('itm_id','itm_name','itm_removable')
+        qs = ItemType.objects.all().values('itm_id', 'itm_name', 'itm_removable')
 
         response_data = {
             "skillsTypes": list(qs),
             "message": "Listed successfuly"
         }
-        return JsonResponse(response_data,status=status.HTTP_200_OK)
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
     except Exception as e:
         response_data = {
             "message": "error"
@@ -9519,11 +9650,12 @@ class EmployeeSkillView(APIView):
                 for sk in skill_qs:
                     itm_code = str(sk.itemcode)
                     if item_type:
-                        _stock = Stock.objects.filter(item_code=itm_code,Item_Typeid=item_type)
+                        _stock = Stock.objects.filter(item_code=itm_code, Item_Typeid=item_type)
                     else:
                         _stock = Stock.objects.filter(item_code=itm_code)
                     if _stock:
-                        skills_list.append(_stock.values("item_no","item_code", "item_name","item_type","Item_Typeid").first())
+                        skills_list.append(
+                            _stock.values("item_no", "item_code", "item_name", "item_type", "Item_Typeid").first())
                 if skills_list:
                     emp_list.append({
                         "emp_no": emp.emp_no,
@@ -9557,10 +9689,8 @@ class CustomerFormSettingsView(APIView):
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user has no site", 'error': True, "data": None}
             return Response(result, status=status.HTTP_200_OK)
 
-        query_set = CustomerFormControl.objects.filter(isActive=True,Site_Codeid=site)
-        serializer = CustomerFormControlSerializer(query_set,many=True)
-
-
+        query_set = CustomerFormControl.objects.filter(isActive=True, Site_Codeid=site)
+        serializer = CustomerFormControlSerializer(query_set, many=True)
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
@@ -9571,21 +9701,21 @@ class CustomerFormSettingsView(APIView):
         except CustomerFormControl.DoesNotExist:
             raise Http404
 
-    def put(self,request):
-        control_list = request.data.get("customerControlList",[])
+    def put(self, request):
+        control_list = request.data.get("customerControlList", [])
 
         for control in control_list:
             cf_obj = self.get_object(control['id'])
-            serializer = CustomerFormControlSerializer(cf_obj,data=control,partial=True)
+            serializer = CustomerFormControlSerializer(cf_obj, data=control, partial=True)
             if serializer.is_valid():
                 print("yes")
                 serializer.save()
 
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False,} #"data": serializer.data}
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, }  # "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
 
-@api_view(['GET',])
+@api_view(['GET', ])
 def CustomerFormSettings(request):
     try:
         fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
@@ -9601,7 +9731,7 @@ def CustomerFormSettings(request):
 
     for _setting in settings_list:
         # if hasattr(Customer,_setting["field_name"]):
-        _attr = getattr(Customer,_setting["field_name"])
+        _attr = getattr(Customer, _setting["field_name"])
         _data_type = str(type(_attr.field)).strip("<class ''>").split(".")[-1]
 
         _choices = None
@@ -9627,9 +9757,9 @@ def CustomerFormSettings(request):
             _setting["data_type"] = _data_type.rstrip("Field")
         _setting["selection"] = _choices
 
-
     result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": settings_list}
     return Response(result, status=status.HTTP_200_OK)
+
 
 class CustomerPlusViewset(viewsets.ModelViewSet):
     # authentication_classes = [ExpiringTokenAuthentication]
@@ -9639,7 +9769,6 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
     serializer_class = CustomerPlusSerializer
 
     # filter_backends = [DjangoFilterBackend, ]
-
 
     def get_queryset(self):
         fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
@@ -9704,7 +9833,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             queryset = None
             serializer_class = None
             total = None
-            serializer = self.get_serializer(data=request.data, context={'request': self.request, "action":self.action})
+            serializer = self.get_serializer(data=request.data,
+                                             context={'request': self.request, "action": self.action})
             if serializer.is_valid():
                 self.perform_create(serializer)
                 site = fmspw[0].loginsite
@@ -9877,7 +10007,7 @@ class RewardPolicyView(APIView):
     def get(self, request):
         try:
             qs = RewardPolicy.objects.all()
-            serializer = RewardPolicySerializer(qs,many=True)
+            serializer = RewardPolicySerializer(qs, many=True)
             data = serializer.data
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
             return Response(result, status=status.HTTP_200_OK)
@@ -9893,7 +10023,7 @@ class RedeemPolicyView(APIView):
     def get(self, request):
         try:
             qs = RedeemPolicy.objects.all()
-            serializer = RedeemPolicySerializer(qs,many=True)
+            serializer = RedeemPolicySerializer(qs, many=True)
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
             return Response(result, status=status.HTTP_200_OK)
         except:
@@ -9908,7 +10038,8 @@ class SkillsView(APIView):
     def get(self, request):
         _type = request.GET.get('item_type')
         if not _type:
-            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "<query param: item_type> is required", 'error': True, "data": None}
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "<query param: item_type> is required",
+                      'error': True, "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         try:
             item_type = ItemType.objects.get(itm_id=_type)
@@ -9919,8 +10050,8 @@ class SkillsView(APIView):
         except Exception as e:
             return general_error_response(e)
 
-        qs = Stock.objects.filter(Item_Typeid=item_type,item_isactive=True)
-        serializer = SkillSerializer(qs,many=True)
+        qs = Stock.objects.filter(Item_Typeid=item_type, item_isactive=True)
+        serializer = SkillSerializer(qs, many=True)
         resData = serializer.data
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
@@ -9938,22 +10069,16 @@ class PhotoDiagnosis(APIView):
         if search_key:
             customer_list = Customer.objects.filter(Q(cust_name__icontains=search_key) |
                                                     Q(cust_code__icontains=search_key) |
-                                                    Q(cust_phone1__icontains=search_key) ).values('cust_no')
+                                                    Q(cust_phone1__icontains=search_key)).values('cust_no')
 
         site = request.GET.get("site")
         if not site:
             fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
             site = fmspw[0].loginsite.itemsite_code
-            
+
         diag_qs = Diagnosis.objects.filter(site_code=site)
         if customer_list:
             diag_qs = diag_qs.filter(cust_no_id__in=customer_list)
-        serializer = DiagnosisSerializer(diag_qs,many=True)
+        serializer = DiagnosisSerializer(diag_qs, many=True)
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
-
-
-
-
-
-

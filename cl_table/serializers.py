@@ -884,26 +884,12 @@ class StaffPlusSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """ validation for StaffPlusSerializer"""
         request = self.context['request']
-        if not 'emp_name' in request.data:
-            raise serializers.ValidationError("emp_name Field is required.")
-        else:
-            if request.data['emp_name'] is None:
-                raise serializers.ValidationError("emp_name Field is required.")
 
-        if request.data.get("emp_isactive") is None:
-            raise serializers.ValidationError("emp_isactive field is required.")
+        mandatory_list = ['emp_name','emp_isactive','display_name','max_disc','emp_joindate']
+        for _field in mandatory_list:
+            if not request.data.get(_field):
+                raise serializers.ValidationError(f"{_field} Field is required.")
 
-        if request.data.get("display_name") is None:
-            raise serializers.ValidationError("display_name field is required.")
-
-        if request.data.get("max_disc") is None:
-            raise serializers.ValidationError("max_disc field is required.")
-
-        if request.data.get("emp_joindate") is None:
-            raise serializers.ValidationError("emp_joindate field is required.")
-
-        # if request.data.get("emp_nric") is None:
-        #     raise serializers.ValidationError("emp_nric field is required.")
 
         # if 'skills_list' in data:
         #     if data['skills_list'] is not None:
