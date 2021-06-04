@@ -9497,10 +9497,10 @@ class MonthlyAllSchedule(APIView):
     def get(self, request):
         # result = {'status': state, "message": message, 'error': error, 'data': data}
         try:
-            site = ItemSitelist.objects.get(itemsite_code=request.GET.get("siteCode"))
+            site = ItemSitelist.objects.get(itemsite_id=request.GET.get("site_id"))
         except Exception as e:
             print(e)
-            return general_error_response("Invalid start and end date format")
+            return general_error_response("Invalid site_id format")
 
         try:
             year = int(request.GET.get("year"))
