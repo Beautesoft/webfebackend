@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework import status, viewsets
@@ -9077,37 +9078,49 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             invalid_message = str(e)
             return general_error_response(invalid_message)
 
-    @action(detail=True, methods=['GET', 'PUT'], permission_classes=[IsAuthenticated & authenticated_only],
+    @action(detail=True, methods=['GET', 'POST'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[ExpiringTokenAuthentication], url_path='StaffSkills', url_name='StaffSkills')
     def StaffSkills(self, request, pk=None):
         try:
             employee = self.get_object(pk)
-            if request.method == "PUT":
+            site_code = employee.site_code # todo: site_code get from FE
+            if request.method == "POST":
                 skill_list = request.data.get("skillsCodeList", [])
-                for skill_code in skill_list:
-                    try:
-                        _skill = Stock.objects.get(item_code=skill_code)
-                        if not _skill.item_isactive:
-                            result = {'status': status.HTTP_400_BAD_REQUEST,
-                                      'message': f"{skill_code} skill is inactive",
-                                      'error': True, "data": None}
-                            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                old_skills = list(Skillstaff.objects.filter(sitecode=site_code, staffcode=employee.emp_code))
+                # print("before",len(old_skills))
+                try:
+                    # transaction starts: if skill code is invalid or Skillstaff data insertion failed
+                    # db will roll back to previous status
+                    with transaction.atomic():
+                        for skill_code in skill_list:
 
-                        skillstaff_obj = Skillstaff(sitecode=employee.site_code,
-                                                    staffcode=employee.emp_code,
-                                                    itemcode=skill_code)
-                        skillstaff_obj.save()
-                    except Exception as e:
-                        result = {'status': status.HTTP_400_BAD_REQUEST,
-                                  'message': f"invalid skill code {skill_code}, {e}",
-                                  'error': True, "data": None}
-                        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                            _skill = Stock.objects.get(item_code=skill_code)
+                            if not _skill.item_isactive:
+                                result = {'status': status.HTTP_400_BAD_REQUEST,
+                                          'message': f"{skill_code} skill is inactive",
+                                          'error': True, "data": None}
+                                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+                            skillstaff_obj = Skillstaff(sitecode=employee.site_code,
+                                                        staffcode=employee.emp_code,
+                                                        itemcode=skill_code)
+                            skillstaff_obj.save()
+
+                        for _old in old_skills:
+                            _old.delete()
+
+                    # transaction ends here
+                except Exception as e:
+                    result = {'status': status.HTTP_400_BAD_REQUEST,
+                                      'message': f"invalid skill code {skill_code}, {e}",
+                                      'error': True, "data": None}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
                 message = "updated Succesfully"
 
             elif request.method == "GET":
                 message = "Listed Succesfully"
 
-            skill_qs = Skillstaff.objects.filter(staffcode=employee.emp_code)
+            skill_qs = Skillstaff.objects.filter(staffcode=employee.emp_code,sitecode=employee.site_code)
             responseData = {}
             skills_list = []
             for sk in skill_qs:
@@ -10126,3 +10139,11 @@ class PhotoDiagnosis(APIView):
         serializer = DiagnosisSerializer(diag_qs, many=True)
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
+
+
+class EmployeeSecuritySettings(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        pass
