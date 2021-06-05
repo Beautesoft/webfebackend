@@ -1,4 +1,4 @@
-cl_table:
+cl_table
     views.py
         CustomerFormSettingsView
         EmployeeSkillView
@@ -34,13 +34,12 @@ cl_table:
         RedeemPolicy
         Diagnosis
 
-
         add emp_remarks filed into Employee table
         add emp_country into Employee table
         add shortDesc into ScheduleHour table
         add is_alternative into Workschedule table
 
-        add property method into CustomerClass, Source, Gender
+        add property method* into CustomerClass, Source, Gender
 
     serializer.py
         CustomerFormControlSerializer
@@ -51,9 +50,21 @@ cl_table:
         EmpInfoSerializer
         EmpWorkScheduleSerializer
 
+    admin.py
+    configuration.py
+    urls.py
 
-cl_app:
+cl_app
     models.py
-        add property method into ItemSitelist
+        add property method* into ItemSitelist
+
+custom
+    views.py
+
+CL_beautesoft
+    urls.py
+
+
+*property methods that isn't effected to db or migration, in models
 
 
