@@ -4,7 +4,9 @@ from django.dispatch import receiver
 # from cl_app.models import Site_Group, Item_SiteList
 from django.contrib.auth import user_logged_in, user_logged_out
 from django.dispatch import receiver
-from cl_table.models import Diagnosis
+from cl_table.models import Diagnosis, DiagnosisCompare
+
+
 # from cl_app.models import LoggedInUser
 
 # @receiver(pre_delete, sender=Site_Group, dispatch_uid='Site_Group_signal')
@@ -39,6 +41,11 @@ from cl_table.models import Diagnosis
 @receiver(post_save,sender=Diagnosis)
 def diagnosis_code_gen(sender, instance, created, **kwargs):
     if created:
-        print(instance.sys_code)
         instance.diagnosis_code = "%06d" % instance.sys_code
+        instance.save()
+
+@receiver(post_save,sender=DiagnosisCompare)
+def diagnosis_code_gen(sender, instance, created, **kwargs):
+    if created:
+        instance.compare_code = "%06d" % instance.id
         instance.save()

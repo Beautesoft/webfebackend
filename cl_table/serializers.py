@@ -1659,7 +1659,13 @@ class DiagnosisSerializer(serializers.ModelSerializer):
         model = Diagnosis
         fields = '__all__'
         read_only_fields = ("diagnosis_code","cust_code",)
-        extra_kwargs = {'diagnosis_code': {'required': False},'cust_code': {'required': False},}
+        extra_kwargs = {'diagnosis_code': {'required': False},
+                        'cust_code': {'required': False},
+                        'pic_path': {'required': True},
+                        'remark1': {'required': True},
+                        'diagnosis1_id': {'required': True},
+                        'diagnosis2_id': {'required': True},
+                        }
 
     # def validate(self, attrs):
     #     return attrs
@@ -1668,4 +1674,16 @@ class DiagnosisCompareSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiagnosisCompare
         fields = '__all__'
+        extra_kwargs = {'compare_isactive': {'required': False},
+                        'diagnosis1_id': {'required': True},
+                        'diagnosis2_id': {'required': True},
+                        }
 
+    def validate(self, attrs):
+        if attrs['diagnosis1_id'].cust_no != attrs['diagnosis2_id'].cust_no or attrs['diagnosis1_id'].site_code != attrs['diagnosis2_id'].site_code:
+            raise serializers.ValidationError("diagnosis1_id and diagnosis2_id mismatch")
+
+        if attrs['cust_code'] != attrs['diagnosis1_id'].cust_no.cust_code:
+            raise serializers.ValidationError("cust_code mismatch")
+
+        return attrs

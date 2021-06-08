@@ -3077,7 +3077,7 @@ class Diagnosis(models.Model):
     cust_name = models.CharField(db_column='Cust_Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
     cust_code = models.CharField(db_column='Cust_Code', max_length=50)  # Field name made lowercase.
     cust_no = models.ForeignKey(Customer, on_delete=models.PROTECT, null=True)
-    diagnosis_code = models.CharField(db_column='Diagnosis_Code', max_length=50)  # Field name made lowercase.
+    diagnosis_code = models.CharField(db_column='Diagnosis_Code', max_length=50,blank=True, null=True)  # Field name made lowercase.
     left_desc1 = models.CharField(db_column='Left_Desc1', max_length=100, blank=True, null=True)  # Field name made lowercase.
     left_desc2 = models.CharField(db_column='Left_Desc2', max_length=100, blank=True, null=True)  # Field name made lowercase.
     right_desc1 = models.CharField(db_column='Right_Desc1', max_length=100, blank=True, null=True)  # Field name made lowercase.
@@ -3112,12 +3112,7 @@ class Diagnosis(models.Model):
     def save(self, *args, **kwargs):
         self.cust_code = self.cust_no.cust_code
         self.cust_name = self.cust_no.cust_name
-
-        if not self.pk:
-            self.diagnosis_code = create_temp_diagnosis_code()
-            super(Diagnosis, self).save(*args, **kwargs)
-        else:
-            super(Diagnosis, self).save(*args, **kwargs)
+        super(Diagnosis, self).save(*args, **kwargs)
 
 
     @property
@@ -3136,7 +3131,7 @@ class DiagnosisCompare(models.Model):
     compare_code = models.CharField(db_column='Compare_Code', max_length=100, blank=True, null=True)  # Field name made lowercase.
     compare_remark = models.TextField(db_column='Compare_Remark', blank=True, null=True)  # Field name made lowercase.
     compare_datetime = models.DateTimeField(db_column='Compare_DateTime', blank=True, null=True)  # Field name made lowercase.
-    compare_isactive = models.BooleanField(db_column='Compare_IsActive')  # Field name made lowercase.
+    compare_isactive = models.BooleanField(db_column='Compare_IsActive',default=True)  # Field name made lowercase.
     compare_user = models.CharField(db_column='Compare_User', max_length=20, blank=True, null=True)  # Field name made lowercase.
     cust_code = models.CharField(db_column='Cust_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
     diagnosis1_id = models.ForeignKey(Diagnosis, on_delete=models.PROTECT, null=True, related_name="diagnosis_compare_1")
@@ -3144,3 +3139,4 @@ class DiagnosisCompare(models.Model):
 
     class Meta:
         db_table = 'Diagnosis_Compare'
+

@@ -10185,6 +10185,21 @@ class DiagnosisCompareView(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
+    def post(self, request):
+        requestData = request.data
+        fmspw = Fmspw.objects.filter(user=request.user).first()
+        compare_user = fmspw.emp_code
+        # requestData._mutable = True
+        requestData['compare_user'] = compare_user
+        serializer = DiagnosisCompareSerializer(data=requestData)
+        if serializer.is_valid():
+            serializer.save()
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True, "data": None,
+                  "error": serializer.errors}
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class EmployeeSecuritySettings(APIView):
