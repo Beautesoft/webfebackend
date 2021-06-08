@@ -1,9 +1,10 @@
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_save
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 # from cl_app.models import Site_Group, Item_SiteList
 from django.contrib.auth import user_logged_in, user_logged_out
 from django.dispatch import receiver
+from cl_table.models import Diagnosis
 # from cl_app.models import LoggedInUser
 
 # @receiver(pre_delete, sender=Site_Group, dispatch_uid='Site_Group_signal')
@@ -33,4 +34,11 @@ from django.dispatch import receiver
 
 # @receiver(user_logged_out)
 # def on_user_logged_out(sender, **kwargs):
-#     LoggedInUser.objects.filter(user=kwargs.get('user')).delete()    
+#     LoggedInUser.objects.filter(user=kwargs.get('user')).delete()
+
+@receiver(post_save,sender=Diagnosis)
+def diagnosis_code_gen(sender, instance, created, **kwargs):
+    if created:
+        print(instance.sys_code)
+        instance.diagnosis_code = "%06d" % instance.sys_code
+        instance.save()

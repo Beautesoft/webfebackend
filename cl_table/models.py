@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
@@ -7,6 +7,9 @@ from django.utils import timezone
 #intial
 
 #Final
+from cl_table.utils import create_temp_diagnosis_code, code_generator, get_next_diagnosis_code
+
+
 class City(models.Model):
     itm_id = models.AutoField(primary_key=True)
     itm_desc = models.CharField(max_length=40, blank=True, null=True)
@@ -3109,9 +3112,35 @@ class Diagnosis(models.Model):
     def save(self, *args, **kwargs):
         self.cust_code = self.cust_no.cust_code
         self.cust_name = self.cust_no.cust_name
-        super(Diagnosis, self).save(*args, **kwargs)
+
+        if not self.pk:
+            self.diagnosis_code = create_temp_diagnosis_code()
+            super(Diagnosis, self).save(*args, **kwargs)
+        else:
+            super(Diagnosis, self).save(*args, **kwargs)
+
+
+    @property
+    def get_diagnosis_code(self):
+        return "%06d" % self.sys_code
+
 
     class Meta:
         # managed = False
         db_table = 'Diagnosis'
-        unique_together = (('cust_code', 'diagnosis_code', 'site_code'),)
+        unique_together = (('sys_code', 'cust_no', 'site_code'),)
+
+
+class DiagnosisCompare(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    compare_code = models.CharField(db_column='Compare_Code', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    compare_remark = models.TextField(db_column='Compare_Remark', blank=True, null=True)  # Field name made lowercase.
+    compare_datetime = models.DateTimeField(db_column='Compare_DateTime', blank=True, null=True)  # Field name made lowercase.
+    compare_isactive = models.BooleanField(db_column='Compare_IsActive')  # Field name made lowercase.
+    compare_user = models.CharField(db_column='Compare_User', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    cust_code = models.CharField(db_column='Cust_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    diagnosis1_id = models.ForeignKey(Diagnosis, on_delete=models.PROTECT, null=True, related_name="diagnosis_compare_1")
+    diagnosis2_id = models.ForeignKey(Diagnosis, on_delete=models.PROTECT, null=True, related_name="diagnosis_compare_2")
+
+    class Meta:
+        db_table = 'Diagnosis_Compare'

@@ -4,7 +4,8 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
                      FocReason, Workschedule, CustomerFormControl,
-                     CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis)
+                     CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare
+                     )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
 from django.contrib.auth.models import User
@@ -1656,5 +1657,15 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
 class DiagnosisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diagnosis
+        fields = '__all__'
+        read_only_fields = ("diagnosis_code","cust_code",)
+        extra_kwargs = {'diagnosis_code': {'required': False},'cust_code': {'required': False},}
+
+    # def validate(self, attrs):
+    #     return attrs
+
+class DiagnosisCompareSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiagnosisCompare
         fields = '__all__'
 
