@@ -9467,7 +9467,7 @@ class MonthlyWorkSchedule(APIView):
                 h_schedule = ScheduleHour.objects.filter(itm_code=ms["itm_type"]).first()
                 m_schedule = ScheduleMonth.objects.get(id=ms['id'])
                 m_schedule.itm_type = ms["itm_type"]
-                m_schedule = h_schedule
+                m_schedule.itm_Typeid = h_schedule
                 m_schedule.save()
             except Exception as e:
                 print(e)
@@ -10189,7 +10189,6 @@ class DiagnosisCompareView(APIView):
         requestData = request.data
         fmspw = Fmspw.objects.filter(user=request.user).first()
         compare_user = fmspw.emp_code
-        # requestData._mutable = True
         requestData['compare_user'] = compare_user
         serializer = DiagnosisCompareSerializer(data=requestData)
         if serializer.is_valid():

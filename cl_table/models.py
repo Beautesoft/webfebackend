@@ -3140,3 +3140,74 @@ class DiagnosisCompare(models.Model):
     class Meta:
         db_table = 'Diagnosis_Compare'
 
+class CustomerPoint(models.Model):
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    transacno = models.CharField(db_column='TransacNO', max_length=20)  # Field name made lowercase.
+    date = models.DateTimeField(db_column='Date', blank=True, null=True)  # Field name made lowercase.
+    username = models.CharField(db_column='Username', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    time = models.DateTimeField(db_column='Time', blank=True, null=True)  # Field name made lowercase.
+    cust_name = models.CharField(db_column='Cust_Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    cust_code = models.CharField(db_column='Cust_Code', max_length=100)  # Field name made lowercase.
+    type = models.CharField(db_column='Type', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    refno = models.CharField(db_column='RefNo', max_length=20)  # Field name made lowercase.
+    ref_source = models.CharField(db_column='Ref_Source', max_length=50)  # Field name made lowercase.
+    isvoid = models.BooleanField(db_column='Isvoid')  # Field name made lowercase.
+    sa_status = models.CharField(db_column='Sa_Status', max_length=10)  # Field name made lowercase.
+    void_referenceno = models.CharField(db_column='void_ReferenceNo', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    total_point = models.FloatField(db_column='Total_Point')  # Field name made lowercase.
+    now_point = models.FloatField(db_column='Now_Point', blank=True, null=True)  # Field name made lowercase.
+    seq = models.IntegerField(db_column='Seq', blank=True, null=True)  # Field name made lowercase.
+    remarks = models.CharField(db_column='Remarks', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    bal_point = models.FloatField(db_column='Bal_Point')  # Field name made lowercase.
+    expired = models.BooleanField(db_column='Expired')  # Field name made lowercase.
+    expired_date = models.DateTimeField(db_column='Expired_Date', blank=True, null=True)  # Field name made lowercase.
+    mac_code = models.CharField(db_column='Mac_Code', max_length=100)  # Field name made lowercase.
+    logno = models.CharField(db_column='LogNo', max_length=100)  # Field name made lowercase.
+    approval_user = models.CharField(db_column='Approval_User', max_length=100)  # Field name made lowercase.
+    cardno = models.CharField(db_column='CardNo', max_length=100)  # Field name made lowercase.
+    bdate = models.DateTimeField(db_column='BDate', blank=True, null=True)  # Field name made lowercase.
+    pdate = models.DateTimeField(db_column='PDate', blank=True, null=True)  # Field name made lowercase.
+    expired_point = models.FloatField()
+    postransactionno = models.CharField(db_column='posTransactionNo', max_length=50)  # Field name made lowercase.
+    postotalamt = models.FloatField(db_column='posTotalAmt', blank=True, null=True)  # Field name made lowercase.
+    locid = models.CharField(db_column='LocID', max_length=50)  # Field name made lowercase.
+    mgm_refno = models.CharField(db_column='MGM_RefNo', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    tdate = models.CharField(db_column='TDate', max_length=50, blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        # managed = False
+        db_table = 'Customer_Point'
+        unique_together = (('transacno', 'cust_code', 'sa_status', 'total_point', 'postransactionno', 'locid'),)
+
+class CustomerPointDtl(models.Model):
+    id = models.AutoField(db_column='Id',primary_key=True)  # Field name made lowercase.
+    transacno = models.CharField(db_column='TransacNo', max_length=20)  # Field name made lowercase.
+    type = models.CharField(db_column='Type', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    cust_code = models.CharField(db_column='Cust_Code', max_length=20)  # Field name made lowercase.
+    cust_name = models.CharField(db_column='Cust_Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    parent_code = models.CharField(db_column='Parent_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    parent_desc = models.CharField(db_column='Parent_Desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    parent_display = models.CharField(db_column='Parent_Display', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    itm_code = models.CharField(db_column='itm_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    itm_desc = models.CharField(db_column='itm_Desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    point = models.FloatField(db_column='Point')  # Field name made lowercase.
+    now_point = models.FloatField(db_column='Now_Point')  # Field name made lowercase.
+    remark = models.CharField(db_column='Remark', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    remark_code = models.CharField(db_column='Remark_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    remark_desc = models.CharField(db_column='Remark_Desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    isvoid = models.BooleanField(db_column='Isvoid')  # Field name made lowercase.
+    void_referenceno = models.CharField(db_column='void_ReferenceNo', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    isopen = models.BooleanField(db_column='IsOpen', blank=True, null=True)  # Field name made lowercase.
+    qty = models.IntegerField(db_column='Qty', blank=True, null=True)  # Field name made lowercase.
+    total_point = models.FloatField(db_column='Total_Point', blank=True, null=True)  # Field name made lowercase.
+    seq = models.IntegerField(db_column='Seq', blank=True, null=True)  # Field name made lowercase.
+    sa_status = models.CharField(db_column='Sa_status', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    bal_acc2 = models.FloatField(db_column='Bal_Acc2', blank=True, null=True)  # Field name made lowercase.
+    point_acc1 = models.FloatField(db_column='Point_Acc1', blank=True, null=True)  # Field name made lowercase.
+    point_acc2 = models.FloatField(db_column='Point_Acc2', blank=True, null=True)  # Field name made lowercase.
+    locid = models.CharField(db_column='LocID', max_length=50)  # Field name made lowercase.
+
+    class Meta:
+        # managed = False
+        db_table = 'Customer_Point_Dtl'
+        unique_together = (('transacno', 'cust_code', 'point', 'now_point', 'locid'),)
