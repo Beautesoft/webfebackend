@@ -20,6 +20,7 @@ cl_table
         CustomerFormSettings
         RewardPolicyView
         RedeemPolicyView
+        DiagnosisCompareView
 
     models.py
         CustomerFormControl
@@ -33,6 +34,9 @@ cl_table
         RewardPolicy
         RedeemPolicy
         Diagnosis
+        DiagnosisCompare
+        CustomerPoint
+        CustomerPointDtl
 
         add emp_remarks filed into Employee table
         add emp_country into Employee table
@@ -49,9 +53,14 @@ cl_table
         SkillSerializer
         EmpInfoSerializer
         EmpWorkScheduleSerializer
+        DiagnosisCompareSerializer
+        DiagnosisSerializer
+        RewardPolicySerializer
+        RedeemPolicySerializer
 
     admin.py
     configuration.py
+    utils.py
     urls.py
 
 cl_app
