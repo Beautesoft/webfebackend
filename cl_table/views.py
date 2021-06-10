@@ -14,7 +14,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
                      PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType,
-                     CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare
+                     CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
@@ -37,7 +37,7 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           EmpInfoSerializer, EmpWorkScheduleSerializer,
                           CustomerFormControlSerializer,
                           CustomerPlusSerializer, RewardPolicySerializer, RedeemPolicySerializer, SkillSerializer,
-                          DiagnosisSerializer, DiagnosisCompareSerializer
+                          DiagnosisSerializer, DiagnosisCompareSerializer, SecuritylevellistSerializer
                           )
 from datetime import date, timedelta, datetime
 import datetime
@@ -10206,4 +10206,34 @@ class EmployeeSecuritySettings(APIView):
     permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self, request):
-        pass
+        security_qs = Securities.objects.filter(level_isactive=True)
+        s_list = []
+        for _s in security_qs:
+            # level_list = []
+            level_qs = Securitylevellist.objects.filter(level_itemid=_s.level_code)
+            level_serializer = SecuritylevellistSerializer(level_qs,many=True)
+            s_list.append({
+                "securieties": _s.level_name,
+                "code": _s.level_code,
+                "levels": level_serializer.data,
+            })
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": s_list}
+        return Response(result, status=status.HTTP_200_OK)
+
+    def post(self,request):
+        requestData = request.data
+        level_list = requestData.get("level_list",[])
+        for level in level_list:
+            level_obj = Securitylevellist.objects.get(id=level['id'])
+            l_serializer = SecuritylevellistSerializer(level_obj,data=level,partial=True)
+            if l_serializer.is_valid():
+                l_serializer.save()
+            else:
+                result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
+                          "data": None,
+                          "error": l_serializer.errors}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False}
+        return Response(result, status=status.HTTP_200_OK)

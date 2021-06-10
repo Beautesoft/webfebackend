@@ -48,6 +48,7 @@ urlpatterns = [
     path('api/CustomerFormSettings/details', views.CustomerFormSettings, name='CustomerFormSettingsDetails'),
     path('api/RewardPolicy/', views.RewardPolicyView.as_view(), name='RewardPolicyView'),
     path('api/RedeemPolicy/', views.RedeemPolicyView.as_view(), name='RedeemPolicyView'),
+    path('api/EmployeeSecuritySettings/', views.EmployeeSecuritySettings.as_view(), name='EmployeeSecuritySettings'),
 
 
 

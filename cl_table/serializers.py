@@ -4,7 +4,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
                      FocReason, Workschedule, CustomerFormControl,
-                     CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare
+                     CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
@@ -1687,3 +1687,10 @@ class DiagnosisCompareSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("cust_code mismatch")
 
         return attrs
+
+
+class SecuritylevellistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Securitylevellist
+        fields = ['id','controlname','controldesc','controlstatus']
+        read_only_fields = ('id','controlname','controldesc',)
