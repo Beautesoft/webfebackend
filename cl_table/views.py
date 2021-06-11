@@ -10084,7 +10084,7 @@ class RewardPolicyView(APIView):
                 qs = paginator.page(total_page)  # last page
             serializer = RewardPolicySerializer(qs, many=True)
             resData = {
-                'diagnosisList': serializer.data,
+                'dataList': serializer.data,
                 'pagination': {
                     "per_page": limit,
                     "current_page": page,
@@ -10127,7 +10127,7 @@ class RedeemPolicyView(APIView):
             serializer = RedeemPolicySerializer(qs, many=True)
 
             resData = {
-                'diagnosisList': serializer.data,
+                'dataList': serializer.data,
                 'pagination': {
                     "per_page": limit,
                     "current_page": page,
