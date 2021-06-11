@@ -10065,9 +10065,34 @@ class RewardPolicyView(APIView):
     def get(self, request):
         try:
             qs = RewardPolicy.objects.all()
+            full_tot = qs.count()
+            try:
+                limit = int(request.GET.get("limit", 8))
+            except:
+                limit = 8
+            try:
+                page = int(request.GET.get("page", 1))
+            except:
+                page = 1
+
+            paginator = Paginator(qs, limit)
+            total_page = paginator.num_pages
+
+            try:
+                qs = paginator.page(page)
+            except (EmptyPage, InvalidPage):
+                qs = paginator.page(total_page)  # last page
             serializer = RewardPolicySerializer(qs, many=True)
-            data = serializer.data
-            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            resData = {
+                'diagnosisList': serializer.data,
+                'pagination': {
+                    "per_page": limit,
+                    "current_page": page,
+                    "total": full_tot,
+                    "total_pages": total_page
+                }
+            }
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
             return Response(result, status=status.HTTP_200_OK)
         except:
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
@@ -10081,8 +10106,36 @@ class RedeemPolicyView(APIView):
     def get(self, request):
         try:
             qs = RedeemPolicy.objects.all()
+            full_tot = qs.count()
+            try:
+                limit = int(request.GET.get("limit", 8))
+            except:
+                limit = 8
+            try:
+                page = int(request.GET.get("page", 1))
+            except:
+                page = 1
+
+            paginator = Paginator(qs, limit)
+            total_page = paginator.num_pages
+
+            try:
+                qs = paginator.page(page)
+            except (EmptyPage, InvalidPage):
+                qs = paginator.page(total_page)  # last page
+
             serializer = RedeemPolicySerializer(qs, many=True)
-            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+
+            resData = {
+                'diagnosisList': serializer.data,
+                'pagination': {
+                    "per_page": limit,
+                    "current_page": page,
+                    "total": full_tot,
+                    "total_pages": total_page
+                }
+            }
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
             return Response(result, status=status.HTTP_200_OK)
         except:
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
