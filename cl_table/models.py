@@ -3211,3 +3211,12 @@ class CustomerPointDtl(models.Model):
         # managed = False
         db_table = 'Customer_Point_Dtl'
         unique_together = (('transacno', 'cust_code', 'point', 'now_point', 'locid'),)
+
+
+class Multilanguage(models.Model):
+    id = models.AutoField(primary_key=True)
+    english = models.CharField(max_length=250, blank=True, null=True)
+    zh_sg = models.CharField(db_column='zh-sg', max_length=250, blank=True, null=True)  # Field renamed to remove unsuitable characters.
+
+    class Meta:
+        db_table = 'MultiLanguage'

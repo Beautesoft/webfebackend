@@ -10130,15 +10130,46 @@ class PhotoDiagnosis(APIView):
                                                     Q(cust_phone1__icontains=search_key)).values('cust_no')
 
         site = request.GET.get("site")
+
         if not site:
             fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
             site = fmspw[0].loginsite.itemsite_code
 
         diag_qs = Diagnosis.objects.filter(site_code=site)
+
         if customer_list:
             diag_qs = diag_qs.filter(cust_no_id__in=customer_list)
+
+        full_tot = diag_qs.count()
+        try:
+            limit = int(request.GET.get("limit", 8))
+        except:
+            limit = 8
+        try:
+            page = int(request.GET.get("page", 1))
+        except:
+            page = 1
+
+        paginator = Paginator(diag_qs, limit)
+        total_page = paginator.num_pages
+
+        try:
+            diag_qs = paginator.page(page)
+        except (EmptyPage, InvalidPage):
+            diag_qs = paginator.page(total_page)  # last page
+
         serializer = DiagnosisSerializer(diag_qs, many=True)
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+
+        resData = {
+            'diagnosisList': serializer.data,
+            'pagination': {
+                "per_page": limit,
+                "current_page": page,
+                "total": full_tot,
+                "total_pages": total_page
+            }
+        }
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
 
     def post(self,request):
@@ -10180,9 +10211,36 @@ class DiagnosisCompareView(APIView):
         # diag_list = diag_qs.values('sys_code')
 
         compare_qs = DiagnosisCompare.objects.filter(Q(diagnosis1_id__in=diag_qs) | Q(diagnosis2_id__in=diag_qs))
-        serializer = DiagnosisCompareSerializer(compare_qs,many=True)
+        full_tot = compare_qs.count()
+        try:
+            limit = int(request.GET.get("limit", 8))
+        except:
+            limit = 8
+        try:
+            page = int(request.GET.get("page", 1))
+        except:
+            page = 1
 
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        paginator = Paginator(compare_qs, limit)
+        total_page = paginator.num_pages
+
+        try:
+            compare_qs = paginator.page(page)
+        except (EmptyPage, InvalidPage):
+            compare_qs = paginator.page(total_page)  # last page
+
+        serializer = DiagnosisCompareSerializer(compare_qs,many=True)
+        resData = {
+            'diagnosisList': serializer.data,
+            'pagination': {
+                "per_page": limit,
+                "current_page": page,
+                "total": full_tot,
+                "total_pages": total_page
+            }
+        }
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -10237,3 +10295,8 @@ class EmployeeSecuritySettings(APIView):
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False}
         return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+def MultiLanguage(request):
+    pass
