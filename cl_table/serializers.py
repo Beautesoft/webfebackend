@@ -1657,7 +1657,7 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
 class DiagnosisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diagnosis
-        fields = '__all__'
+        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path']
         read_only_fields = ("diagnosis_code","cust_code",)
         extra_kwargs = {'diagnosis_code': {'required': False},
                         'cust_code': {'required': False},
@@ -1671,9 +1671,13 @@ class DiagnosisSerializer(serializers.ModelSerializer):
     #     return attrs
 
 class DiagnosisCompareSerializer(serializers.ModelSerializer):
+    diagnosis1 = DiagnosisSerializer(source='diagnosis1_id')
+    diagnosis2 = DiagnosisSerializer(source='diagnosis2_id')
     class Meta:
         model = DiagnosisCompare
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['id','compare_code','compare_remark','compare_datetime','compare_user',
+                  'cust_code','diagnosis1','diagnosis2','diagnosis1_id','diagnosis2_id']
         extra_kwargs = {'compare_isactive': {'required': False},
                         'diagnosis1_id': {'required': True},
                         'diagnosis2_id': {'required': True},
