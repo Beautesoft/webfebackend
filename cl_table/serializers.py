@@ -1657,7 +1657,7 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
 class DiagnosisSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diagnosis
-        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path']
+        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no']
         read_only_fields = ("diagnosis_code","cust_code",)
         extra_kwargs = {'diagnosis_code': {'required': False},
                         'cust_code': {'required': False},

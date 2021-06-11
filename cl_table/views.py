@@ -10057,6 +10057,63 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         instance.cust_isactive = False
         instance.save()
 
+    @action(detail=True, methods=['GET', 'POST'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[ExpiringTokenAuthentication], url_path='photoDiagnosis', url_name='photoDiagnosis')
+    def photoDiagnosis(self,request,pk=None):
+        site = request.GET.get("site")
+        customer_obj = self.get_object(pk)
+        if not site:
+            fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
+            site = fmspw[0].loginsite.itemsite_code
+        if request.method == "GET":
+            diag_qs = Diagnosis.objects.filter(site_code=site,cust_no=customer_obj)
+
+            full_tot = diag_qs.count()
+            try:
+                limit = int(request.GET.get("limit", 8))
+            except:
+                limit = 8
+            try:
+                page = int(request.GET.get("page", 1))
+            except:
+                page = 1
+
+            paginator = Paginator(diag_qs, limit)
+            total_page = paginator.num_pages
+
+            try:
+                diag_qs = paginator.page(page)
+            except (EmptyPage, InvalidPage):
+                diag_qs = paginator.page(total_page)  # last page
+
+            serializer = DiagnosisSerializer(diag_qs, many=True)
+
+            resData = {
+                'diagnosisList': serializer.data,
+                'pagination': {
+                    "per_page": limit,
+                    "current_page": page,
+                    "total": full_tot,
+                    "total_pages": total_page
+                }
+            }
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+            return Response(result, status=status.HTTP_200_OK)
+        elif request.method == "POST":
+            requestData = request.POST
+            requestData._mutable = True
+            requestData['pic_path'] = request.FILES.get("pic_path")
+            requestData['cust_no'] = pk
+            requestData['site_code'] = site
+            serializer = DiagnosisSerializer(data=requestData)
+            if serializer.is_valid():
+                serializer.save()
+                result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+                return Response(result, status=status.HTTP_200_OK)
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True, "data": None,
+                      "error": serializer.errors}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RewardPolicyView(APIView):
     authentication_classes = [ExpiringTokenAuthentication]
