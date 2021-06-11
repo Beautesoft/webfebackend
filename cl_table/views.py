@@ -10114,6 +10114,62 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                       "error": serializer.errors}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['GET', 'POST'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[ExpiringTokenAuthentication], url_path='photoDiagnosisCompare', url_name='photoDiagnosisCompare')
+    def photoDiagnosisCompare(self, request, pk=None):
+        site = request.GET.get("site")
+        customer_obj = self.get_object(pk)
+        fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True).first()
+        if not site:
+            site = fmspw.loginsite.itemsite_code
+        if request.method == "GET":
+            diag_qs = Diagnosis.objects.filter(site_code=site)
+
+            compare_qs = DiagnosisCompare.objects.filter(Q(diagnosis1_id__in=diag_qs) | Q(diagnosis2_id__in=diag_qs))
+            full_tot = compare_qs.count()
+            try:
+                limit = int(request.GET.get("limit", 8))
+            except:
+                limit = 8
+            try:
+                page = int(request.GET.get("page", 1))
+            except:
+                page = 1
+
+            paginator = Paginator(compare_qs, limit)
+            total_page = paginator.num_pages
+
+            try:
+                compare_qs = paginator.page(page)
+            except (EmptyPage, InvalidPage):
+                compare_qs = paginator.page(total_page)  # last page
+
+            serializer = DiagnosisCompareSerializer(compare_qs, many=True)
+            resData = {
+                'diagnosisList': serializer.data,
+                'pagination': {
+                    "per_page": limit,
+                    "current_page": page,
+                    "total": full_tot,
+                    "total_pages": total_page
+                }
+            }
+
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+            return Response(result, status=status.HTTP_200_OK)
+
+        if request.method == "POST":
+            requestData = request.data
+            compare_user = fmspw.emp_code
+            requestData['compare_user'] = compare_user
+            serializer = DiagnosisCompareSerializer(data=requestData)
+            if serializer.is_valid():
+                serializer.save()
+                result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+                return Response(result, status=status.HTTP_200_OK)
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True, "data": None,
+                      "error": serializer.errors}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 class RewardPolicyView(APIView):
     authentication_classes = [ExpiringTokenAuthentication]
