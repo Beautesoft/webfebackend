@@ -7,8 +7,6 @@ from django.utils import timezone
 #intial
 
 #Final
-from cl_table.utils import create_temp_diagnosis_code, code_generator, get_next_diagnosis_code
-
 
 class City(models.Model):
     itm_id = models.AutoField(primary_key=True)

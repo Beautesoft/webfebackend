@@ -10,7 +10,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      PrepaidAccount, PrepaidAccountCondition, VoucherCondition, Title, Systemsetup, PackageHdr,
                      ItemBatch, Stktrn, Workschedule, Securitycontrollist, Securitylevellist, MenuSecurity,
                      MenuSecuritylevellist, Skillstaff, CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis,
-                     DiagnosisCompare
+                     DiagnosisCompare, Multilanguage
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 
@@ -79,3 +79,4 @@ admin.site.register(RewardPolicy)
 admin.site.register(RedeemPolicy)
 admin.site.register(Diagnosis)
 admin.site.register(DiagnosisCompare)
+admin.site.register(Multilanguage)
