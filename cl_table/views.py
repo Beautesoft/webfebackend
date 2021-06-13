@@ -14,7 +14,8 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                      CreditNote, Systemsetup,
                      PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType,
-                     CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist
+                     CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist,
+                     Multilanguage
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
@@ -8737,6 +8738,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
     def create(self, request):
         try:
             state = status.HTTP_400_BAD_REQUEST
+            result = {}
             fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
             Site_Codeid = fmspw[0].loginsite
             if not self.request.user.is_authenticated:
@@ -8761,88 +8763,107 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
                 return Response(data=result, status=status.HTTP_400_BAD_REQUEST)
 
             if serializer.is_valid():
-                control_obj = ControlNo.objects.filter(control_description__iexact="EMP CODE",
-                                                       Site_Codeid__pk=fmspw[0].loginsite.pk).first()
-                if not control_obj:
-                    result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Employee Control No does not exist!!",
+                try:
+                    with transaction.atomic():
+                        control_obj = ControlNo.objects.filter(control_description__iexact="EMP CODE",
+                                                               Site_Codeid__pk=fmspw[0].loginsite.pk).first()
+                        if not control_obj:
+                            result = {'status': status.HTTP_400_BAD_REQUEST, "message": "Employee Control No does not exist!!",
+                                      'error': True}
+                            # return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                            raise ValueError("Employee Control No does not exist!!")
+                        emp_code = str(control_obj.control_prefix) + str(control_obj.control_no)
+                        defaultobj = ItemSitelist.objects.filter(pk=request.data['defaultSiteCodeid'],
+                                                                 itemsite_isactive=True).first()
+
+                        site_unique = EmpSitelist.objects.filter(emp_code=emp_code, site_code=defaultobj.itemsite_code,
+                                                                 isactive=True)
+                        if site_unique:
+                            result = {'status': state, "message": "Unique Constrain for emp_code and site_code!!",
+                                      'error': True}
+                            # return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                            raise ValueError("Unique Constrain for emp_code and site_code!!")
+                        user_obj = User.objects.filter(username=request.data['emp_name'])
+                        if user_obj:
+                            result = {'status': state, "message": "Username already exist!!", 'error': True}
+                            raise ValueError("Username already exist!!")
+                            # return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                        emp_obj = Employee.objects.filter(emp_name=request.data['emp_name'])
+                        if emp_obj:
+                            result = {'status': state, "message": "Employee already exist!!", 'error': True}
+                            raise ValueError("Employee already exist!!")
+                        fmspw_obj = Fmspw.objects.filter(pw_userlogin=request.data['emp_name'])
+                        if fmspw_obj:
+                            result = {'status': state, "message": "Fmspw already exist!!", 'error': True}
+                            # return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                            raise ValueError("Fmspw already exist!!")
+
+                        token_obj = Fmspw.objects.filter(user__username=request.data['emp_name'])
+                        if token_obj:
+                            result = {'status': state, "message": "Token for this employee user is already exist!!",
+                                      'error': True}
+                            # return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                            raise ValueError("Token for this employee user is already exist!!")
+
+                        jobtitle = EmpLevel.objects.filter(id=request.data['EMP_TYPEid'], level_isactive=True).first()
+                        gender = Gender.objects.filter(pk=request.data.get('Emp_sexesid'), itm_isactive=True).first()
+                        gender_code = gender.itm_code if gender else None
+                        # self.perform_create(serializer) # commented this line to fix sitecode () issue.
+                        s = serializer.save(emp_code=emp_code, emp_type=jobtitle.level_code, emp_sexes=gender_code,
+                                            defaultsitecode=defaultobj.itemsite_code, site_code=Site_Codeid.itemsite_code
+                                            )
+                        s.emp_code = emp_code
+                        s.save()
+                        token = False
+                        if s.is_login == True:
+                            if request.data.get('pw_password') is None:
+                                result = {'status': status.HTTP_400_BAD_REQUEST,
+                                          "message": "pw_password Field is required.",
+                                          'error': True}
+                                raise ValueError("pw_password Field is required.")
+
+                            if request.data.get('LEVEL_ItmIDid') is None:
+                                result = {'status': status.HTTP_400_BAD_REQUEST,
+                                          "message": "LEVEL_ItmIDid Field is required.",
+                                          'error': True}
+                                raise ValueError("LEVEL_ItmIDid Field is required.")
+
+
+                            EmpSitelist(Emp_Codeid=s, emp_code=emp_code, Site_Codeid=s.defaultSiteCodeid,
+                                        site_code=s.defaultSiteCodeid.itemsite_code).save()
+                            user = User.objects.create_user(username=s.emp_name, email=s.emp_email,
+                                                            password=request.data['pw_password'])
+                            levelobj = Securities.objects.filter(pk=request.data['LEVEL_ItmIDid'], level_isactive=True).first()
+                            Fmspw(pw_userlogin=s.emp_name,
+                                  pw_password=request.data['pw_password'],
+                                  LEVEL_ItmIDid=levelobj,
+                                  level_itmid=levelobj.level_code,
+                                  level_desc=levelobj.level_description,
+                                  Emp_Codeid=s,
+                                  emp_code=emp_code,
+                                  user=user,
+                                  loginsite=None,
+                                  flgappt = request.data.get('flgappt',False),
+                                  flgsales = request.data.get('flgsales',False)
+                                  ).save()
+                            s.pw_userlogin = s.emp_name
+                            s.pw_password = request.data['pw_password']
+                            s.LEVEL_ItmIDid = levelobj
+                            s.save()
+                            token = Token.objects.create(user=user)
+                        if s.pk:
+                            control_obj.control_no = int(control_obj.control_no) + 1
+                            control_obj.save()
+                except ValueError as e:
+                    # result = {'status': state, "message": str(e),
+                    #           'error': True}
+                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
+                except Exception as e:
+                    result = {'status': status.HTTP_400_BAD_REQUEST, "message": str(e),
                               'error': True}
                     return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                emp_code = str(control_obj.control_prefix) + str(control_obj.control_no)
-                defaultobj = ItemSitelist.objects.filter(pk=request.data['defaultSiteCodeid'],
-                                                         itemsite_isactive=True).first()
 
-                site_unique = EmpSitelist.objects.filter(emp_code=emp_code, site_code=defaultobj.itemsite_code,
-                                                         isactive=True)
-                if site_unique:
-                    result = {'status': state, "message": "Unique Constrain for emp_code and site_code!!",
-                              'error': True}
-                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                user_obj = User.objects.filter(username=request.data['emp_name'])
-                if user_obj:
-                    result = {'status': state, "message": "Username already exist!!", 'error': True}
-                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                emp_obj = Employee.objects.filter(emp_name=request.data['emp_name'])
-                if emp_obj:
-                    result = {'status': state, "message": "Employee already exist!!", 'error': True}
-                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                fmspw_obj = Fmspw.objects.filter(pw_userlogin=request.data['emp_name'])
-                if fmspw_obj:
-                    result = {'status': state, "message": "Fmspw already exist!!", 'error': True}
-                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-                token_obj = Fmspw.objects.filter(user__username=request.data['emp_name'])
-                if token_obj:
-                    result = {'status': state, "message": "Token for this employee user is already exist!!",
-                              'error': True}
-                    return Response(result, status=status.HTTP_400_BAD_REQUEST)
-
-                jobtitle = EmpLevel.objects.filter(id=request.data['EMP_TYPEid'], level_isactive=True).first()
-                gender = Gender.objects.filter(pk=request.data.get('Emp_sexesid'), itm_isactive=True).first()
-                gender_code = gender.itm_code if gender else None
-                # self.perform_create(serializer) # commented this line to fix sitecode () issue.
-                s = serializer.save(emp_code=emp_code, emp_type=jobtitle.level_code, emp_sexes=gender_code,
-                                    defaultsitecode=defaultobj.itemsite_code, site_code=Site_Codeid.itemsite_code
-                                    )
-                s.emp_code = emp_code
-                s.save()
-                token = False
-                if s.is_login == True:
-                    if not 'pw_password' in request.data:
-                        result = {'status': status.HTTP_400_BAD_REQUEST, "message": "pw_password Field is required.",
-                                  'error': True}
-                        return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                    else:
-                        if request.data['pw_password'] is None:
-                            result = {'status': status.HTTP_400_BAD_REQUEST,
-                                      "message": "pw_password Field is required.", 'error': True}
-                            return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                    if not 'LEVEL_ItmIDid' in request.data:
-                        result = {'status': status.HTTP_400_BAD_REQUEST, "message": "LEVEL_ItmIDid Field is required.",
-                                  'error': True}
-                        return Response(result, status=status.HTTP_400_BAD_REQUEST)
-                    else:
-                        if request.data['LEVEL_ItmIDid'] is None:
-                            result = {'status': status.HTTP_400_BAD_REQUEST,
-                                      "message": "LEVEL_ItmIDid Field is required.", 'error': True}
-                            return Response(result, status=status.HTTP_400_BAD_REQUEST)
-
-                    EmpSitelist(Emp_Codeid=s, emp_code=emp_code, Site_Codeid=s.defaultSiteCodeid,
-                                site_code=s.defaultSiteCodeid.itemsite_code).save()
-                    user = User.objects.create_user(username=s.emp_name, email=s.emp_email,
-                                                    password=request.data['pw_password'])
-                    levelobj = Securities.objects.filter(pk=request.data['LEVEL_ItmIDid'], level_isactive=True).first()
-                    Fmspw(pw_userlogin=s.emp_name, pw_password=request.data['pw_password'],
-                          LEVEL_ItmIDid=levelobj, level_itmid=levelobj.level_code,
-                          level_desc=levelobj.level_description,
-                          Emp_Codeid=s, emp_code=emp_code, user=user, loginsite=None).save()
-                    s.pw_userlogin = s.emp_name
-                    s.pw_password = request.data['pw_password']
-                    s.LEVEL_ItmIDid = levelobj
-                    s.save()
-                    token = Token.objects.create(user=user)
-                if s.pk:
-                    control_obj.control_no = int(control_obj.control_no) + 1
-                    control_obj.save()
                 state = status.HTTP_201_CREATED
                 message = "Created Succesfully"
                 error = False
@@ -8881,6 +8902,7 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
             employee = self.get_object(pk)
             serializer = StaffPlusSerializer(employee)
             data = serializer.data
+            data["test"] = "ela"
             state = status.HTTP_200_OK
             message = "Listed Succesfully"
             error = False
@@ -10465,4 +10487,9 @@ class EmployeeSecuritySettings(APIView):
 
 @api_view(['GET', ])
 def MultiLanguage(request):
-    pass
+    qs = Multilanguage.objects.all().values('id', 'english', 'zh_sg')
+    response_data = {
+        "language": list(qs),
+        "message": "Listed successfuly"
+    }
+    return JsonResponse(response_data, status=status.HTTP_200_OK)

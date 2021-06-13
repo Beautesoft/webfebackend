@@ -847,6 +847,9 @@ class StaffPlusSerializer(serializers.ModelSerializer):
     shift_name = serializers.SerializerMethodField()
     level_desc = serializers.CharField(source='LEVEL_ItmIDid.level_description',required=False)
     site_name = serializers.CharField(source='defaultSiteCodeid.itemsite_desc',required=False)
+    # fmspw fields
+    flgsales =  serializers.SerializerMethodField()
+    flgappt =  serializers.SerializerMethodField()
 
 
     def get_shift_name(self, obj):
@@ -868,10 +871,18 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         else:
             return None
 
+    def get_flgsales(self,obj):
+        fmspw = Fmspw.objects.filter(Emp_Codeid=obj).first()
+        return fmspw.flgsales
+
+    def get_flgappt(self,obj):
+        fmspw = Fmspw.objects.filter(Emp_Codeid=obj).first()
+        return fmspw.flgappt
+
 
     class Meta:
         model = Employee
-        fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services',
+        fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services','flgsales','flgappt',
                   'emp_address', 'Emp_sexesid','gender','defaultSiteCodeid','defaultsitecode','site_name',
                   'Site_Codeid','site_code', 'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic',
                   'EMP_TYPEid','jobtitle_name', 'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',
@@ -885,6 +896,10 @@ class StaffPlusSerializer(serializers.ModelSerializer):
     def validate(self, data):
         """ validation for StaffPlusSerializer"""
         request = self.context['request']
+
+        # add fmspw fields into validated data
+        data['flgsales'] = request.data.get('flgsales')
+        data['flgappt'] = request.data.get('flgappt')
 
         mandatory_list = ['emp_name','emp_isactive','display_name','max_disc','emp_joindate']
         for _field in mandatory_list:
@@ -1013,6 +1028,16 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
 
         instance.save()
+
+        _Fmspw = Fmspw.objects.filter(Emp_Codeid=instance).first()
+        if _Fmspw:
+            _flgsales = validated_data.get('flgsales')
+            _flgappt = validated_data.get('flgappt')
+            _Fmspw.flgsales =  _flgsales if _flgsales is not None else _Fmspw.flgsales
+            _Fmspw.flgappt =  _flgappt if _flgappt is not None else _Fmspw.flgappt
+            _Fmspw.save()
+            print(_Fmspw,_flgappt,_flgsales)
+
         return instance
 
 class Attendance2Serializer(serializers.ModelSerializer):
