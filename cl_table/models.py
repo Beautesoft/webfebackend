@@ -444,7 +444,7 @@ class Employee(models.Model):
     #     ('NO', 'NO'),
     # ]
     emp_no = models.AutoField(db_column='Emp_no', primary_key=True)  # Field name made lowercase.
-    emp_code = models.CharField(db_column='Emp_code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    emp_code = models.CharField(db_column='Emp_code', max_length=20, unique=True)  # Field name made lowercase.
     emp_name = models.CharField(db_column='Emp_name', max_length=60, blank=True, null=True)  # Field name made lowercase.
     emp_nric = models.CharField(db_column='Emp_nric', max_length=20, blank=True, null=True)  # Field name made lowercase.
     Emp_sexesid  = models.ForeignKey(Gender, on_delete=models.PROTECT, null=True) #, null=True
