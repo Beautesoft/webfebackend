@@ -84,6 +84,8 @@ from collections import Counter
 from cl_table.authentication import ExpiringTokenAuthentication
 from django.core.exceptions import FieldError
 
+from .utils import code_generator
+
 type_ex = ['VT-Deposit', 'VT-Top Up', 'VT-Sales']
 
 
@@ -10193,11 +10195,19 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                       "error": serializer.errors}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-class RewardPolicyView(APIView):
+class RewardPolicyViewSet(viewsets.ModelViewSet):
+    # authentication_classes = [ExpiringTokenAuthentication]
     authentication_classes = [ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated & authenticated_only]
+    serializer_class = RewardPolicySerializer
 
-    def get(self, request):
+    # filter_backends = [DjangoFilterBackend, ]
+
+    def get_queryset(self):
+        qs = RewardPolicy.objects.all()
+        return qs
+
+    def list(self, request):
         try:
             qs = RewardPolicy.objects.all()
             full_tot = qs.count()
@@ -10233,15 +10243,41 @@ class RewardPolicyView(APIView):
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self,request):
+    def create(self,request):
         requestData = request.data
         serializer = RewardPolicySerializer(data=requestData)
+
         if serializer.is_valid():
             serializer.save()
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
             return Response(result, status=status.HTTP_200_OK)
         result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": serializer.errors}
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_object(self,pk):
+        try:
+            return RewardPolicy.objects.get(id=pk)
+        except:
+            raise Http404
+
+    def retrieve(self,request,pk=None):
+        obj = self.get_object(pk)
+        serializer = RewardPolicySerializer(obj)
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        return Response(result, status=status.HTTP_200_OK)
+
+    def update(self, request, pk=None):
+        obj = self.get_object(pk)
+        requestData = request.data
+        serializer = RewardPolicySerializer(obj,data=requestData,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": serializer.errors}
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class RedeemPolicyView(APIView):
     authentication_classes = [ExpiringTokenAuthentication]

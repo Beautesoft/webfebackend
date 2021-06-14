@@ -4,7 +4,7 @@ from django.dispatch import receiver
 # from cl_app.models import Site_Group, Item_SiteList
 from django.contrib.auth import user_logged_in, user_logged_out
 from django.dispatch import receiver
-from cl_table.models import Diagnosis, DiagnosisCompare, Employee, Fmspw
+from cl_table.models import Diagnosis, DiagnosisCompare, Employee, Fmspw, RewardPolicy
 
 
 # from cl_app.models import LoggedInUser
@@ -48,6 +48,12 @@ def diagnosis_code_gen(sender, instance, created, **kwargs):
 def diagnosis_code_gen(sender, instance, created, **kwargs):
     if created:
         instance.compare_code = "%06d" % instance.id
+        instance.save()
+
+@receiver(post_save,sender=RewardPolicy)
+def reward_code_gen(sender, instance, created, **kwargs):
+    if created:
+        instance.reward_code = "%06d" % instance.id
         instance.save()
 
 

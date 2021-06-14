@@ -15,6 +15,9 @@ from rest_framework import status
 import datetime as dt
 from django.db.models import Q
 
+from .utils import code_generator
+
+
 def get_client_ip(request):
     # url = request.build_absolute_uri()
     # ip = url.split('api')
@@ -1669,6 +1672,16 @@ class RewardPolicySerializer(serializers.ModelSerializer):
     class Meta:
         model = RewardPolicy
         fields = '__all__'
+        read_only_fields = ('reward_code',)
+
+    def create(self, validated_data):
+        reward = RewardPolicy(**validated_data)
+        reward.reward_code = code_generator(size=6)
+        reward.save()
+
+        return reward
+
+
 
 
 class RedeemPolicySerializer(serializers.ModelSerializer):
