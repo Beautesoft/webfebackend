@@ -10233,6 +10233,15 @@ class RewardPolicyView(APIView):
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+    def post(self,request):
+        requestData = request.data
+        serializer = RewardPolicySerializer(data=requestData)
+        if serializer.is_valid():
+            serializer.save()
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": serializer.errors}
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 class RedeemPolicyView(APIView):
     authentication_classes = [ExpiringTokenAuthentication]
