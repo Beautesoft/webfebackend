@@ -8843,8 +8843,8 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
                                   emp_code=emp_code,
                                   user=user,
                                   loginsite=None,
-                                  flgappt = request.data.get('flgappt',False),
-                                  flgsales = request.data.get('flgsales',False)
+                                  flgappt = s.show_in_appt,
+                                  flgsales = s.show_in_sales,
                                   ).save()
                             s.pw_userlogin = s.emp_name
                             s.pw_password = request.data['pw_password']

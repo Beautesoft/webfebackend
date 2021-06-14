@@ -889,18 +889,16 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                   "emp_nric","max_disc", 'emp_race', 'Emp_nationalityid', 'Emp_maritalid', 'Emp_religionid', 'emp_emer',
                   'emp_emerno', 'emp_country', 'emp_remarks','show_in_trmt','show_in_appt','show_in_sales']
         read_only_fields = ('updated_at','created_at','emp_code','branch')
-        extra_kwargs = {'emp_email': {'required': False},'Site_Codeid': {'required': False},
-        'emp_name': {'required': True}}
+        extra_kwargs = {
+            'emp_email': {'required': False},
+            'Site_Codeid': {'required': False},
+            'emp_name': {'required': True},
+        }
 
 
     def validate(self, data):
         """ validation for StaffPlusSerializer"""
         request = self.context['request']
-
-        # add fmspw fields into validated data
-        data['flgsales'] = request.data.get('flgsales')
-        data['flgappt'] = request.data.get('flgappt')
-
         mandatory_list = ['emp_name','emp_isactive','display_name','max_disc','emp_joindate']
         for _field in mandatory_list:
             if not request.data.get(_field):
@@ -1001,6 +999,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         return employee
 
     def update(self, instance, validated_data):
+        request = self.context['request']
         instance.emp_name = validated_data.get("emp_name", instance.emp_name)
         instance.display_name = validated_data.get("display_name", instance.display_name)
         instance.emp_phone1 = validated_data.get("emp_phone1", instance.emp_phone1)
@@ -1014,13 +1013,15 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         instance.defaultSiteCodeid = validated_data.get("defaultSiteCodeid", instance.defaultSiteCodeid)
         instance.defaultsitecode = instance.defaultSiteCodeid.itemsite_code
         instance.Site_Codeid = validated_data.get("Site_Codeid", instance.Site_Codeid)
-        instance.emp_isactive = validated_data.get("emp_isactive", instance.emp_isactive)
         instance.emp_nric = validated_data.get("emp_nric", instance.emp_nric)
         instance.max_disc = validated_data.get("max_disc", instance.max_disc)
         instance.site_code = instance.Site_Codeid.itemsite_code,
-        instance.show_in_sales = validated_data.get("show_in_sales", instance.show_in_sales)
-        instance.show_in_appt = validated_data.get("show_in_appt", instance.show_in_appt)
-        instance.show_in_trmt = validated_data.get("show_in_trmt", instance.show_in_trmt)
+        # fields that have defaults value in model, are returning default val in validated_data
+        # ether request does or doesn't have it.
+        instance.emp_isactive = request.data.get("emp_isactive", instance.emp_isactive)
+        instance.show_in_sales = request.data.get("show_in_sales",instance.show_in_sales)
+        instance.show_in_appt = request.data.get("show_in_appt", instance.show_in_appt)
+        instance.show_in_trmt = request.data.get("show_in_trmt", instance.show_in_trmt)
 
         if 'emp_email' in validated_data:
             if validated_data['emp_email'] is not None:
@@ -1029,14 +1030,11 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
         instance.save()
 
-        _Fmspw = Fmspw.objects.filter(Emp_Codeid=instance).first()
-        if _Fmspw:
-            _flgsales = validated_data.get('flgsales')
-            _flgappt = validated_data.get('flgappt')
-            _Fmspw.flgsales =  _flgsales if _flgsales is not None else _Fmspw.flgsales
-            _Fmspw.flgappt =  _flgappt if _flgappt is not None else _Fmspw.flgappt
-            _Fmspw.save()
-            print(_Fmspw,_flgappt,_flgsales)
+        # _Fmspw = Fmspw.objects.filter(Emp_Codeid=instance).first()
+        # if _Fmspw:
+        #     _Fmspw.flgsales =  instance.show_in_sales
+        #     _Fmspw.flgappt =  instance.show_in_appt
+        #     _Fmspw.save()
 
         return instance
 
