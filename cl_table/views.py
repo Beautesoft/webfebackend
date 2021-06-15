@@ -10277,13 +10277,19 @@ class RewardPolicyViewSet(viewsets.ModelViewSet):
         result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": serializer.errors}
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-class RedeemPolicyView(APIView):
+class RedeemPolicyViewSet(viewsets.ModelViewSet):
+    # authentication_classes = [ExpiringTokenAuthentication]
     authentication_classes = [ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated & authenticated_only]
+    serializer_class = RedeemPolicySerializer
 
-    def get(self, request):
+    # filter_backends = [DjangoFilterBackend, ]
+
+    def get_queryset(self):
+        qs = RedeemPolicy.objects.all()
+        return qs
+
+    def list(self, request):
         try:
             qs = RedeemPolicy.objects.all()
             full_tot = qs.count()
@@ -10303,9 +10309,7 @@ class RedeemPolicyView(APIView):
                 qs = paginator.page(page)
             except (EmptyPage, InvalidPage):
                 qs = paginator.page(total_page)  # last page
-
             serializer = RedeemPolicySerializer(qs, many=True)
-
             resData = {
                 'dataList': serializer.data,
                 'pagination': {
@@ -10320,6 +10324,84 @@ class RedeemPolicyView(APIView):
         except:
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+    def create(self,request):
+        requestData = request.data
+        serializer = RedeemPolicySerializer(data=requestData)
+
+        if serializer.is_valid():
+            serializer.save()
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": serializer.errors}
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_object(self,pk):
+        try:
+            return RedeemPolicy.objects.get(id=pk)
+        except:
+            raise Http404
+
+    def retrieve(self,request,pk=None):
+        obj = self.get_object(pk)
+        serializer = RedeemPolicySerializer(obj)
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        return Response(result, status=status.HTTP_200_OK)
+
+    def update(self, request, pk=None):
+        obj = self.get_object(pk)
+        requestData = request.data
+        serializer = RedeemPolicySerializer(obj,data=requestData,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": serializer.errors}
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# class RedeemPolicyView(APIView):
+#     authentication_classes = [ExpiringTokenAuthentication]
+#     permission_classes = [IsAuthenticated & authenticated_only]
+#
+#     def get(self, request):
+#         try:
+#             qs = RedeemPolicy.objects.all()
+#             full_tot = qs.count()
+#             try:
+#                 limit = int(request.GET.get("limit", 8))
+#             except:
+#                 limit = 8
+#             try:
+#                 page = int(request.GET.get("page", 1))
+#             except:
+#                 page = 1
+#
+#             paginator = Paginator(qs, limit)
+#             total_page = paginator.num_pages
+#
+#             try:
+#                 qs = paginator.page(page)
+#             except (EmptyPage, InvalidPage):
+#                 qs = paginator.page(total_page)  # last page
+#
+#             serializer = RedeemPolicySerializer(qs, many=True)
+#
+#             resData = {
+#                 'dataList': serializer.data,
+#                 'pagination': {
+#                     "per_page": limit,
+#                     "current_page": page,
+#                     "total": full_tot,
+#                     "total_pages": total_page
+#                 }
+#             }
+#             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+#             return Response(result, status=status.HTTP_200_OK)
+#         except:
+#             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "fail", 'error': True, "data": None}
+#             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SkillsView(APIView):

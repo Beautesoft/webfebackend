@@ -32,6 +32,7 @@ router.register(r'appointmentresources', views.AppointmentResourcesViewset, base
 router.register(r'staffPlus', views.StaffPlusViewSet, basename='staffPlus')
 router.register(r'CustomerPlus', views.CustomerPlusViewset, basename='CustomerPlus')
 router.register(r'RewardPolicy', views.RewardPolicyViewSet, basename='RewardPolicy')
+router.register(r'RedeemPolicy', views.RedeemPolicyViewSet, basename='RedeemPolicy')
 
 
     

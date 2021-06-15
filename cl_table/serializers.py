@@ -1688,6 +1688,14 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
     class Meta:
         model = RedeemPolicy
         fields = '__all__'
+        read_only_fields = ('redeem_code',)
+
+    def create(self, validated_data):
+        redeem = RedeemPolicy(**validated_data)
+        redeem.redeem_code = code_generator(size=6)
+        redeem.save()
+        return redeem
+
 
 
 class DiagnosisSerializer(serializers.ModelSerializer):
