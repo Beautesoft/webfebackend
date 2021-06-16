@@ -1740,5 +1740,5 @@ class DiagnosisCompareSerializer(serializers.ModelSerializer):
 class SecuritylevellistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Securitylevellist
-        fields = ['id','controlname','controldesc','controlstatus']
-        read_only_fields = ('id','controlname','controldesc',)
+        fields = ['id','controlname','controldesc','controlstatus','controlparent']
+        read_only_fields = ('id','controlname','controldesc','controlparent')
