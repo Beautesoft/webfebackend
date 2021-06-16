@@ -3218,3 +3218,24 @@ class Multilanguage(models.Model):
 
     class Meta:
         db_table = 'MultiLanguage'
+
+class Language(models.Model):
+    itm_id = models.AutoField(primary_key=True)
+    itm_code = models.CharField(db_column='itm_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    itm_desc = models.CharField(db_column='itm_Desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    itm_isactive = models.BooleanField(db_column='itm_Isactive')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Language'
+
+
+class MultiLanguageWord(models.Model):
+    id = models.AutoField(primary_key=True)
+    wordCode = models.IntegerField()
+    language = models.ForeignKey(Language, on_delete=models.PROTECT)
+    word = models.CharField(max_length=250)
+
+    class Meta:
+        db_table = 'MultiLanguageWord'
+        unique_together = (('wordCode','language',),)

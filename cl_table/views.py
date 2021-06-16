@@ -10620,3 +10620,82 @@ def MultiLanguage(request):
         "message": "Listed successfuly"
     }
     return JsonResponse(response_data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+def EmployeeLevels(request):
+    qs = Securities.objects.filter(level_isactive=True).values('level_itmid','level_name','level_description','level_code')
+    response_data = {
+        "language": list(qs),
+        "message": "Listed successfuly"
+    }
+    return JsonResponse(response_data, status=status.HTTP_200_OK)
+
+
+class IndividualEmpSettings(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request,emp_no):
+
+        try:
+            emp_obj = Employee.objects.get(emp_no=emp_no)
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid emp_no", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        level_code = emp_obj.LEVEL_ItmIDid.level_code
+        level_qs = Securitylevellist.objects.filter(level_itemid=level_code)
+        level_serializer = SecuritylevellistSerializer(level_qs, many=True)
+        settings_list = level_serializer.data
+        responseData = {
+            "emp_no": emp_obj.emp_no,
+            "emp_code": emp_obj.emp_code,
+            "LEVEL_ItmIDid": level_code,
+            "settings_list": settings_list
+        }
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+    def post(self,request,emp_no):
+        try:
+            emp_obj = Employee.objects.get(emp_no=emp_no)
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid emp_no", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        requestData = request.data
+        try:
+            sec_obj = Securities.objects.get(level_code=requestData['level_code'])
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid level_code", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        emp_obj.LEVEL_ItmIDid = sec_obj
+        emp_obj.save()
+
+        level_qs = Securitylevellist.objects.filter(level_itemid=sec_obj.level_code)
+        level_serializer = SecuritylevellistSerializer(level_qs, many=True)
+        settings_list = level_serializer.data
+        responseData = {
+            "emp_no": emp_obj.emp_no,
+            "emp_code": emp_obj.emp_code,
+            "LEVEL_ItmIDid": sec_obj.level_code,
+            "settings_list": settings_list
+        }
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+        # level_list = requestData.get("level_list", [])
+        # for level in level_list:
+        #     level_obj = Securitylevellist.objects.get(id=level['id'])
+        #     l_serializer = SecuritylevellistSerializer(level_obj, data=level, partial=True)
+        #     if l_serializer.is_valid():
+        #         l_serializer.save()
+        #     else:
+        #         result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
+        #                   "data": l_serializer.errors,
+        #                   }
+        #         return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False}
+        # return Response(result, status=status.HTTP_200_OK)
+
