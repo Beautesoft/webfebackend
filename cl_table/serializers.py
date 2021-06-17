@@ -223,10 +223,11 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Customer
-        fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit','custClass',
-                  'class_name',
-        'upcoming_appointments','cust_dob','cust_phone2','Cust_sexesid','gender','cust_email','prepaid_card','cust_occupation',
-        'creditnote','voucher_available','oustanding_payment','cust_refer','custallowsendsms','cust_maillist','cust_title']
+        fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit',
+                  'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
+                  'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid','gender','cust_email',
+                  'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
+                  'custallowsendsms','cust_maillist','cust_title']
         read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
         'Site_Code','cust_code','ProneToComplain')
         extra_kwargs = {'cust_name': {'required': True},'cust_address':{'required': True}}
