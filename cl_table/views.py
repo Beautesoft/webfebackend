@@ -9941,7 +9941,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                     control_obj.control_no = int(control_obj.control_no) + 1
                     control_obj.save()
                 state = status.HTTP_201_CREATED
-                message = "Created Succesfully"
+                message = "Created Succesfully "
                 error = False
                 data = serializer.data
                 result = response(self, request, queryset, total, state, message, error, serializer_class, data,
