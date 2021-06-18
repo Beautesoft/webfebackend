@@ -284,11 +284,11 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         # else:
         #     if request.data['Cust_sexesid'] is None:
         #         raise serializers.ValidationError("Cust_sexesid Field is required.")
-        if not 'Site_Codeid' in request.data:
-            raise serializers.ValidationError("Site_Codeid Field is required.")
-        else:
-            if request.data['Site_Codeid'] is None:
-                raise serializers.ValidationError("Site_Codeid Field is required.")
+        # if not 'Site_Codeid' in request.data:
+        #     raise serializers.ValidationError("Site_Codeid Field is required.")
+        # else:
+        #     if request.data['Site_Codeid'] is None:
+        #         raise serializers.ValidationError("Site_Codeid Field is required.")
 
         if 'Cust_sexesid' in data:
             if data['Cust_sexesid'] is not None:
