@@ -236,7 +236,6 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
 
 
     def validate(self, data):
-        print("y",type(data))
         request = self.context['request']
 
         action = self.context.get('action')
@@ -267,7 +266,9 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
 
 
         mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name", flat=True)
-
+        print(action)
+        print(validate_data)
+        print(mandatory_fields)
         for _field in mandatory_fields:
             # if request.data.get(_field) is None:
             if validate_data.get(_field) is None:

@@ -9915,8 +9915,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             queryset = None
             serializer_class = None
             total = None
-            serializer = self.get_serializer(data=request.data,
-                                             context={'request': self.request, "action": self.action})
+            serializer = CustomerPlusSerializer(data=request.data, context={'request': self.request, "action": self.action})
             if serializer.is_valid():
                 self.perform_create(serializer)
                 site = fmspw[0].loginsite
@@ -9978,6 +9977,12 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             customer = self.get_object(pk)
             serializer = CustomerPlusSerializer(customer)
             data = serializer.data
+            #todo hide nirc value
+            _nric = data.get('cust_nric',"")
+            if len(_nric) > 4:
+                _str = '*' * (len(_nric) - 4)
+                data['cust_nric'] = _str + _nric[-4:]
+
             state = status.HTTP_200_OK
             message = "Listed Succesfully"
             error = False
