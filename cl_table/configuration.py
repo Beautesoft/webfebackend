@@ -11,6 +11,7 @@ FE_DATA_TYPES= ("text",     # 0
                 "selection",# 2
                 "boolean",  # 3
                 "datetime", # 4
+                "date", # 5
                 )
 
 DYNAMIC_FIELD_CHOICES = {
@@ -21,6 +22,6 @@ DYNAMIC_FIELD_CHOICES = {
     "EmailField": FE_DATA_TYPES[0],
     "FloatField": FE_DATA_TYPES[1],
     "DateTimeField": FE_DATA_TYPES[4],
-    "DateField": FE_DATA_TYPES[4],
+    "DateField": FE_DATA_TYPES[5],
     "BooleanField": FE_DATA_TYPES[3],
 }
