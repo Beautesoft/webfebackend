@@ -9994,7 +9994,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             total = None
             serializer_class = None
             customer = self.get_object(pk)
-            serializer = CustomerUpdateSerializer(customer, data=request.data, context={'request': self.request})
+            serializer = CustomerPlusSerializer(customer, data=request.data, context={'request': self.request, "action": self.action})
             if serializer.is_valid():
                 serializer.save()
                 state = status.HTTP_200_OK
@@ -10017,13 +10017,15 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             return general_error_response(invalid_message)
 
     def partial_update(self, request, pk=None):
+        print("df")
+        print("df")
         try:
             queryset = None
             total = None
             serializer_class = None
             customer = self.get_object(pk)
-            serializer = CustomerUpdateSerializer(customer, data=request.data, partial=True,
-                                                  context={'request': self.request})
+            serializer = CustomerPlusSerializer(customer, data=request.data, partial=True,
+                                                  context={'request': self.request,"action": self.action})
             if serializer.is_valid():
                 serializer.save()
                 state = status.HTTP_200_OK

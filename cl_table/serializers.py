@@ -225,7 +225,9 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit',
                   'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
-                  'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid','gender','cust_email',
+                  'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
+                  'gender',
+                  'cust_email',
                   'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
                   'custallowsendsms','cust_maillist','cust_title']
         read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
@@ -234,6 +236,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
 
 
     def validate(self, data):
+        print("y",type(data))
         request = self.context['request']
 
         action = self.context.get('action')
@@ -250,13 +253,25 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         #     allowed_fields = form_control_qs.filter(visible_in_profile=True).values_list("field_name",flat=True)
         # if action == "create":
         #     allowed_fields = form_control_qs.filter(visible_in_registration=True) #.values_list("field_name",flat=True)
-        mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name",flat=True)
+        #
+        validate_data = {}
+        if action == "update":
+            allowed_fields = form_control_qs.filter(visible_in_registration=True).values_list("field_name",flat=True)
+        elif action == 'create':
+            allowed_fields = form_control_qs.filter(visible_in_registration=True).values_list("field_name",flat=True)
+
+
+        for f in allowed_fields:
+            if hasattr(Customer,f) and f in data:
+                validate_data[f] = data[f]
+
+
+        mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name", flat=True)
 
         for _field in mandatory_fields:
-            if request.data.get(_field) is None:
+            # if request.data.get(_field) is None:
+            if validate_data.get(_field) is None:
                 raise serializers.ValidationError(f"{_field} Field is required.")
-
-
 
 
         # if not 'cust_name' in request.data:
@@ -323,7 +338,10 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         # customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'])
         # if len(customer) > 0:
         #     raise serializers.ValidationError("Mobile number is already associated with another account")
-        return data
+        return validate_data
+
+    # def update(self, instance, validated_data):
+    #     update_fields = form_control_qs.filter(mandatory=True).values_list("field_name",flat=True)
 
 
 class CustomerUpdateSerializer(serializers.ModelSerializer):
