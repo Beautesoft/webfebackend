@@ -9978,10 +9978,12 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             serializer = CustomerPlusSerializer(customer)
             data = serializer.data
             #todo hide nirc value
-            _nric = data.get('cust_nric',"")
-            if len(_nric) > 4:
-                _str = '*' * (len(_nric) - 4)
-                data['cust_nric'] = _str + _nric[-4:]
+            # if 'masked_nric' in data:
+            #     data['cust_nric'] = data['masked_nric']
+            # _nric = data.get('cust_nric',"")
+            # if len(_nric) > 4:
+            #     _str = '*' * (len(_nric) - 4)
+            #     data['cust_nric'] = _str + _nric[-4:]
 
             state = status.HTTP_200_OK
             message = "Listed Succesfully"

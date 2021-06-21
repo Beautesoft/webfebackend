@@ -220,6 +220,22 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
     site_name = serializers.CharField(source='Site_Codeid.itemsite_desc',required=False)
     class_name = serializers.CharField(source='Cust_Classid.class_desc',required=False)
     custClass = CustomerClassSerializer(source="Cust_Classid",read_only=True)
+    masked_nric = serializers.SerializerMethodField()
+
+    def get_masked_nric(self,obj):
+        _nric = obj.cust_nric if obj.cust_nric else ""
+        if len(_nric) > 4:
+            _str = '*' * (len(_nric) - 4)
+            _nric = _str + _nric[-4:]
+        return _nric
+
+    def to_representation(self, data):
+        print("A",data)
+        data = super(CustomerPlusSerializer,self).to_representation(data)
+        data['cust_nric'] = data.get("masked_nric")
+        print("B",data)
+
+        return data
 
     class Meta:
         model = Customer
@@ -227,6 +243,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
                   'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
                   'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
                   'gender',
+                  'masked_nric',
                   'cust_email',
                   'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
                   'custallowsendsms','cust_maillist','cust_title']
