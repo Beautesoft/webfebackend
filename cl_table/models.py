@@ -789,6 +789,7 @@ class Customer(models.Model):
     voucher_no = models.CharField(db_column='Voucher_No', max_length=50, blank=True, null=True)  # Field name made lowercase.
     cust_servicetype = models.CharField(db_column='Cust_ServiceType', max_length=100, blank=True, null=True)  # Field name made lowercase.
     Cust_Classid = models.ForeignKey(CustomerClass, on_delete=models.PROTECT, null=True)
+    Cust_titleid = models.ForeignKey(CustomerTitle, on_delete=models.PROTECT, null=True)
     cust_class = models.CharField(db_column='Cust_Class', max_length=20, blank=True, null=True)  # Field name made lowercase.
     age_range0 = models.BooleanField(db_column='Age_Range0',null=True)  # Field name made lowercase.
     age_range1 = models.BooleanField(db_column='Age_Range1',null=True)  # Field name made lowercase.
@@ -3024,6 +3025,8 @@ class CustomerFormControl(models.Model):
     visible_in_profile = models.BooleanField(db_column='visibleInProfile')  # Field name made lowercase.
     editable = models.BooleanField()
     mandatory = models.BooleanField()
+    order = models.IntegerField()
+    col_width = models.IntegerField(default=6)
     isActive = models.BooleanField(db_column='isActive')  # Field name made lowercase.
     Site_Codeid = models.ForeignKey('cl_app.ItemSitelist',db_column='Site_Codeid_id',related_name='customer_form_control', on_delete=models.PROTECT, null=True)
 

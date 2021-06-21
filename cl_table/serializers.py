@@ -1698,7 +1698,7 @@ class AppointmentSortSerializer(serializers.ModelSerializer):
 class CustomerFormControlSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerFormControl
-        fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory']
+        fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory','order','col_width']
         read_only_fields = ('field_name','display_field_name')
 
 class RewardPolicySerializer(serializers.ModelSerializer):

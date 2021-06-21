@@ -9764,7 +9764,7 @@ class CustomerFormSettingsView(APIView):
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user has no site", 'error': True, "data": None}
             return Response(result, status=status.HTTP_200_OK)
 
-        query_set = CustomerFormControl.objects.filter(isActive=True, Site_Codeid=site)
+        query_set = CustomerFormControl.objects.filter(isActive=True, Site_Codeid=site).order_by('order')
         serializer = CustomerFormControlSerializer(query_set, many=True)
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
