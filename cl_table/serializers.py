@@ -230,10 +230,8 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         return _nric
 
     def to_representation(self, data):
-        print("A",data)
         data = super(CustomerPlusSerializer,self).to_representation(data)
         data['cust_nric'] = data.get("masked_nric")
-        print("B",data)
 
         return data
 
@@ -283,9 +281,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
 
 
         mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name", flat=True)
-        print(action)
-        print(validate_data)
-        print(mandatory_fields)
+
         for _field in mandatory_fields:
             # if request.data.get(_field) is None:
             if validate_data.get(_field) is None:
