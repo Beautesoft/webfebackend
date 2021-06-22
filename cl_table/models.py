@@ -86,6 +86,13 @@ class CustomerTitle(models.Model):
         managed = False
         db_table = 'Customer_Title'
 
+    @property
+    def choice_dict(self):
+        """
+        this property method for generate FE choice dropdowns
+        :return:
+        """
+        return {"value": self.id, "label": self.itm_desc}
 
     
 class Source(models.Model):
@@ -561,7 +568,15 @@ class Employee(models.Model):
         # unique_together = [['emp_name','emp_phone1']]
 
     def __str__(self):
-        return str(self.emp_name)    
+        return str(self.emp_name)
+
+    @property
+    def choice_dict(self):
+        """
+        this property method for generate FE choice dropdowns
+        :return:
+        """
+        return {"value": self.emp_no, "label": self.emp_name}
 
 class Securities(models.Model):
     level_itmid = models.AutoField(db_column='LEVEL_ItmID', primary_key=True)  # Field name made lowercase.
@@ -871,6 +886,8 @@ class Customer(models.Model):
     fcmtoken = models.CharField(db_column='FCMToken', max_length=255, blank=True, null=True)  # Field name made lowercase.
     nickname = models.CharField(db_column='NickName', max_length=100, blank=True, null=True)  # Field name made lowercase.
     modifiedby = models.CharField(db_column='modifiedBy', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    cust_therapist_id = models.ForeignKey('cl_table.Employee', on_delete=models.PROTECT,null=True,related_name='customer_therapist')
+    cust_consultant_id = models.ForeignKey('cl_table.Employee', on_delete=models.PROTECT,null=True,related_name='customer_consultant')
     cust_consultant = models.CharField(max_length=20, blank=True, null=True)
     cust_consultantname = models.CharField(db_column='cust_consultantName', max_length=50, blank=True, null=True)  # Field name made lowercase.
     residencetype = models.CharField(db_column='residenceType', max_length=20, blank=True, null=True)  # Field name made lowercase.
@@ -884,6 +901,11 @@ class Customer(models.Model):
     voucher_available =  models.CharField(max_length=1000, null=True)
     oustanding_payment = models.FloatField(null=True)
 
+    cardno1 = models.CharField(max_length=20, blank=True, null=True)
+    cardno2 = models.CharField(max_length=20, blank=True, null=True)
+    cardno3 = models.CharField(max_length=20, blank=True, null=True)
+    cardno4 = models.CharField(max_length=20, blank=True, null=True)
+    cardno5 = models.CharField(max_length=20, blank=True, null=True)
 
     class Meta:
         db_table = 'Customer'
