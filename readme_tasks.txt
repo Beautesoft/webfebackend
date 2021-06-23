@@ -37,13 +37,19 @@ cl_table
         DiagnosisCompare
         CustomerPoint
         CustomerPointDtl
+        Multilanguage
+        Language
+        MultiLanguageWord
 
         add emp_remarks filed into Employee table
         add emp_country into Employee table
         add shortDesc into ScheduleHour table
         add is_alternative into Workschedule table
+        emp_code unique true
+        add Cust_titleid, cust_therapist_id, cust_consultant_id, cardno1-5 fields for Customer model
+        add two fields order, col_width to CustomerFormControl
 
-        add property method* into CustomerClass, Source, Gender
+        add property method* into CustomerClass, Source, Gender, CustomerTitle, Employee
 
     serializer.py
         CustomerFormControlSerializer
@@ -57,6 +63,7 @@ cl_table
         DiagnosisSerializer
         RewardPolicySerializer
         RedeemPolicySerializer
+        SecuritylevellistSerializer
 
     admin.py
     configuration.py
