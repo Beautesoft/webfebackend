@@ -15,7 +15,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      CreditNote, Systemsetup,
                      PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType,
                      CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist,
-                     Multilanguage
+                     Multilanguage, DailysalesdataDetail
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
@@ -38,7 +38,8 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           EmpInfoSerializer, EmpWorkScheduleSerializer,
                           CustomerFormControlSerializer,
                           CustomerPlusSerializer, RewardPolicySerializer, RedeemPolicySerializer, SkillSerializer,
-                          DiagnosisSerializer, DiagnosisCompareSerializer, SecuritylevellistSerializer
+                          DiagnosisSerializer, DiagnosisCompareSerializer, SecuritylevellistSerializer,
+                          DailysalesdataDetailSerializer
                           )
 from datetime import date, timedelta, datetime
 import datetime
@@ -10709,4 +10710,21 @@ class IndividualEmpSettings(APIView):
         #
         # result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False}
         # return Response(result, status=status.HTTP_200_OK)
+
+
+class DailySalesView(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request):
+        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        site = fmspw[0].loginsite
+        if not site:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        qs = DailysalesdataDetail.objects.filter(sitecode=site.itemsite_code)
+        serializer = DailysalesdataDetailSerializer(qs,many=True)
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        return Response(result, status=status.HTTP_200_OK)
 

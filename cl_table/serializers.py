@@ -4,7 +4,8 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
                      FocReason, Workschedule, CustomerFormControl,
-                     CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist
+                     CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist,
+                     DailysalesdataDetail
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel
@@ -1775,3 +1776,9 @@ class SecuritylevellistSerializer(serializers.ModelSerializer):
         model = Securitylevellist
         fields = ['id','controlname','controldesc','controlstatus','controlparent']
         read_only_fields = ('id','controlname','controldesc','controlparent')
+
+
+class DailysalesdataDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DailysalesdataDetail
+        fields = '__all__'
