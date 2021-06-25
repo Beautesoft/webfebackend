@@ -53,6 +53,7 @@ urlpatterns = [
     path('api/MultiLanguage/', views.MultiLanguage, name='MultiLanguage'),
     path('api/EmployeeLevels/', views.EmployeeLevels, name='EmployeeLevels'),
     path('api/DailySales/', views.DailySalesView.as_view(), name='DailySales'),
+    path('api/DailySalesSummery/', views.DailySalesSummeryView.as_view(), name='DailySalesSummeryView'),
 
 
 

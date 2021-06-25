@@ -3294,3 +3294,31 @@ class DailysalesdataDetail(models.Model):
 
     class Meta:
         db_table = 'DailySalesData_Detail'
+
+
+class DailysalesdataSummary(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    sitecode = models.CharField(db_column='SiteCode', max_length=20)  # Field name made lowercase.
+    business_date = models.DateTimeField(db_column='Business_Date')  # Field name made lowercase.
+    version = models.CharField(db_column='Version', max_length=20)  # Field name made lowercase.
+    sales_gt1_withgst = models.FloatField(db_column='Sales_GT1_WithGST', blank=True, null=True)  # Field name made lowercase.
+    sales_gt1_gst = models.FloatField(db_column='Sales_GT1_GST', blank=True, null=True)  # Field name made lowercase.
+    sales_gt1_beforegst = models.FloatField(db_column='Sales_GT1_BeforeGST', blank=True, null=True)  # Field name made lowercase.
+    servicesales_gt1 = models.FloatField(db_column='ServiceSales_GT1', blank=True, null=True)  # Field name made lowercase.
+    productsales_gt1 = models.FloatField(db_column='ProductSales_GT1', blank=True, null=True)  # Field name made lowercase.
+    vouchersales_gt1 = models.FloatField(db_column='VoucherSales_GT1', blank=True, null=True)  # Field name made lowercase.
+    prepaidsales_gt1 = models.FloatField(db_column='PrepaidSales_GT1', blank=True, null=True)  # Field name made lowercase.
+    sales_gt2_withgst = models.FloatField(db_column='Sales_GT2_WithGST', blank=True, null=True)  # Field name made lowercase.
+    sales_gt2_gst = models.FloatField(db_column='Sales_GT2_GST', blank=True, null=True)  # Field name made lowercase.
+    sales_gt2_beforegst = models.FloatField(db_column='Sales_GT2_BeforeGST', blank=True, null=True)  # Field name made lowercase.
+    servicesales_gt2 = models.FloatField(db_column='ServiceSales_GT2', blank=True, null=True)  # Field name made lowercase.
+    productsales_gt2 = models.FloatField(db_column='ProductSales_GT2', blank=True, null=True)  # Field name made lowercase.
+    vouchersales_gt2 = models.FloatField(db_column='VoucherSales_GT2', blank=True, null=True)  # Field name made lowercase.
+    prepaidsales_gt2 = models.FloatField(db_column='PrepaidSales_GT2', blank=True, null=True)  # Field name made lowercase.
+    treatmentdoneqty = models.FloatField(db_column='TreatmentDoneQty', blank=True, null=True)  # Field name made lowercase.
+    treatmentdoneamount = models.FloatField(db_column='TreatmentDoneAmount', blank=True, null=True)  # Field name made lowercase.
+    lastupdate = models.DateTimeField(db_column='LastUpDate')  # Field name made lowercase.
+
+    class Meta:
+        db_table = 'DailySalesData_Summary'
+

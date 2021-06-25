@@ -15,7 +15,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      CreditNote, Systemsetup,
                      PackageDtl, PackageHdr, Workschedule, Races, Nationality, Religious, Country, Skillstaff, ItemType,
                      CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist,
-                     Multilanguage, DailysalesdataDetail
+                     Multilanguage, DailysalesdataDetail, DailysalesdataSummary
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import Room, ItemCart, VoucherRecord, EmpLevel
@@ -39,7 +39,7 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
                           CustomerFormControlSerializer,
                           CustomerPlusSerializer, RewardPolicySerializer, RedeemPolicySerializer, SkillSerializer,
                           DiagnosisSerializer, DiagnosisCompareSerializer, SecuritylevellistSerializer,
-                          DailysalesdataDetailSerializer
+                          DailysalesdataDetailSerializer, DailysalesdataSummarySerializer
                           )
 from datetime import date, timedelta, datetime
 import datetime
@@ -10717,13 +10717,55 @@ class DailySalesView(APIView):
     permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self,request):
+        start = request.GET.get("start")
+        end = request.GET.get("end")
         fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
         site = fmspw[0].loginsite
         if not site:
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
-        qs = DailysalesdataDetail.objects.filter(sitecode=site.itemsite_code)
+        qs = DailysalesdataDetail.objects.filter(sitecode=site.itemsite_code).order_by('business_date')
+        try:
+            if start:
+                qs = qs.filter(business_date__gte=datetime.datetime.strptime(start, "%Y-%m-%d"))
+            if end:
+                qs = qs.filter(business_date__lte=datetime.datetime.strptime(end, "%Y-%m-%d"))
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid start end date format use: YYYY-MM-DD", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = DailysalesdataDetailSerializer(qs,many=True)
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class DailySalesSummeryView(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request):
+        start = request.GET.get("start")
+        end = request.GET.get("end")
+        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        site = fmspw[0].loginsite
+        if not site:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = DailysalesdataSummary.objects.filter(sitecode=site.itemsite_code).order_by('business_date')
+        try:
+            if start:
+                qs = qs.filter(business_date__gte=datetime.datetime.strptime(start, "%Y-%m-%d"))
+            if end:
+                qs = qs.filter(business_date__lte=datetime.datetime.strptime(end, "%Y-%m-%d"))
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid start end date format use: YYYY-MM-DD", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DailysalesdataSummarySerializer(qs,many=True)
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
