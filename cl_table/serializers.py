@@ -1787,3 +1787,10 @@ class DailysalesdataSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = DailysalesdataSummary
         fields = '__all__'
+
+    # def to_representation(self, data):
+    #     data = super(DailysalesdataSummarySerializer,self).to_representation(data)
+    #
+    #     data['total'] = data.get("masked_nric")
+    #
+    #     return data

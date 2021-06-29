@@ -64,7 +64,7 @@ from rest_framework.views import APIView
 import base64
 from rest_framework.decorators import action
 import pandas as pd
-from dateutil import parser
+from dateutil import parser, rrule
 from .authentication import token_expire_handler, expires_in, multiple_expire_handler
 from django.conf import settings
 from rest_framework.decorators import api_view
@@ -10770,3 +10770,69 @@ class DailySalesSummeryView(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
+
+class MonthlySalesSummeryView(APIView):
+    authentication_classes = [ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request):
+
+        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        site = fmspw[0].loginsite
+        if not site:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        qs = DailysalesdataSummary.objects.filter(sitecode=site.itemsite_code).order_by('business_date')
+
+
+        s_year = int(request.GET.get("syear"))
+        e_year = int(request.GET.get("eyear"))
+        s_month = int(request.GET.get("smonth"))
+        e_month = int(request.GET.get("emonth"))
+        start_date = datetime.datetime(year=s_year,month=s_month,day=1)
+        end_date = datetime.datetime(year=e_year,month=e_month+1,day=1)
+
+        month_list = list(rrule.rrule(rrule.MONTHLY, dtstart=start_date, until=end_date))
+
+        sales_list = []
+
+        for i, curr in enumerate(month_list):
+            try:
+                next = month_list[i+1] - datetime.timedelta(days=1)
+                month_qs = DailysalesdataSummary.objects.filter(business_date__range=[curr, next],sitecode=site.itemsite_code)
+                print([curr, next])
+                # change to date range
+                month_dict = month_qs.aggregate(
+                    sales_gt1_withgst=Sum('sales_gt1_withgst'),
+                    sales_gt1_gst=Sum('sales_gt1_gst'),
+                    sales_gt1_beforegst=Sum('sales_gt1_beforegst'),
+                    servicesales_gt1=Sum('servicesales_gt1'),
+                    productsales_gt1=Sum('productsales_gt1'),
+                    vouchersales_gt1=Sum('vouchersales_gt1'),
+                    prepaidsales_gt1=Sum('prepaidsales_gt1'),
+                    sales_gt2_withgst=Sum('sales_gt2_withgst'),
+                    sales_gt2_gst=Sum('sales_gt2_gst'),
+                    sales_gt2_beforegst=Sum('sales_gt2_beforegst'),
+                    servicesales_gt2=Sum('servicesales_gt2'),
+                    productsales_gt2=Sum('productsales_gt2'),
+                    vouchersales_gt2=Sum('vouchersales_gt2'),
+                    prepaidsales_gt2=Sum('prepaidsales_gt2'),
+                    treatmentdoneqty=Sum('treatmentdoneqty'),
+                    treatmentdoneamount=Sum('treatmentdoneamount'),
+
+                )
+                print(month_dict)
+                month_dict['date'] = curr
+
+                sales_list.append(month_dict)
+            except IndexError:
+                break
+            except Exception:
+                continue
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": sales_list}
+        return Response(result, status=status.HTTP_200_OK)
+            # start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
+            # end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
+            # date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
