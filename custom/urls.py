@@ -17,6 +17,9 @@ router.register(r'itemcart', views.itemCartViewset)
 router.register(r'voucher', views.VoucherRecordViewset)
 router.register(r'empcartlist', views.EmployeeCartAPI)
 router.register(r'pospackagedeposit', views.PosPackagedepositViewset)
+router.register(r'smtpsettings', views.SmtpSettingsViewset)
+router.register(r'cartpopup', views.CartPopupViewset)
+router.register(r'cartservicecourse', views.CartServiceCourseViewset)
 
 
 # router.register(r'users', views.UserViewSet)
@@ -28,6 +31,10 @@ urlpatterns = [
     path('api/receiptpdfsend/', views.ReceiptPdfSend.as_view(), name='receiptpdfsend'),
     path('api/paymentremarks/', views.PaymentRemarksAPIView.as_view(), name='paymentremarks'),
     path('api/holditemsetup/', views.HolditemSetupAPIView.as_view(), name='holditemsetup'),
+    path('api/cartitemdelete/', views.CartItemDeleteAPIView.as_view(), name='cartitemdelete'),
+    path('api/exchangeproduct/', views.ExchangeProductAPIView.as_view(), name='exchangeproduct'),
+    path('api/exchangeproductconfirm/', views.ExchangeProductConfirmAPIView.as_view(), name='exchangeproductconfirm'),
+    path('api/coursetmp/', views.CourseTmpAPIView.as_view(), name='coursetmp'),
 
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

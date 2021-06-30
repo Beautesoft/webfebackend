@@ -5,6 +5,17 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> -->
 <style>
+@media print {
+    html, body {
+      height:100vh;
+      margin:0 !important;
+      padding:0 !important;
+      oveflow:hidden !important;
+    }
+}
+body{
+    margin: 25mm 25mm 25mm 25mm;
+}
 hr{
     border:0;
     margin:0;
@@ -50,7 +61,12 @@ th {
 }
 .split {
   height: 500px;
-  width: 50%;
+  width: 65%;
+  position: absolute;
+}
+.splitright {
+  height: 500px;
+  width: 35%;
   position: absolute;
 }
 .right {
@@ -70,6 +86,8 @@ th {
   clear: both;
   display: table;
 }
+img {
+  width: 200px;}
 img.sticky {
   position: -webkit-sticky;
   position: sticky;
@@ -91,7 +109,7 @@ header {
 }
 fix {
     position: fixed;
-    bottom: -600px;
+    bottom: -700px;
     left: 15px;
     right: 15px;
     text-align: left;
@@ -108,46 +126,63 @@ fix {
         margin-bottom: 0;
         font-size: 14px;
 }
-
+.article {
+ flex: 0 0 50%;
+ padding: 10px;
+}
+.articleright {
+ flex: 0 0 80%;
+ padding: 10px;
+}
 </style>
 </head>
 {% load static %}
-<body style="margin:40px;">
-  <div class="container">
-		<div class="row  spaDetails justify-content-center">
-			<div class="col-xs-4 d-flex justify-content-center">
-				<img src="{{path}}" alt="">
-			</div>
-			<div class="col-xs-8 pl-3">
-				<h4>{{name}}</h4>
-				<p>{{address}}</p>
-			</div>
+<body>
+	<div class="clearfix">
+		<div class="row">
+		    <img src="{{path}}" alt="" >
 		</div>
-	</div>
+		<div class="row">
+		    <h5>{{name}}</h5>
+		</div>
+		<div class="row">
+		    <p>{{address}}</p>
+		</div>
 
+	</div>
   <br>
-  <hr>
-  &nbsp;
-  <hr>
+
 	<div class="clearfix">
 		<div class="box">
-			<div class="split">
+			<div class="split" style="font-size: 15px;line-height: 10px">
 				<p><b>Code:</b> {{ hdr.sa_custno }} </p>
-				<p><b>Name:</b> {{ hdr.sa_custname }} </p>
+        <p><b>Name:</b> {{ hdr.sa_custname }} </p>
+        <!-- {% if site.is_nric %}
+          <p> <b>Nric:</b> 
+            {% if hdr.sa_custnoid.cust_nric %} 
+            {{ hdr.sa_custnoid.cust_nric }} 
+            {% endif %}
+          </p>
+        {% endif %}   -->
+        <p><b>Ref No:</b> 
+          {% if hdr.sa_custnoid.cust_refer %} 
+          {{ hdr.sa_custnoid.cust_refer }}
+          {% endif %} 
+        </p>
+
 			</div>
-			<div class="split right">
-				<p><b>Trans #: </b> {{ hdr.sa_transacno_ref }} </p>
+			<div class="splitright right" style="font-size: 15px; line-height: 10px;">
+				<p><b>Invoice: </b> {{ hdr.sa_transacno_ref }} </p>
 				<p><b>Date: </b>   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ date }} </p>
 				<p><b>Time: </b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ time }} </p>
 				<p><b>Issued: </b> &nbsp;&nbsp;{{ fmspw.pw_userlogin }} </p>
 			</div>
 		</div>
-	</div>
-  <hr>
-  <br>
+  </div>
+  
   {% load mathfilters %}
 
-  <table cellspacing="15" cellpadding="10">
+  <table cellspacing="15" cellpadding="10" style="font-size: 15px;">
     <tr>
       <th>No</th>
       <th>Description</th>
@@ -226,7 +261,7 @@ fix {
       <th></th>
     </tr>
 
-    <tr>
+    <!-- <tr>
       <td></td>
       <td></td>
       <td></td>
@@ -237,18 +272,16 @@ fix {
       {% else %}
         <td><span style="font-weight:bold"></span>$ {{ subtotal|floatformat:2 }}</td>
       {% endif %}
-    </tr>
+    </tr> -->
     </table>
     <br>
 
-    <div class="split">
-      <div class="box">
-      <th></th>
-      <table style="border-collapse: collapse;" cellspacing="2" cellpadding="5" width="20%">
-        <tr>
-          <th>No</th>
-          <th>Type</th>
-          <th>Amount</th>
+    <div style="padding-left: 50%;font-size: 15px;">
+      <table style="border-collapse: collapse;" cellspacing="2" cellpadding="5" width="80%">
+        <tr style="border-bottom: 1px solid;">
+          <td><b>No</b></td>
+          <td><b>Type</b></td>
+          <td><b>Amount</b></td>
         </tr>
         {% for taud in postaud %}
           <tr>
@@ -258,15 +291,19 @@ fix {
           </tr>
         {% endfor %}
 
-        <tr>
-          <th>Inclusive {{ percent }} % GST {{ hdr.sa_totgst|floatformat:2 }}</th>
-          <th>Total</th>
-          <th>${{ billing_amount|floatformat:2 }}</th>
+        <tr style="border-top: 1px solid;">
+          <td>Inclusive {{ percent }} % GST {{ hdr.sa_totgst|floatformat:2 }}</td>
+          <td>Total</td>
+          <td>${{ billing_amount|floatformat:2 }}</td>
+        </tr>
+        <tr style="border-bottom: 1px dashed black">
+          <td>Total Outstanding :</td>
+          <td colspan="2">{{ total_balance|floatformat:2 }}</td>
         </tr>
       </table>
-      </div></div>
+    </div>
 
-      <div class="split right1">
+      <!-- <div class="split right1">
         {% if hdr.sa_totgst %}
           <h6>Gst: {{ hdr.sa_totgst|floatformat:2 }}</h6>
         {% else %}
@@ -279,22 +316,27 @@ fix {
           <h6>Rounding: {{ "0.00" }}</h6>
         {% endif %}
         <h6>Grand Total: {{ billing_amount|floatformat:2 }}</h6>
-      </div>
+      </div> -->
 
-    <fix>
-        <div class="box">
-          <div class="split">
-            <p>Remarks:  {% if hdr.trans_remark %} {{ hdr.trans_remark }}  {% else %} {% endif %}</p>
-            <p> {% if footer1 %} {{ footer1 }} {% else %} {% endif %} </p>
-            <p> {% if footer2 %} {{ footer2 }} {% else %} {% endif %} </p>
-            <p>{% if footer3 %} {{ footer3 }} {% else %} {% endif %} </p>
-            <p>{% if footer4 %} {{ footer4 }} {% else %} {% endif %}</p>
-          </div>
-          <div class="split right">
-            <hr>
-            <p>Customer Signature</p>
-          </div>
-        </div>
-    </fix>
+        
+    <div style="padding-top: 60%">
+      <div style="font-size: 15px;">
+        <table>
+          <tr>
+            <td style="float: left;">Remarks:</td>
+            <td style="float: right;border-top: 1px dashed black">Customer Signature</td>
+          </tr>
+        <table></table>   
+      </div> 
+      <br />
+      <div style="line-height: 4px;">
+        <p style="font-size: 9px;"> {% if footer1 %} {{ footer1 }} {% else %} {% endif %} </p>
+        <p style="font-size: 9px;"> {% if footer2 %} {{ footer2 }} {% else %} {% endif %} </p>
+        <p style="font-size: 9px;">{% if footer3 %} {{ footer3 }} {% else %} {% endif %} </p>
+        <p style="font-size: 9px;">{% if footer4 %} {{ footer4 }} {% else %} {% endif %}</p>
+      </div>
+    </div>
+     
+  
 </body>
 </html>

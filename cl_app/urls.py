@@ -37,7 +37,10 @@ router.register(r'combo', views.ComboViewset, basename='combo')
 router.register(r'billing', views.BillingViewset, basename='billing')
 router.register(r'prepaidpay', views.PrepaidPayViewset, basename='prepaidpay'),
 router.register(r'holditem', views.HolditemdetailViewset, basename='holditem'),
-
+router.register(r'stockusage', views.StockUsageViewset, basename='stockusage'),
+router.register(r'stockusagememo', views.StockUsageMemoViewset, basename='stockusagememo'),
+router.register(r'treatmentface', views.TreatmentFaceViewset, basename='treatmentface'),
+router.register(r'transactionhistory', views.TransactionHistoryViewset, basename='transactionhistory'),
 
 # The API URLs are now determined automatically by the router.
 urlpatterns = [
@@ -48,12 +51,18 @@ urlpatterns = [
     # path('api/updatestock/', views.UpdateStockAPIView.as_view(), name='updatestock'),
     path('api/receiptpdfsendsms/', views.ReceiptPdfSendSMSAPIView.as_view(), name='receiptpdfsendsms'),
     path('api/custsign/', views.CustomerSignatureAPIView.as_view(), name='custsign'),
-    path('api/dashboard/', views.DashboardAPIView.as_view(), name='dashboard'),
+    path('api/dashboardcust/', views.DashboardCustAPIView.as_view(), name='dashboardcust'),
+    path('api/dashboardvoucher/', views.DashboardVoucherAPIView.as_view(), name='dashboardvoucher'),
+    path('api/dashboardtd/', views.DashboardTDAPIView.as_view(), name='dashboardtd'),
+    path('api/dashboardtopproduct/', views.DashboardTopProductAPIView.as_view(), name='dashboardtopproduct'),
+    path('api/dashboardchart/', views.DashboardChartAPIView.as_view(), name='dashboardchart'),
     path('api/creditnotepay/', views.CreditNotePayAPIView.as_view(), name='creditnotepay'),
     path('api/voidcheck/', views.VoidCheck.as_view(), name='voidcheck'),
     path('api/voidcancel/', views.VoidCancel.as_view(), name='voidcancel'),
     # path('api/deleteapi/', views.DeleteAPIView.as_view(), name='deleteapi'),
     # path('api/controlno/', views.ControlAPIView.as_view(), name='controlno'),
+    path('api/treatmenthistory/', views.TreatmentHistoryAPIView.as_view(), name='treatmenthistory'),
+    path('api/stockusageproduct/', views.StockUsageProductAPIView.as_view(), name='stockusageproduct'),
 
     
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,3 +1,7 @@
 /venv/
 /log/June_2021/
 /.idea/
+/cl_app/migrations/
+/cl_table/migrations/
+/custom/migrations/
+/.vscode/

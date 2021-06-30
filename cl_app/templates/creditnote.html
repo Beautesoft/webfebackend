@@ -43,6 +43,7 @@ td {
   text-align: center;
 }
 .first th {
+  border-bottom: 1px solid black;
   text-align: center;
 }
 .split {
@@ -127,7 +128,7 @@ fix {
         </div>
         <div>
             <tr>
-                <td style="float:left;text-align:left;"><strong><u>Treatment Desc</u></strong></td>
+                <td style="float:left;text-align:left;"><strong><u>Credit Note Slip</u></strong></td>
             </tr>
         </div>
 
@@ -139,7 +140,7 @@ fix {
                 </div>
                 <div class="split right" style="float: right;text-align:right;">
                     <p><b>Credit Number: </b> {{ creditno }} </p>
-                    <p><b>Date: </b>   &nbsp;&nbsp;&nbsp;{{ date }} </p>
+                    <p><b>Date: </b>   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ date }} </p>
                 </div>
             </div>    
         </div>
@@ -147,46 +148,35 @@ fix {
         <table cellspacing="15" cellpadding="10" class="first">
             <tr style="border-bottom: 1px solid black;">
               <th style="float:left;text-align:left;">Description</th>
-              <th style="float:right;text-align:right;">Amount(SGD)</th>
+              <th style="float:right;text-align:right;">Amount (SGD)</th>
             </tr>
         
             {% for h in credit %}
               <tr>
                 <td style="float:left;text-align:left;"><p>{{ h.invoice }} <br> {{ h.desc }} </p> </td>
-                <td style="float:right;text-align:right;">{{ h.amount|floatformat:2 }}</td>
+                <td style="float:right;text-align:right;">{{ h.amount }}</td>
               </tr>
             {% endfor %}
 
           
         </table>
 
-        
-
         <table>
             <tr>
-                <td style="width: 40%;"></td>
-                <td style="float:right;text-align:right;width: 45%;"></td>
-                <td style="float:right;width: 15%;text-align:right;border-top: 1px solid black;border-bottom: 1px solid black;"> {{ total|floatformat:2 }}</td>
+                <td></td>
+                <td style="float:right;text-align:right;border-top: 1px solid black;border-bottom: 1px solid black;">  &nbsp;&nbsp;&nbsp; {{ total|floatformat:2 }}</td>
             </tr>
             <tr>
-                <td style="width: 40%;"></td>
-                <td style="float:right;text-align:right;width: 45%;">Credit Balance Available :</td>
-                <td style="float:right;width: 15%;text-align:right;"> {{ total|floatformat:2 }}</td>
+                <td></td>
+                <td style="float:right;text-align:right;">Credit Balance Available : &nbsp;&nbsp;&nbsp; {{ total|floatformat:2 }}</td>
             </tr>
             <tr>
-                <td style="width: 40%;"></td>
-                <td style="float:right;text-align:right;width: 45%;">Adjustment Reason: {{ reason.rev_desc }} {{ remark }}</td>
-
-                {% if adjustamt %}
-                    <td style="float:right;width: 15%;text-align:right;">{{ adjustamt|floatformat:2 }}</td>
-                {% else %} 
-                    <td style="float:right;width: 15%;text-align:right;">{{ adjustamtstr }}</td>
-                {% endif %}   
+                <td></td>
+                <td style="float:right;text-align:right;">Adjustment Reason: {{ reason.rev_desc }} {{ remark }} &nbsp;&nbsp;&nbsp; {{ adjustamt|floatformat:2 }}</td>
             </tr>
             <tr>
-                <td style="width: 40%;"></td>
-                <td style="float:right;text-align:right;width: 45%;">Total Credit :</td>
-                <td style="float:right;width: 15%;text-align:right;font-size: 14px;border-top: 1px solid black;border-bottom: 1px solid black;"> {{ total_credit|floatformat:2 }}</td>
+                <td></td>
+                <td style="float:right;text-align:right;font-size: 14px;border-top: 1px solid black;border-bottom: 1px solid black;">Total Credit : &nbsp;&nbsp;&nbsp; {{ total_credit|floatformat:2 }}</td>
             </tr>
             <!-- <tr>
                 <td></td>
@@ -200,7 +190,8 @@ fix {
        <br>
        <br>
        <br>
-
+       <br>
+       <br>
         <div>
           <p style="float:right;text-align:right;border-top: 1px solid black;"><strong>Customer Signature</strong></p> 
           <p style="float:right;text-align:right;border-top: 1px solid black;margin-right: 20px;"><strong>Authorized Signature</strong> </p> 
@@ -216,10 +207,8 @@ fix {
             <p>3 {% if footer3 %} {{ footer3 }} {% else %} {% endif %} </p>
             <p>4 {% if footer4 %} {{ footer4 }} {% else %} {% endif %}</p>
         </div>
-       
          
     </div>
-
     
 </body>
 </html>    

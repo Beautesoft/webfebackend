@@ -30,9 +30,5 @@ class authenticated_only(BasePermission):
         if not site:
             msg = {'status': status.HTTP_400_BAD_REQUEST,"message":"Users Item Site is not mapped!!",'error': True} 
             raise exceptions.AuthenticationFailed(msg)
-
-        if not fmspw[0].LEVEL_ItmIDid.pk:
-            result = {'status': status.HTTP_400_BAD_REQUEST,"message":"Employee has no security level",'error': True} 
-            return Response(result, status=status.HTTP_400_BAD_REQUEST) 
-  
+            
         return request.method 

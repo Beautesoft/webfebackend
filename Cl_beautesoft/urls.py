@@ -21,6 +21,7 @@ router.register(r'treatment', views.TreatmentMasterViewset, basename='treatment'
 router.register(r'treatmentdetails', views.TreatmentdetailsViewset, basename='treatmentdetails')
 router.register(r'postaud', views.postaudViewset, basename='postaud')
 router.register(r'paytable', views.PaytableViewset, basename='paytable')
+router.register(r'paytablenew', views.PaytableNewViewset, basename='paytablenew')
 router.register(r'paygroup', views.PayGroupViewset, basename='paygroup')
 router.register(r'itemstatus', views.ItemStatusViewset, basename='itemstatus')
 router.register(r'appointmentpopup', views.AppointmentPopup, basename='appointmentpopup')
@@ -28,12 +29,14 @@ router.register(r'appointmentcalender', views.AppointmentCalender, basename='app
 router.register(r'tmpitemhelper', views.TmpItemHelperViewset, basename='tmpitemhelper')
 router.register(r'empappointmentview', views.EmployeeAppointmentView, basename='empappointmentview')
 router.register(r'appointmentresources', views.AppointmentResourcesViewset, basename='appointmentresources')
+router.register(r'appointmentblock', views.AppointmentBlockViewset, basename='appointmentblock')
+router.register(r'appointmentedit', views.AppointmentEditViewset, basename='appointmentedit')
+router.register(r'appointmentrecur', views.AppointmentRecurViewset, basename='appointmentrecur')
 
 router.register(r'staffPlus', views.StaffPlusViewSet, basename='staffPlus')
 router.register(r'CustomerPlus', views.CustomerPlusViewset, basename='CustomerPlus')
 router.register(r'RewardPolicy', views.RewardPolicyViewSet, basename='RewardPolicy')
 router.register(r'RedeemPolicy', views.RedeemPolicyViewSet, basename='RedeemPolicy')
-
 
     
 urlpatterns = [

@@ -8,9 +8,11 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      Multistaff,
                      DepositType, ItemUomprice, TmpItemHelper, ItemUom, PackageDtl, PosDisc, FocReason, DepositAccount,
                      PrepaidAccount, PrepaidAccountCondition, VoucherCondition, Title, Systemsetup, PackageHdr,
-                     ItemBatch, Stktrn, Workschedule, Securitycontrollist, Securitylevellist, MenuSecurity,
-                     MenuSecuritylevellist, Skillstaff, CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis,
-                     DiagnosisCompare, Multilanguage, MultiLanguageWord, Language
+                     ItemBatch, Stktrn,
+                     BlockReason, Tmpmultistaff, Tmptreatment, AppointmentStatus, AppointmentLog, Diagnosis,
+                     Workschedule, Securitycontrollist, Securitylevellist, MenuSecurity, DiagnosisCompare,
+                     MenuSecuritylevellist, Skillstaff, CustomerFormControl, RewardPolicy, RedeemPolicy, Multilanguage,
+                     MultiLanguageWord, Language,
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 
@@ -68,6 +70,10 @@ admin.site.register(Systemsetup)
 admin.site.register(PackageHdr)
 admin.site.register(ItemBatch)
 admin.site.register(Stktrn)
+admin.site.register(BlockReason)
+admin.site.register(Tmpmultistaff)
+admin.site.register(Tmptreatment)
+admin.site.register(AppointmentStatus)
 admin.site.register(Workschedule)
 admin.site.register(Securitycontrollist)
 admin.site.register(Securitylevellist)
@@ -79,6 +85,7 @@ admin.site.register(RewardPolicy)
 admin.site.register(RedeemPolicy)
 admin.site.register(Diagnosis)
 admin.site.register(DiagnosisCompare)
+admin.site.register(AppointmentLog)
 admin.site.register(Multilanguage)
 admin.site.register(MultiLanguageWord)
 admin.site.register(Language)

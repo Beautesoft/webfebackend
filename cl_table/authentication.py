@@ -14,24 +14,27 @@ def expires_in(token):
     # print(timezone.now(),"timezone.now()")
     # print(token.created,"token.created")
     time_elapsed = timezone.now() - token.created
+    import datetime
     data1 = token.created
-    # print(data1,"data1")
+    print(data1,"data1")
     nextday = timezone.now() + datetime.timedelta(days=1)
-    # print(nextday,"nextday")
+    print(nextday,"nextday")
     data2 = nextday.replace(hour=8, minute=0, second=0, microsecond=0)
+    # data2 = timezone.now()
+    print(data2,"data2")
 
     diff = data2 - data1
-    # print(diff)
+    print(diff)
 
     days, seconds = diff.days, diff.seconds
     hours = days * 24 + seconds / 3600
-    # print(hours,"hours")
+    print(hours,"hours")
 
     # print(time_elapsed,"time_elapsed")
     # print(timedelta(seconds = 300),"timedelta(seconds = 300)")
     # left_time = timedelta(seconds = settings.TOKEN_EXPIRED_AFTER_HOURS) - time_elapsed
     left_time = timedelta(hours= hours) - time_elapsed
-    # print(left_time,"left_time")
+    print(left_time,"left_time")
     return left_time
 
 def is_token_expired(token):

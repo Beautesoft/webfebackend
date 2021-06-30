@@ -3,12 +3,13 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      EmpSitelist, ItemClass, ItemRange, PackageDtl, Appointment, ItemDept, Treatment_Master, PayGroup,
                      Paytable,
                      PosTaud, PosDaud, PosHaud, ItemStatus, Source, Securities, ScheduleHour, ApptType, TmpItemHelper,
-                     FocReason, Workschedule, CustomerFormControl,
+                     FocReason, Country, State, Language,
+                     BlockReason, AppointmentLog, Title, Workschedule, CustomerFormControl,
                      CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist,
                      DailysalesdataDetail, DailysalesdataSummary
                      )
 from cl_app.models import ItemSitelist, SiteGroup
-from custom.models import EmpLevel
+from custom.models import EmpLevel,Room
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import authenticate, get_user_model, password_validation
@@ -98,6 +99,7 @@ class UserLoginSerializer(serializers.Serializer):
 
         if User.objects.filter(username=attrs.get("username")):
             self.user = authenticate(username=attrs.get("username"), password=attrs.get('password'))
+            
             if self.user:
                 if not self.user.is_active:
                     raise serializers.ValidationError(self.error_messages['inactive_account'])
@@ -107,15 +109,15 @@ class UserLoginSerializer(serializers.Serializer):
                     raise serializers.ValidationError(self.error_messages['inactive_account'])
 
                 emp = fmspw[0].Emp_Codeid.pk
-                sitelist_ids = EmpSitelist.objects.filter(Emp_Codeid=emp,Site_Codeid=branch[0].pk,isactive=True)
-                if not sitelist_ids:
-                    raise serializers.ValidationError(self.error_messages['site_notmapped'])
+                # sitelist_ids = EmpSitelist.objects.filter(Emp_Codeid=emp,Site_Codeid=branch[0].pk,isactive=True)
+                # if not sitelist_ids:
+                #     raise serializers.ValidationError(self.error_messages['site_notmapped'])
 
-                if int(sitelist_ids[0].Site_Codeid.pk) != int(attrs.get("salon")):
-                    raise serializers.ValidationError(self.error_messages['invalid']) 
+                # if int(sitelist_ids[0].Site_Codeid.pk) != int(attrs.get("salon")):
+                #     raise serializers.ValidationError(self.error_messages['invalid']) 
 
-                if not branch[0].Site_Groupid:
-                    raise serializers.ValidationError(self.error_messages['sitegrp_notmapped'])
+                # if not branch[0].Site_Groupid:
+                #     raise serializers.ValidationError(self.error_messages['sitegrp_notmapped'])
 
                 return attrs
             else:
@@ -134,6 +136,8 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit',
         'upcoming_appointments','cust_dob','cust_phone2','Cust_sexesid','gender','cust_email','prepaid_card',
+        'cust_nric','cust_country','cust_state','cust_postcode','cust_language','cust_source','emergencycontact',
+        'cardno1','cardno2','cardno3','cardno4','cardno5','cust_class','cust_title','cust_phone1',
         'creditnote','voucher_available','oustanding_payment','cust_refer','custallowsendsms','cust_maillist']
         read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
         'Site_Code','cust_code','ProneToComplain') 
@@ -166,12 +170,12 @@ class CustomerSerializer(serializers.ModelSerializer):
         #     raise serializers.ValidationError("Cust_sexesid Field is required.")
         # else:
         #     if request.data['Cust_sexesid'] is None:
-        #         raise serializers.ValidationError("Cust_sexesid Field is required.")
-        if not 'Site_Codeid' in request.data:
-            raise serializers.ValidationError("Site_Codeid Field is required.")
-        else:
-            if request.data['Site_Codeid'] is None:
-                raise serializers.ValidationError("Site_Codeid Field is required.")
+        #        raise serializers.ValidationError("Cust_sexesid Field is required.")
+        # if not 'Site_Codeid' in request.data:
+        #     raise serializers.ValidationError("Site_Codeid Field is required.")
+        # else:
+        #     if request.data['Site_Codeid'] is None:
+        #        raise serializers.ValidationError("Site_Codeid Field is required.")
         
         if 'Cust_sexesid' in data:
             if data['Cust_sexesid'] is not None:
@@ -199,164 +203,16 @@ class CustomerSerializer(serializers.ModelSerializer):
         #     if request.data['custallowsendsms'] is None:
         #         raise serializers.ValidationError("custallowsendsms Field is required.")    
         # Email and Mobile number validation
-        if request.data['cust_email']:
-            customer_mail =  Customer.objects.filter(cust_email=request.data['cust_email'])
-            if len(customer_mail) > 0:
-                raise serializers.ValidationError("Email id is already associated with another account")
-        customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'])
+        # print(request.data['cust_email'],"Email1")
+        if request.data['cust_email'] != "":
+            if not request.data['cust_email'] is None:
+                customer_mail =  Customer.objects.filter(cust_email=request.data['cust_email'],cust_isactive=True)
+                if len(customer_mail) > 0:
+                    raise serializers.ValidationError("Email id is already associated with another account")
+        customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'],cust_isactive=True)
         if len(customer) > 0:
             raise serializers.ValidationError("Mobile number is already associated with another account")
         return data    
-
-class CustomerClassSerializer(serializers.ModelSerializer):
-    class Meta:
-        model= CustomerClass
-        fields = ["id","class_desc","class_code"]
-
-
-class CustomerPlusSerializer(serializers.ModelSerializer):
-
-    id = serializers.IntegerField(source='pk',required=False)
-    gender = serializers.CharField(source='Cust_sexesid.itm_name',required=False)
-    site_name = serializers.CharField(source='Site_Codeid.itemsite_desc',required=False)
-    class_name = serializers.CharField(source='Cust_Classid.class_desc',required=False)
-    custClass = CustomerClassSerializer(source="Cust_Classid",read_only=True)
-    masked_nric = serializers.SerializerMethodField()
-
-    def get_masked_nric(self,obj):
-        _nric = obj.cust_nric if obj.cust_nric else ""
-        if len(_nric) > 4:
-            _str = '*' * (len(_nric) - 4)
-            _nric = _str + _nric[-4:]
-        return _nric
-
-    def to_representation(self, data):
-        data = super(CustomerPlusSerializer,self).to_representation(data)
-        data['cust_nric'] = data.get("masked_nric")
-
-        return data
-
-    class Meta:
-        model = Customer
-        fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit',
-                  'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
-                  'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
-                  'gender',
-                  'masked_nric',
-                  'cust_email',
-                  'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
-                  'custallowsendsms','cust_maillist','cust_title']
-        read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
-        'Site_Code','cust_code','ProneToComplain')
-        extra_kwargs = {'cust_name': {'required': True},'cust_address':{'required': True}}
-
-
-    def validate(self, data):
-        request = self.context['request']
-
-        action = self.context.get('action')
-
-        # customer form settings validation
-        fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
-        site = fmspw[0].loginsite
-        form_control_qs = CustomerFormControl.objects.filter(isActive=True,Site_Codeid=site)
-        allowed_fields = []
-
-        # if action == "list":
-        #     allowed_fields = form_control_qs.filter(visible_in_listing=True).values_list("field_name",flat=True)
-        # elif action == "retrieve":
-        #     allowed_fields = form_control_qs.filter(visible_in_profile=True).values_list("field_name",flat=True)
-        # if action == "create":
-        #     allowed_fields = form_control_qs.filter(visible_in_registration=True) #.values_list("field_name",flat=True)
-        #
-        validate_data = {}
-        if action == "update":
-            allowed_fields = form_control_qs.filter(visible_in_registration=True).values_list("field_name",flat=True)
-        elif action == 'create':
-            allowed_fields = form_control_qs.filter(visible_in_registration=True).values_list("field_name",flat=True)
-
-
-        for f in allowed_fields:
-            if hasattr(Customer,f) and f in data:
-                validate_data[f] = data[f]
-
-
-        mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name", flat=True)
-
-        for _field in mandatory_fields:
-            # if request.data.get(_field) is None:
-            if validate_data.get(_field) is None:
-                raise serializers.ValidationError(f"{_field} Field is required.")
-
-
-        # if not 'cust_name' in request.data:
-        #     raise serializers.ValidationError("cust_name Field is required.")
-        # else:
-        #     if request.data['cust_name'] is None:
-        #         raise serializers.ValidationError("cust_name Field is required.")
-        # # if not 'cust_address' in request.data:
-        # #     raise serializers.ValidationError("cust_address Field is required.")
-        # # else:
-        # #     if request.data['cust_address'] is None:
-        # #         raise serializers.ValidationError("cust_address Field is required.")
-        # # if not 'cust_dob' in request.data:
-        # #     raise serializers.ValidationError("cust_dob Field is required.")
-        # # else:
-        # #     if request.data['cust_dob'] is None:
-        # #         raise serializers.ValidationError("cust_dob Field is required.")
-        # if not 'cust_phone2' in request.data:
-        #     raise serializers.ValidationError("cust_phone2 Field is required.")
-        # else:
-        #     if request.data['cust_phone2'] is None:
-        #         raise serializers.ValidationError("cust_phone2 Field is required.")
-        # if not 'Cust_sexesid' in request.data:
-        #     raise serializers.ValidationError("Cust_sexesid Field is required.")
-        # else:
-        #     if request.data['Cust_sexesid'] is None:
-        #         raise serializers.ValidationError("Cust_sexesid Field is required.")
-        # if not 'Site_Codeid' in request.data:
-        #     raise serializers.ValidationError("Site_Codeid Field is required.")
-        # else:
-        #     if request.data['Site_Codeid'] is None:
-        #         raise serializers.ValidationError("Site_Codeid Field is required.")
-
-        if 'Cust_sexesid' in data:
-            if data['Cust_sexesid'] is not None:
-                if Gender.objects.filter(pk=data['Cust_sexesid'].pk,itm_isactive=False):
-                    raise serializers.ValidationError("Gender ID Does not exist!!")
-
-                if not Gender.objects.filter(pk=data['Cust_sexesid'].pk,itm_isactive=True):
-                    result = {'status': status.HTTP_400_BAD_REQUEST,"message":"Gender Id does not exist!!",'error': True}
-                    raise serializers.ValidationError(result)
-        if 'Site_Codeid' in data:
-            if data['Site_Codeid'] is not None:
-                if ItemSitelist.objects.filter(pk=data['Site_Codeid'].pk,itemsite_isactive=False):
-                    raise serializers.ValidationError("Site Code ID Does not exist!!")
-                if not ItemSitelist.objects.filter(pk=data['Site_Codeid'].pk,itemsite_isactive=True):
-                    raise serializers.ValidationError("Site Code ID Does not exist!!")
-
-        # if not 'cust_maillist' in request.data:
-        #     raise serializers.ValidationError("cust_maillist Field is required.")
-        # else:
-        #     if request.data['cust_maillist'] is None:
-        #         raise serializers.ValidationError("cust_maillist Field is required.")
-        # if not 'custallowsendsms' in request.data:
-        #     raise serializers.ValidationError("custallowsendsms Field is required.")
-        # else:
-        #     if request.data['custallowsendsms'] is None:
-        #         raise serializers.ValidationError("custallowsendsms Field is required.")
-        # Email and Mobile number validation
-        # if request.data['cust_email']:
-        #     customer_mail =  Customer.objects.filter(cust_email=request.data['cust_email'])
-        #     if len(customer_mail) > 0:
-        #         raise serializers.ValidationError("Email id is already associated with another account")
-        # customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'])
-        # if len(customer) > 0:
-        #     raise serializers.ValidationError("Mobile number is already associated with another account")
-        return validate_data
-
-    # def update(self, instance, validated_data):
-    #     update_fields = form_control_qs.filter(mandatory=True).values_list("field_name",flat=True)
 
 
 class CustomerUpdateSerializer(serializers.ModelSerializer):
@@ -367,16 +223,21 @@ class CustomerUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ['id','cust_name','cust_address','Site_Codeid','site_name',
-        'cust_dob','cust_phone2','Cust_sexesid','gender',
+        'cust_dob','cust_phone2','cust_phone1','cust_refer','cust_class','Cust_sexesid','gender',
+        'cust_nric','cust_country','cust_state','cust_postcode','cust_language','cust_source','emergencycontact',
+        'cardno1','cardno2','cardno3','cardno4','cardno5',
         'cust_email','custallowsendsms','cust_maillist']
 
     def validate(self, data):
         pk = self.instance.pk
         # Email and Mobile number validation
-        customer_mail =  Customer.objects.filter(cust_email=data['cust_email']).exclude(pk=pk)
-        if len(customer_mail) > 0:
-            raise serializers.ValidationError("Email id is already associated with another account")
-        customer =  Customer.objects.filter(cust_phone2=data['cust_phone2']).exclude(pk=pk)
+        print(data['cust_email'],"Email")
+        if data['cust_email'] != "":
+            if not data['cust_email'] is None:
+                customer_mail =  Customer.objects.filter(cust_email=data['cust_email'],cust_isactive=True).exclude(pk=pk)
+                if len(customer_mail) > 0:
+                    raise serializers.ValidationError("Email id is already associated with another account")
+        customer =  Customer.objects.filter(cust_phone2=data['cust_phone2'],cust_isactive=True).exclude(pk=pk)
         if len(customer) > 0:
             raise serializers.ValidationError("Mobile number is already associated with another account")
         return data
@@ -687,11 +548,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services','emp_address',
+        fields = ['id','skills_list','display_name','emp_name','emp_phone1','emp_code','skills','services','emp_address',
         'Emp_sexesid','gender','defaultSiteCodeid','defaultsitecode','site_name','Site_Codeid','site_code',
         'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic','EMP_TYPEid','jobtitle_name',
-        'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',"emp_nric"]
-        read_only_fields = ('emp_isactive','updated_at','created_at','emp_code','branch')
+        'is_login','pw_password','LEVEL_ItmIDid','level_desc']
+        read_only_fields = ('emp_isactive', 'updated_at','created_at','emp_code','branch') 
         extra_kwargs = {'emp_email': {'required': False},'Site_Codeid': {'required': False},
         'emp_name': {'required': True}}
 
@@ -748,8 +609,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         else:
             if request.data['emp_pic'] is None:
                 raise serializers.ValidationError("emp_pic Field is required.")
-
-
+            
         if 'skills_list' in data:
             if data['skills_list'] is not None:
                 if ',' in data['skills_list']:
@@ -811,21 +671,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fmspw = Fmspw.objects.filter(user=self.context['request'].user,pw_isactive=True).first()
         Site_Codeid = fmspw.loginsite
         siteobj = ItemSitelist.objects.filter(pk=validated_data.get('defaultSiteCodeid').pk,itemsite_isactive=True).first()
-        employee = Employee.objects.create(emp_name=validated_data.get('emp_name'),
-                                           emp_phone1=validated_data.get('emp_phone1'),
-                                           display_name=validated_data.get('emp_name'),
-                                           emp_address=validated_data.get('emp_address'),
-                                           Emp_sexesid=validated_data.get('Emp_sexesid'),
-                                           emp_dob=validated_data.get('emp_dob'),
-                                           emp_joindate=validated_data.get('emp_joindate'),
-                                           shift=validated_data.get('shift'),
-                                           defaultSiteCodeid=validated_data.get('defaultSiteCodeid'),
-                                           defaultsitecode=siteobj.itemsite_code,
-                                           emp_pic=validated_data.get('emp_pic'),
-                                           is_login=validated_data.get('is_login'),
-                                           EMP_TYPEid=validated_data.get('EMP_TYPEid'),
-                                           Site_Codeid=Site_Codeid,
-                                           site_code=Site_Codeid.itemsite_code)
+        employee = Employee.objects.create(emp_name=validated_data.get('emp_name'),emp_phone1=validated_data.get('emp_phone1'),
+        emp_address=validated_data.get('emp_address'),Emp_sexesid=validated_data.get('Emp_sexesid'),emp_dob=validated_data.get('emp_dob'),
+        emp_joindate=validated_data.get('emp_joindate'),shift=validated_data.get('shift'),defaultSiteCodeid=validated_data.get('defaultSiteCodeid'),
+        defaultsitecode=siteobj.itemsite_code,emp_pic=validated_data.get('emp_pic'),is_login=validated_data.get('is_login'),
+        EMP_TYPEid=validated_data.get('EMP_TYPEid'),Site_Codeid=Site_Codeid,site_code=Site_Codeid.itemsite_code)
         
         skills_data = validated_data.pop('skills_list')
         if ',' in skills_data:
@@ -868,7 +718,1003 @@ class EmployeeSerializer(serializers.ModelSerializer):
             for skill in res:
                 instance.skills.add(skill)
         instance.save()    
+        return instance    
+
+class Attendance2Serializer(serializers.ModelSerializer):
+
+    id = serializers.IntegerField(source='pk',required=False)
+    emp_name = serializers.CharField(source='Attn_Emp_codeid.emp_name',required=False)
+    emp_img = serializers.ImageField(source='Attn_Emp_codeid.emp_pic',required=False)
+    sitecode_name = serializers.CharField(source='Attn_Site_Codeid.itemsite_desc',required=False)
+    shift_name = serializers.SerializerMethodField()
+
+    def get_shift_name(self, obj):
+        if obj:
+            att = obj
+            return str(att.attn_time) +" "+ "to" +" "+str(att.attn_mov_in) 
+        else:
+            return None  
+
+    class Meta:
+        model = Attendance2
+        fields = ['id','shift_name','Attn_Emp_codeid','emp_name','emp_img','attn_date',
+        'Attn_Site_Codeid','sitecode_name','attn_site_code','attn_time','attn_mov_in']
+        read_only_fields = ('Create_date','Create_time', 'updated_at','emp_name','emp_img','attn_site_code')
+
+    def validate(self, data):
+        request = self.context['request']
+        if not 'Attn_Emp_codeid' in request.data:
+            raise serializers.ValidationError("Attn_Emp_codeid Field is required.")
+        else:
+            if request.data['Attn_Emp_codeid'] is None:
+                raise serializers.ValidationError("Attn_Emp_codeid Field is required.")
+        if not 'attn_date' in request.data:
+            raise serializers.ValidationError("attn_date Field is required.")
+        else:
+            if request.data['attn_date'] is None:
+                raise serializers.ValidationError("attn_date Field is required.")
+        if not 'attn_time' in request.data:
+            raise serializers.ValidationError("attn_time Field is required.")
+        else:
+            if request.data['attn_time'] is None:
+                raise serializers.ValidationError("attn_time Field is required.")
+        if not 'attn_mov_in' in request.data:
+            raise serializers.ValidationError("attn_mov_in Field is required.")
+        else:
+            if request.data['attn_mov_in'] is None:
+                raise serializers.ValidationError("attn_mov_in Field is required.")
+        
+        if 'Attn_Emp_codeid' in data:
+            if data['Attn_Emp_codeid'] is not None:
+                if Employee.objects.filter(pk=data['Attn_Emp_codeid'].pk,emp_isactive=False):
+                    raise serializers.ValidationError("Employee ID Does not exist!!")
+                if not Employee.objects.filter(pk=data['Attn_Emp_codeid'].pk,emp_isactive=True):
+                        raise serializers.ValidationError("Employee ID Does not exist!!")
+
+
+        if 'Attn_Site_Codeid' in data: 
+            if data['Attn_Site_Codeid'] is not None:
+                if ItemSitelist.objects.filter(pk=data['Attn_Site_Codeid'].pk,itemsite_isactive=False):
+                    raise serializers.ValidationError("Site ID Does not exist!!")
+                if not ItemSitelist.objects.filter(pk=data['Attn_Site_Codeid'].pk,itemsite_isactive=True):
+                    raise serializers.ValidationError("Site ID Does not exist!!")
+
+        return data
+
+class AppointmentSerializer(serializers.ModelSerializer):   
+    id = serializers.IntegerField(source='pk',required=False)
+    cust_name = serializers.CharField(source='cust_noid.cust_name',required=False)
+    source_name = serializers.CharField(source='Source_Codeid.source_desc',required=False)
+    site_name = serializers.CharField(source='ItemSite_Codeid.itemsite_desc',required=False)
+
+
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_date','appt_code','appt_fr_time','appt_to_time','Appt_typeid','appt_type','cust_noid',
+        'cust_name','appt_phone','new_remark','appt_created_by','Source_Codeid','source_name','Room_Codeid',
+        'room_code','appt_status','emp_noid','emp_name','requesttherapist','ItemSite_Codeid','itemsite_code',
+        'site_name','cust_refer','sec_status','walkin']
+        read_only_fields = ('cust_name','appt_code')
+
+    def validate(self, data):
+        if 'cust_noid' in data:
+            if data['cust_noid'] is not None:
+                if Customer.objects.filter(pk=data['cust_noid'].pk,cust_isactive=False):
+                    raise serializers.ValidationError("Customer ID Does not exist!!")
+                if not Customer.objects.filter(pk=data['cust_noid'].pk,cust_isactive=True):
+                    raise serializers.ValidationError("Customer ID Does not exist!!")
+        
+        if 'ItemSite_Codeid' in data:
+            if data['ItemSite_Codeid'] is not None:
+                if ItemSitelist.objects.filter(pk=data['ItemSite_Codeid'].pk,itemsite_isactive=False):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+                if not ItemSitelist.objects.filter(pk=data['ItemSite_Codeid'].pk,itemsite_isactive=True):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+
+        if 'Source_Codeid' in data:
+            if data['Source_Codeid'] is not None:
+                if Source.objects.filter(id=data['Source_Codeid'].id,source_isactive=False):
+                    raise serializers.ValidationError("Source ID Does not exist!!")
+                if not Source.objects.filter(id=data['Source_Codeid'].id,source_isactive=True):
+                    raise serializers.ValidationError("Source ID Does not exist!!")
+                
+        return data      
+
+    
+class AppointmentSerializer(serializers.ModelSerializer):   
+    id = serializers.IntegerField(source='pk',required=False)
+    cust_name = serializers.CharField(source='cust_noid.cust_name',required=False)
+    source_name = serializers.CharField(source='Source_Codeid.source_desc',required=False)
+    site_name = serializers.CharField(source='ItemSite_Codeid.itemsite_desc',required=False)
+
+
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_date','appt_code','appt_fr_time','appt_to_time','Appt_typeid','appt_type','cust_noid',
+        'cust_name','appt_phone','new_remark','appt_created_by','Source_Codeid','source_name','Room_Codeid',
+        'room_code','appt_status','emp_noid','emp_name','requesttherapist','ItemSite_Codeid','itemsite_code',
+        'site_name','cust_refer','sec_status']
+        read_only_fields = ('cust_name','appt_code')
+
+    def validate(self, data):
+        if 'cust_noid' in data:
+            if data['cust_noid'] is not None:
+                if Customer.objects.filter(pk=data['cust_noid'].pk,cust_isactive=False):
+                    raise serializers.ValidationError("Customer ID Does not exist!!")
+                if not Customer.objects.filter(pk=data['cust_noid'].pk,cust_isactive=True):
+                    raise serializers.ValidationError("Customer ID Does not exist!!")
+        
+        if 'ItemSite_Codeid' in data:
+            if data['ItemSite_Codeid'] is not None:
+                if ItemSitelist.objects.filter(pk=data['ItemSite_Codeid'].pk,itemsite_isactive=False):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+                if not ItemSitelist.objects.filter(pk=data['ItemSite_Codeid'].pk,itemsite_isactive=True):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+
+        if 'Source_Codeid' in data:
+            if data['Source_Codeid'] is not None:
+                if Source.objects.filter(id=data['Source_Codeid'].id,source_isactive=False):
+                    raise serializers.ValidationError("Source ID Does not exist!!")
+                if not Source.objects.filter(id=data['Source_Codeid'].id,source_isactive=True):
+                    raise serializers.ValidationError("Source ID Does not exist!!")
+                
+        return data      
+               
+class AppointmentCalendarSerializer(serializers.ModelSerializer):   
+
+    id = serializers.IntegerField(source='pk',required=False)
+    Cust_phone = serializers.CharField(source='cust_noid.cust_phone2',required=False)
+    job_title = serializers.CharField(source='emp_noid.EMP_TYPEid.level_desc',required=False)
+    start = serializers.SerializerMethodField() 
+    end = serializers.SerializerMethodField() 
+    emp_img =  serializers.SerializerMethodField() 
+
+    def get_emp_img(self, obj):
+        ip = get_client_ip(self.context['request'])
+        pic = None
+
+        if obj.emp_noid.emp_pic:
+            pic = str(ip)+str(obj.emp_noid.emp_pic.url)
+        return pic
+
+    def get_start(self, obj):
+        if obj.appt_date and obj.appt_fr_time:
+            appt_date = obj.appt_date
+            appt_time = obj.appt_fr_time
+            #.lstrip("0").replace(" 0", " ")
+            mytime = dt.datetime.strptime(str(appt_time),'%H:%M:%S').strftime("%H:%M")
+            # mydatetime = dt.datetime.combine(appt_date, fr_time)
+            mydatetime = str(appt_date) +" "+ str(mytime)
+            return str(mydatetime)
+        else:
+            return []  
+
+    def get_end(self, obj):
+        if obj.appt_date and obj.appt_fr_time:
+            appt_date = obj.appt_date
+            appt_time = obj.appt_to_time
+            # .lstrip("0").replace(" 0", " ")
+            mytime = dt.datetime.strptime(str(appt_time),'%H:%M:%S').strftime("%H:%M")
+            mydatetime = str(appt_date) +" "+ str(mytime)
+            return str(mydatetime)
+        else:
+            return []          
+
+    class Meta:
+        model = Appointment
+        fields = ['id','start','end','emp_img','emp_noid','emp_name','job_title','cust_noid','cust_name',
+        'cust_refer', 'Cust_phone','new_remark','appt_status','appt_date','appt_fr_time','appt_to_time']
+
+
+class Item_DeptSerializer(serializers.ModelSerializer):  
+    id = serializers.IntegerField(source='pk',required=False)
+  
+    class Meta:
+        model = ItemDept
+        fields = ['id','itm_desc','deptpic']
+
+class StockListSerializer(serializers.ModelSerializer): 
+    id = serializers.IntegerField(source='pk',required=False)
+    Item_Class = serializers.CharField(source='Item_Classid.itm_desc',required=False)
+    # final = serializers.SerializerMethodField() 
+
+    # def get_final(self, obj):
+    #     print(self,"self")
+    #     print(obj,"obj")
+
+    
+
+  
+    class Meta:
+        model = Stock
+        fields = ['id','item_desc','item_price','Stock_PIC','Item_Classid','Item_Class','srv_duration']
+        read_only_fields = ('item_code',)
+
+class TreatmentMasterSerializer(serializers.ModelSerializer): 
+    item_class = serializers.CharField(source='Item_Class.itm_desc',required=False)
+    emp_name = serializers.SerializerMethodField() 
+    room_name = serializers.CharField(source='Trmt_Room_Codeid.displayname',required=False)
+    room_img = serializers.CharField(source='Trmt_Room_Codeid.Room_PIC.url',required=False)
+    emp_img =  serializers.SerializerMethodField() 
+    stock_name = serializers.CharField(source='Item_Codeid.item_desc',required=False)
+    site_name = serializers.CharField(source='Site_Codeid.itemsite_desc',required=False)
+    recur_days = serializers.SerializerMethodField() 
+    recur_qty = serializers.SerializerMethodField() 
+    item_text = serializers.SerializerMethodField() 
+
+
+    def get_recur_days(self, obj):
+        return None
+
+    def get_recur_qty(self, obj):
+        return None    
+    
+    def get_item_text(self, obj):
+        return None 
+
+    def get_emp_img(self, obj):
+        ip = get_client_ip(self.context['request'])
+        pic_lst = []
+        if obj.emp_no:
+            for e in obj.emp_no.all():
+                if e.emp_pic:
+                    pic = str(ip)+str(e.emp_pic.url)
+                    pic_lst.append(pic)
+        return pic_lst
+    
+    def get_emp_name(self, obj):
+        if obj.emp_no:
+            string = ""
+            for i in obj.emp_no.all():
+                if string == "":
+                    string = string + i.emp_name
+                elif not string == "":
+                    string = string +","+ i.emp_name
+            return string
+        else:
+            return None 
+
+    class Meta:
+        model = Treatment_Master
+        fields = ['id','PIC','course','item_class','Item_Class','Item_Codeid','stock_name','treatment_date',
+        'start_time','end_time','add_duration','duration','site_name','Site_Codeid','site_code','price','treatment_no','times','status',
+        'emp_no','emp_name','Trmt_Room_Codeid','room_name','cus_requests','treatment_details','requesttherapist',
+        'procedure','products_used','recurring_appointment','room_img','emp_img','sa_transacno','appt_time',
+        'recur_days','recur_qty','item_text','checktype','treat_parentcode']
+
+   
+    def validate(self, data):
+        if 'treatment_no' in data:
+            if data['treatment_no'] is None:
+                raise serializers.ValidationError("treatment_no Field is required.")
+        if 'emp_no' in data:
+            if data['emp_no'] is None:
+                raise serializers.ValidationError("emp_no Field is required.")
+
+        if 'Trmt_Room_Codeid' in data:
+            if data['Trmt_Room_Codeid'] is None:
+                raise serializers.ValidationError("Trmt_Room_Code Field is required.")  
+
+        if 'cus_requests' in data:
+            if data['cus_requests'] is None:
+                raise serializers.ValidationError("cus_requests Field is required.") 
+
+        if 'products_used' in data:
+            if data['products_used'] is None:
+                raise serializers.ValidationError("products_used Field is required.")
+
+        if 'recurring_appointment' in data:
+            if data['recurring_appointment'] is None:
+                raise serializers.ValidationError("recurring_appointment Field is required.")
+            
+        return data
+
+    # def update(self, instance, validated_data):
+    #     instance.save()    
+    #     return instance      
+
+
+class StaffsAvailableSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    job_title = serializers.CharField(source='EMP_TYPEid.level_desc',required=False)
+    emp_img =  serializers.SerializerMethodField() 
+    services =  serializers.SerializerMethodField() 
+
+    def get_emp_img(self, obj):
+        ip = get_client_ip(self.context['request'])
+        if obj.emp_pic:
+            pic = str(ip)+str(obj.emp_pic.url)
+        else:
+            pic = None    
+        return pic
+
+    def get_services(self, obj):
+        if obj.skills.all():
+            string = ""
+            for i in obj.skills.all():
+                if string == "":
+                    string = string + i.item_desc
+                elif not string == "":
+                    string = string +","+ i.item_desc
+            return string
+        else:
+            return None        
+
+    class Meta:
+        model = Employee
+        fields = ['id','emp_name','display_name','emp_img','job_title','services']
+
+class PayGroupSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = PayGroup
+        fields = ['id','pay_group_code','picturelocation']        
+
+class PaytableSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    pay_group_name = serializers.CharField(source='pay_groupid.pay_group_code',required=False)
+
+    class Meta:
+        model = Paytable
+        fields = ['id','pay_code','pay_description','pay_groupid','pay_group_name','gt_group']
+
+class PostaudSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    billed_by_name = serializers.CharField(source='billed_by.pw_userlogin',required=False)
+    pay_type_name = serializers.CharField(source='pay_typeid.pay_description',required=False)
+    pay_group_name = serializers.CharField(source='pay_groupid.pay_group_code',required=False)
+
+    class Meta:
+        model = PosTaud
+        fields = ['id','sa_date','sa_time','billed_by','billed_by_name','sa_transacno','pay_groupid','pay_group_name',
+        'pay_typeid','pay_type_name','pay_desc','pay_tendamt','pay_amt','pay_actamt','ItemSIte_Codeid','itemsite_code','subtotal','tax','discount_amt',
+        'sa_transacno','billable_amount','pay_premise','credit_debit','points','prepaid','is_voucher','pay_rem1',
+        'pay_rem2','pay_rem3','pay_rem4','gt']
+
+class PoshaudSerializer(serializers.ModelSerializer):
+    # billed_by_name = serializers.CharField(source='trans_user_loginid.pw_userlogin',required=False)
+
+    class Meta:
+        model = PosHaud
+        fields = ['id','sa_custno','sa_custname','sa_date','sa_time']
+
+class PosdaudSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = PosDaud
+        fields = ['id','dt_itemdesc','dt_qty','dt_deposit','record_detail_type',
+        'dt_status','itemcart','staffs','isfoc','holditemqty','trmt_done_staff_name']
+
+class PostaudprintSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    pay_type_name = serializers.CharField(source='pay_typeid.pay_description',required=False)
+
+    class Meta:
+        model = PosTaud
+        fields = ['id','pay_rem1','pay_type_name','pay_amt','pay_gst']
+
+class ItemStatusSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    class Meta:
+        model = ItemStatus
+        fields = ['id','status_code','status_desc','status_short_desc'] 
+
+class SourceSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = Source
+        fields = ['id','source_code','source_desc']
+
+class AppointmentPopupSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    contact_no = serializers.CharField(source='cust_noid.cust_phone2',required=False)
+    cust_dob = serializers.CharField(source='cust_noid.cust_dob',required=False)
+
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_fr_time','appt_to_time','cust_name','cust_refer','cust_noid',
+        'contact_no','cust_dob','appt_remark','requesttherapist','appt_status']
+
+class AppointmentResourcesSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    room_name = serializers.CharField(source='Room_Codeid.displayname',required=False)
+    edit_remark = serializers.SerializerMethodField()
+    emp_id = serializers.SerializerMethodField()
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    add_duration = serializers.SerializerMethodField()
+    item_id = serializers.SerializerMethodField()
+    recur_days = serializers.SerializerMethodField() 
+    recur_qty = serializers.SerializerMethodField() 
+    item_text = serializers.SerializerMethodField() 
+    recur_ids = serializers.SerializerMethodField()
+
+    def get_edit_remark(self, obj):
+        return None 
+
+    def get_emp_id(self, obj):
+        return None
+
+    def get_start_time(self, obj):
+        return None  
+
+    def get_end_time(self, obj):
+        return None 
+
+    def get_add_duration(self, obj):
+        return None   
+
+    def get_item_id(self, obj):
+        return None             
+
+    def get_item_text(self, obj):
+        return None 
+
+    def get_recur_ids(self, obj):
+        return None                     
+
+
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_date','cust_name','cust_noid','appt_status','new_remark',
+        'sec_status','Room_Codeid','room_name','requesttherapist','edit_remark','emp_id',
+        'start_time','end_time','add_duration','item_id','recur_days','recur_qty','item_text',
+        'recur_ids']
+        extra_kwargs = {'edit_remark': {'required': True},'emp_id': {'required': True}}
+
+    #def validate(self, data):
+    #    request = self.context['request']
+    #    if not 'edit_remark' in request.data:
+    #        raise serializers.ValidationError("edit_remark Field is required.")
+    #    else:
+    #        if request.data['edit_remark'] is None: 
+    #            raise serializers.ValidationError("edit_remark Field is required!!")
+    #    
+    #    return data  
+
+class AppointmentEditSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False) 
+
+    class Meta:
+        model = Appointment
+        fields = ['id']
+
+class SecuritiesSerializer(serializers.ModelSerializer):
+
+    id = serializers.IntegerField(source='pk',required=False)
+    class Meta:
+        model = Securities
+        fields = ['id', 'level_name', 'level_description', 'level_code']
+    
+class CustTransferSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    site_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Customer
+        fields = ['id', 'Site_Codeid', 'site_id']
+        extra_kwargs = {'site_id': {'required': True}}
+
+    def validate(self, data):
+        request = self.context['request']
+        if not 'site_id' in request.data:
+            raise serializers.ValidationError("site_id Field is required.")
+        else:
+            if request.data['site_id'] is None: 
+                raise serializers.ValidationError("site_id Field is required!!")
+        
+        return data     
+
+    
+class EmpTransferPerSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    site_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = ['id', 'emp_code', 'emp_name','site_id'] 
+        extra_kwargs = {'site_id': {'required': True}}
+
+    def validate(self, data):
+        request = self.context['request']
+        if not 'site_id' in request.data:
+            raise serializers.ValidationError("site_id Field is required.")
+        else:
+            if request.data['site_id'] is None: 
+                raise serializers.ValidationError("site_id Field is required!!")
+        
+        return data    
+
+class EmpTransferTempSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    site_id = serializers.SerializerMethodField()
+    start_date = serializers.DateField(required=True)
+    end_date = serializers.DateField(required=True)
+    hour_id = serializers.SerializerMethodField()
+
+
+    class Meta:
+        model = Employee
+        fields = ['id', 'emp_code', 'emp_name','site_id','start_date','end_date','hour_id'] 
+        extra_kwargs = {'site_id': {'required': True},'hour_id': {'required': True}}
+
+    def validate(self, data):
+        request = self.context['request']
+        if not 'site_id' in request.data:
+            raise serializers.ValidationError("site_id Field is required.")
+        else:
+            if request.data['site_id'] is None: 
+                raise serializers.ValidationError("site_id Field is required!!")
+        
+        if not 'hour_id' in request.data:
+            raise serializers.ValidationError("hour_id Field is required.")
+        else:
+            if request.data['hour_id'] is not None:
+                if ScheduleHour.objects.filter(id=request.data['hour_id'],itm_isactive=False):
+                    raise serializers.ValidationError("ScheduleHour ID Does not exist!!")
+                if not ScheduleHour.objects.filter(id=request.data['hour_id'],itm_isactive=True):
+                    raise serializers.ValidationError("ScheduleHour ID Does not exist!!")
+        
+        return data        
+        
+        
+class EmpSitelistSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EmpSitelist
+        fields = ['id','site_code']
+
+class ScheduleHourSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = ScheduleHour
+        fields = ['id','itm_code','itm_desc','offday']
+
+
+class CustApptSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Customer
+        fields = ['id','cust_name','cust_email','cust_code','cust_nric']
+
+
+    def to_representation(self, instance):
+       
+        mapped_object = {'id':instance.pk,'cust_name':instance.cust_name if instance.cust_name else "",
+        'cust_phone1': instance.cust_phone2 if instance.cust_phone2 else "",
+        'cust_email': instance.cust_email if instance.cust_email else "",
+        'cust_code': instance.cust_code if instance.cust_code else "",
+        'cust_nric': instance.cust_nric if instance.cust_nric else "",
+        'custphone2': instance.cust_phone1 if instance.cust_phone1 else "",
+        'site_code': instance.site_code}
+        return mapped_object    
+
+   
+           
+class ApptTypeSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = ApptType
+        fields = ['id','appt_type_desc','appt_type_code']
+
+
+class TmpItemHelperSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TmpItemHelper
+        fields = ['id','helper_id','helper_name','wp1','appt_fr_time','appt_to_time','add_duration','session']
+
+class FocReasonSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = FocReason
+        fields = ['id','foc_reason_ldesc']
+
+class LanguageSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = Language
+        fields = ['itm_id','itm_desc','itm_code']
+
+class CountrySerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = Country
+        fields = ['itm_id','itm_desc','itm_code']
+
+class StateSerializer(serializers.ModelSerializer):    
+    class Meta:
+        model = State
+        fields = ['itm_id','itm_desc','itm_code']
+
+class TreatmentApptSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Treatment
+        fields = ['id']
+
+class AppointmentSortSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    emp_ids = serializers.SerializerMethodField()
+
+    def get_emp_ids(self, obj):
+        return None 
+
+    class Meta:
+        model = Employee
+        fields = ['id', 'display_name','emp_code','emp_ids'] 
+        extra_kwargs = {'emp_ids': {'required': True}}
+
+class ApptTreatmentDoneHistorySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Appointment
+        fields = ['id']
+
+class UpcomingAppointmentSerializer(serializers.ModelSerializer):   
+
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_date','appt_fr_time','appt_remark','emp_name','appt_status','sec_status','itemsite_code']
+
+
+class AppointmentBlockSerializer(serializers.ModelSerializer):   
+
+    id = serializers.IntegerField(source='pk',required=False)
+    start_date = serializers.SerializerMethodField()
+    end_date = serializers.SerializerMethodField()
+    reason_id = serializers.SerializerMethodField()
+    emp_ids = serializers.SerializerMethodField()
+
+
+    def get_start_date(self, obj):
+        return None 
+
+    def get_end_date(self, obj):
+        return None 
+
+    def get_reason_id(self, obj):
+        return None      
+
+    def get_emp_ids(self, obj):
+        return None 
+
+      
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_date','start_date','end_date','appt_fr_time','appt_to_time','reason',
+        'reason_id','duration','appt_remark','emp_noid','emp_no','emp_name','emp_ids','appt_isactive']
+
+    def validate(self, data):
+        request = self.context['request']
+        if request.method == "POST":
+            if not 'start_date' in request.data:
+                raise serializers.ValidationError("start date Field is required.")
+            else:
+                if request.data['start_date'] is None: 
+                    raise serializers.ValidationError("start date Field is required!!")
+            
+            if not 'end_date' in request.data:
+                raise serializers.ValidationError("end date Field is required.")
+            else:
+                if request.data['end_date'] is None:
+                    raise serializers.ValidationError("end date Field is required.")
+                if not request.data['end_date']: 
+                    raise serializers.ValidationError("end date Field is required.")
+
+            if not 'reason_id' in request.data:
+                raise serializers.ValidationError("Block Reason Field is required.")
+            else:
+                if request.data['reason_id'] is None: 
+                    raise serializers.ValidationError("Block Reason Field is required!!")
+                if not request.data['reason_id']: 
+                    raise serializers.ValidationError("Reason id Field is required.")
+
+            if not 'emp_ids' in request.data:
+                raise serializers.ValidationError("emp ids Field is required.")
+            else:
+                if request.data['emp_ids'] is not None:
+                    if Employee.objects.filter(pk__in=request.data['emp_ids'],emp_isactive=False):
+                        raise serializers.ValidationError("Employee ID Does not exist!!")
+                    if not Employee.objects.filter(pk__in=request.data['emp_ids'],emp_isactive=True):
+                        raise serializers.ValidationError("Employee ID Does not exist!!")
+                elif request.data['emp_ids'] is None or request.data['emp_ids'] == []: 
+                    raise serializers.ValidationError("Employee ID Should not be empty/null!!")
+        
+        return data       
+
+class BlockReasonSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = BlockReason
+        fields = ['id','b_reason']
+
+class AppointmentLogSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = AppointmentLog
+        fields = ['id','appt_id','username','appt_date','appt_fr_time','appt_to_time',
+        'add_duration','emp_code','appt_status','sec_status','appt_remark','requesttherapist',
+        'created_at']
+
+class EmployeeBranchSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Employee
+        fields = ['id', 'display_name','emp_code'] 
+
+
+class RoomAppointmentSerializer(serializers.ModelSerializer):
+    
+    room_img = serializers.SerializerMethodField() 
+    
+    def get_room_img(self, obj):
+        ip = get_client_ip(self.context['request'])
+        if obj.Room_PIC:
+            pic = ip+str(obj.Room_PIC.url)
+        else:
+            pic = None    
+        return pic
+
+    class Meta:
+        model = Room
+        fields = ['id','displayname','room_img']
+
+class DeptAppointmentSerializer(serializers.ModelSerializer):
+    
+    id = serializers.IntegerField(source='pk',required=False)
+    dept_img = serializers.SerializerMethodField() 
+    
+    def get_dept_img(self, obj):
+        ip = get_client_ip(self.context['request'])
+        if obj.deptpic:
+            pic = ip+str(obj.deptpic.url)
+        else:
+            pic = None    
+        return pic
+
+    class Meta:
+        model = ItemDept
+        fields = ['id','itm_desc','dept_img']
+
+class TitleSerializer(serializers.ModelSerializer):
+
+    site_id = serializers.SerializerMethodField() 
+    
+    def get_site_id(self, obj):
+        if obj.product_license:
+            siteobj = ItemSitelist.objects.filter(itemsite_code=obj.product_license,itemsite_isactive=True).first() 
+            return siteobj.pk if siteobj.pk else None
+        else:
+            return None    
+    
+    class Meta:
+        model = Title
+        fields = ['id','title','trans_h1','trans_h2','trans_footer1','trans_footer2',
+        'trans_footer3','trans_footer4','logo_pic','site_id','gst_reg_no','product_license']
+
+def get_in_val(self, time):
+    if time:
+        value = str(time).split(':')
+        hr = value[0]
+        mins = value[1]
+        in_time = str(hr)+":"+str(mins)
+        return str(in_time)
+    else:
+        return None 
+
+class AppointmentRecurrSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    emp_id = serializers.SerializerMethodField()
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
+    add_duration = serializers.SerializerMethodField()
+    item_id = serializers.SerializerMethodField()
+    item_text = serializers.SerializerMethodField() 
+    recur_ids = serializers.SerializerMethodField()
+
+
+    def get_emp_id(self, obj):
+        return None
+
+    def get_start_time(self, obj):
+        return None  
+
+    def get_end_time(self, obj):
+        return None 
+
+    def get_add_duration(self, obj):
+        return None   
+
+    def get_item_id(self, obj):
+        return None 
+
+    def get_item_text(self, obj):
+        return None 
+
+    def get_recur_ids(self, obj):
+        return None                     
+
+
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_status','sec_status','Room_Codeid','requesttherapist',
+        'emp_id','start_time','end_time','add_duration','item_id''item_text',
+        'recur_ids']
+        extra_kwargs = {'edit_remark': {'required': True},'emp_id': {'required': True}}
+
+class AttendanceStaffsSerializer(serializers.ModelSerializer):   
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Attendance2
+        fields = ['id','attn_date','attn_emp_code','attn_site_code','attn_type']
+
+
+    def to_representation(self, instance):
+        enable = False
+        emp_obj = Employee.objects.filter(emp_code=instance.attn_emp_code).first()
+        # print(emp_obj.pk,"emp_obj")
+       
+        if emp_obj and emp_obj.emp_pic.url:
+            ip = get_client_ip(self.context['request'])
+            pic = ""
+            if emp_obj.emp_pic:
+                pic = str(ip)+str(emp_obj.emp_pic.url) 
+
+            if instance.attn_type == '00':
+                enable = True
+
+            mapped_object = {'id': instance.pk,'emp_img': pic,
+            'emp_name': emp_obj.display_name, 'attn_type': instance.attn_type, 'enable': enable} 
+        
+        return mapped_object    
+            
+class CustApptUpcomingSerializer(serializers.ModelSerializer):   
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Appointment
+        fields = ['id','appt_date','appt_fr_time','appt_to_time','appt_remark','itemsite_code','emp_name',
+        'appt_status','sec_status']
+
+
+    def to_representation(self, instance):
+        if instance.appt_date:
+            splt = str(instance.appt_date).split(" ")
+            appt_date = dt.datetime.strptime(str(splt[0]), "%Y-%m-%d").strftime("%d-%b-%y")
+
+        mapped_object = {'id': instance.pk,'appt_date': appt_date,'appt_fr_time': get_in_val(self, instance.appt_fr_time), 
+        'appt_to_time': get_in_val(self, instance.appt_to_time),
+        'appt_remark': instance.appt_remark,'itemsite_code' : instance.itemsite_code,'emp_name':instance.emp_name,
+        'appt_status': instance.appt_status,'sec_status': instance.sec_status if instance.sec_status else ""}
+      
+        return mapped_object  
+
+class EmpWorkScheduleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Workschedule
+        fields = ['id','monday','tuesday','wednesday','thursday','friday','saturday','sunday','emp_code']
+        read_only_fields = ('updated_at', 'created_at', 'emp_code')
+
+    def validate(self, data):
+        request = self.context['request']
+        print("req",data)
+        return data
+
+
+    # def update(self, validated_data):
+
+        # work_schedule = Workschedule.objects.create(emp_code=self.emp.emp_code,
+        #                                             monday=validated_data.get('monday'),
+        #                                             tuesday=validated_data.get('tuesday'),
+        #                                             wednesday=validated_data.get('wednesday'),
+        #                                             thursday=validated_data.get('thursday'),
+        #                                             friday=validated_data.get('friday'),
+        #                                             saturday=validated_data.get('saturday'),
+        #                                             sunday=validated_data.get('sunday'),
+        #                                             name=self.emp.emp_name,
+        #                                             )
+    def update(self, instance, validated_data):
+        print(validated_data)
+        instance.monday = validated_data.get('monday',instance.monday)
+        instance.tuesday = validated_data.get('tuesday',instance.tuesday)
+        instance.wednesday = validated_data.get('wednesday',instance.tuesday)
+        instance.thursday = validated_data.get('thursday',instance.tuesday)
+        instance.friday = validated_data.get('friday',instance.tuesday)
+        instance.saturday = validated_data.get('saturday',instance.tuesday)
+        instance.sunday = validated_data.get('sunday',instance.tuesday)
+
+        instance.save()
         return instance
+
+class CustomerFormControlSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerFormControl
+        fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory','order','col_width']
+        read_only_fields = ('field_name','display_field_name')
+
+
+class RewardPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RewardPolicy
+        fields = '__all__'
+        read_only_fields = ('reward_code',)
+
+    def create(self, validated_data):
+        reward = RewardPolicy(**validated_data)
+        reward.reward_code = code_generator(size=6)
+        reward.save()
+
+        return reward
+
+
+
+
+class RedeemPolicySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RedeemPolicy
+        fields = '__all__'
+        read_only_fields = ('redeem_code',)
+
+    def create(self, validated_data):
+        redeem = RedeemPolicy(**validated_data)
+        redeem.redeem_code = code_generator(size=6)
+        redeem.save()
+        return redeem
+
+
+class DiagnosisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Diagnosis
+        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no']
+        read_only_fields = ("diagnosis_code","cust_code",)
+        extra_kwargs = {'diagnosis_code': {'required': False},
+                        'cust_code': {'required': False},
+                        'pic_path': {'required': True},
+                        'remark1': {'required': True},
+                        'diagnosis1_id': {'required': True},
+                        'diagnosis2_id': {'required': True},
+                        }
+
+    # def validate(self, attrs):
+    #     return attrs
+
+class DiagnosisCompareSerializer(serializers.ModelSerializer):
+    diagnosis1 = DiagnosisSerializer(source='diagnosis1_id')
+    diagnosis2 = DiagnosisSerializer(source='diagnosis2_id')
+    class Meta:
+        model = DiagnosisCompare
+        # fields = '__all__'
+        fields = ['id','compare_code','compare_remark','compare_datetime','compare_user',
+                  'cust_code','diagnosis1','diagnosis2','diagnosis1_id','diagnosis2_id']
+        extra_kwargs = {'compare_isactive': {'required': False},
+                        'diagnosis1_id': {'required': True},
+                        'diagnosis2_id': {'required': True},
+                        }
+
+    def validate(self, attrs):
+        if attrs['diagnosis1_id'].cust_no != attrs['diagnosis2_id'].cust_no or attrs['diagnosis1_id'].site_code != attrs['diagnosis2_id'].site_code:
+            raise serializers.ValidationError("diagnosis1_id and diagnosis2_id mismatch")
+
+        if attrs['cust_code'] != attrs['diagnosis1_id'].cust_no.cust_code:
+            raise serializers.ValidationError("cust_code mismatch")
+
+        return attrs
+
+
+
+class SecuritylevellistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Securitylevellist
+        fields = ['id','controlname','controldesc','controlstatus','controlparent']
+        read_only_fields = ('id','controlname','controldesc','controlparent')
+
 
 class StaffPlusSerializer(serializers.ModelSerializer):
     """
@@ -1075,475 +1921,6 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
         return instance
 
-class Attendance2Serializer(serializers.ModelSerializer):
-
-    id = serializers.IntegerField(source='pk',required=False)
-    emp_name = serializers.CharField(source='Attn_Emp_codeid.emp_name',required=False)
-    emp_img = serializers.ImageField(source='Attn_Emp_codeid.emp_pic',required=False)
-    sitecode_name = serializers.CharField(source='Attn_Site_Codeid.itemsite_desc',required=False)
-    shift_name = serializers.SerializerMethodField()
-
-    def get_shift_name(self, obj):
-        if obj:
-            att = obj
-            return str(att.attn_time) +" "+ "to" +" "+str(att.attn_mov_in) 
-        else:
-            return None  
-
-    class Meta:
-        model = Attendance2
-        fields = ['id','shift_name','Attn_Emp_codeid','emp_name','emp_img','attn_date',
-        'Attn_Site_Codeid','sitecode_name','attn_site_code','attn_time','attn_mov_in']
-        read_only_fields = ('Create_date','Create_time', 'updated_at','emp_name','emp_img','attn_site_code')
-
-    def validate(self, data):
-        request = self.context['request']
-        if not 'Attn_Emp_codeid' in request.data:
-            raise serializers.ValidationError("Attn_Emp_codeid Field is required.")
-        else:
-            if request.data['Attn_Emp_codeid'] is None:
-                raise serializers.ValidationError("Attn_Emp_codeid Field is required.")
-        if not 'attn_date' in request.data:
-            raise serializers.ValidationError("attn_date Field is required.")
-        else:
-            if request.data['attn_date'] is None:
-                raise serializers.ValidationError("attn_date Field is required.")
-        if not 'attn_time' in request.data:
-            raise serializers.ValidationError("attn_time Field is required.")
-        else:
-            if request.data['attn_time'] is None:
-                raise serializers.ValidationError("attn_time Field is required.")
-        if not 'attn_mov_in' in request.data:
-            raise serializers.ValidationError("attn_mov_in Field is required.")
-        else:
-            if request.data['attn_mov_in'] is None:
-                raise serializers.ValidationError("attn_mov_in Field is required.")
-        
-        if 'Attn_Emp_codeid' in data:
-            if data['Attn_Emp_codeid'] is not None:
-                if Employee.objects.filter(pk=data['Attn_Emp_codeid'].pk,emp_isactive=False):
-                    raise serializers.ValidationError("Employee ID Does not exist!!")
-                if not Employee.objects.filter(pk=data['Attn_Emp_codeid'].pk,emp_isactive=True):
-                        raise serializers.ValidationError("Employee ID Does not exist!!")
-
-
-        if 'Attn_Site_Codeid' in data: 
-            if data['Attn_Site_Codeid'] is not None:
-                if ItemSitelist.objects.filter(pk=data['Attn_Site_Codeid'].pk,itemsite_isactive=False):
-                    raise serializers.ValidationError("Site ID Does not exist!!")
-                if not ItemSitelist.objects.filter(pk=data['Attn_Site_Codeid'].pk,itemsite_isactive=True):
-                    raise serializers.ValidationError("Site ID Does not exist!!")
-
-        return data
-    
-class AppointmentSerializer(serializers.ModelSerializer):   
-    id = serializers.IntegerField(source='pk',required=False)
-    cust_name = serializers.CharField(source='cust_noid.cust_name',required=False)
-    source_name = serializers.CharField(source='Source_Codeid.source_desc',required=False)
-    site_name = serializers.CharField(source='ItemSite_Codeid.itemsite_desc',required=False)
-
-
-    class Meta:
-        model = Appointment
-        fields = ['id','appt_date','appt_code','appt_fr_time','appt_to_time','Appt_typeid','appt_type','cust_noid',
-        'cust_name','appt_phone','new_remark','appt_created_by','Source_Codeid','source_name','Room_Codeid',
-        'room_code','appt_status','emp_noid','emp_name','requesttherapist','ItemSite_Codeid','itemsite_code',
-        'site_name','cust_refer','sec_status','walkin']
-        read_only_fields = ('cust_name','appt_code')
-
-    def validate(self, data):
-        if 'cust_noid' in data:
-            if data['cust_noid'] is not None:
-                if Customer.objects.filter(pk=data['cust_noid'].pk,cust_isactive=False):
-                    raise serializers.ValidationError("Customer ID Does not exist!!")
-                if not Customer.objects.filter(pk=data['cust_noid'].pk,cust_isactive=True):
-                    raise serializers.ValidationError("Customer ID Does not exist!!")
-        
-        if 'ItemSite_Codeid' in data:
-            if data['ItemSite_Codeid'] is not None:
-                if ItemSitelist.objects.filter(pk=data['ItemSite_Codeid'].pk,itemsite_isactive=False):
-                    raise serializers.ValidationError("Site Code ID Does not exist!!")
-                if not ItemSitelist.objects.filter(pk=data['ItemSite_Codeid'].pk,itemsite_isactive=True):
-                    raise serializers.ValidationError("Site Code ID Does not exist!!")
-
-        if 'Source_Codeid' in data:
-            if data['Source_Codeid'] is not None:
-                if Source.objects.filter(id=data['Source_Codeid'].id,source_isactive=False):
-                    raise serializers.ValidationError("Source ID Does not exist!!")
-                if not Source.objects.filter(id=data['Source_Codeid'].id,source_isactive=True):
-                    raise serializers.ValidationError("Source ID Does not exist!!")
-                
-        return data      
-               
-class AppointmentCalendarSerializer(serializers.ModelSerializer):   
-
-    id = serializers.IntegerField(source='pk',required=False)
-    Cust_phone = serializers.CharField(source='cust_noid.cust_phone2',required=False)
-    job_title = serializers.CharField(source='emp_noid.EMP_TYPEid.level_desc',required=False)
-    start = serializers.SerializerMethodField() 
-    end = serializers.SerializerMethodField() 
-    emp_img =  serializers.SerializerMethodField() 
-
-    def get_emp_img(self, obj):
-        ip = get_client_ip(self.context['request'])
-        pic = None
-
-        if obj.emp_noid.emp_pic:
-            pic = str(ip)+str(obj.emp_noid.emp_pic.url)
-        return pic
-
-    def get_start(self, obj):
-        if obj.appt_date and obj.appt_fr_time:
-            appt_date = obj.appt_date
-            appt_time = obj.appt_fr_time
-            #.lstrip("0").replace(" 0", " ")
-            mytime = dt.datetime.strptime(str(appt_time),'%H:%M:%S').strftime("%H:%M")
-            # mydatetime = dt.datetime.combine(appt_date, fr_time)
-            mydatetime = str(appt_date) +" "+ str(mytime)
-            return str(mydatetime)
-        else:
-            return []  
-
-    def get_end(self, obj):
-        if obj.appt_date and obj.appt_fr_time:
-            appt_date = obj.appt_date
-            appt_time = obj.appt_to_time
-            # .lstrip("0").replace(" 0", " ")
-            mytime = dt.datetime.strptime(str(appt_time),'%H:%M:%S').strftime("%H:%M")
-            mydatetime = str(appt_date) +" "+ str(mytime)
-            return str(mydatetime)
-        else:
-            return []          
-
-    class Meta:
-        model = Appointment
-        fields = ['id','start','end','emp_img','emp_noid','emp_name','job_title','cust_noid','cust_name',
-        'cust_refer', 'Cust_phone','new_remark','appt_status','appt_date','appt_fr_time','appt_to_time']
-
-
-class Item_DeptSerializer(serializers.ModelSerializer):  
-    id = serializers.IntegerField(source='pk',required=False)
-  
-    class Meta:
-        model = ItemDept
-        fields = ['id','itm_desc','deptpic']
-
-class StockListSerializer(serializers.ModelSerializer): 
-    id = serializers.IntegerField(source='pk',required=False)
-    Item_Class = serializers.CharField(source='Item_Classid.itm_desc',required=False)
-  
-    class Meta:
-        model = Stock
-        fields = ['id','item_desc','item_name','item_price','Stock_PIC','Item_Classid','Item_Class','srv_duration']
-        read_only_fields = ('item_code',)
-
-class SkillSerializer(serializers.ModelSerializer):
-    # Item_Class = serializers.CharField(source='Item_Classid.itm_desc',required=False)
-
-    class Meta:
-        model = Stock
-        fields = ['item_no','item_desc','item_name','item_price','item_code']
-        read_only_fields = ('item_code','item_no')
-
-
-class TreatmentMasterSerializer(serializers.ModelSerializer): 
-    item_class = serializers.CharField(source='Item_Class.itm_desc',required=False)
-    emp_name = serializers.SerializerMethodField() 
-    room_name = serializers.CharField(source='Trmt_Room_Codeid.displayname',required=False)
-    room_img = serializers.CharField(source='Trmt_Room_Codeid.Room_PIC.url',required=False)
-    emp_img =  serializers.SerializerMethodField() 
-    stock_name = serializers.CharField(source='Item_Codeid.item_desc',required=False)
-    site_name = serializers.CharField(source='Site_Codeid.itemsite_desc',required=False)
-
-
-    def get_emp_img(self, obj):
-        ip = get_client_ip(self.context['request'])
-        pic_lst = []
-        if obj.emp_no:
-            for e in obj.emp_no.all():
-                if e.emp_pic:
-                    pic = str(ip)+str(e.emp_pic.url)
-                    pic_lst.append(pic)
-        return pic_lst
-    
-    def get_emp_name(self, obj):
-        if obj.emp_no:
-            string = ""
-            for i in obj.emp_no.all():
-                if string == "":
-                    string = string + i.emp_name
-                elif not string == "":
-                    string = string +","+ i.emp_name
-            return string
-        else:
-            return None 
-
-    class Meta:
-        model = Treatment_Master
-        fields = ['id','PIC','course','item_class','Item_Class','Item_Codeid','stock_name','treatment_date',
-        'start_time','end_time','add_duration','duration','site_name','Site_Codeid','site_code','price','treatment_no','times','status',
-        'emp_no','emp_name','Trmt_Room_Codeid','room_name','cus_requests','treatment_details','requesttherapist',
-        'procedure','products_used','recurring_appointment','room_img','emp_img','sa_transacno','appt_time']
-
-   
-    def validate(self, data):
-        if 'treatment_no' in data:
-            if data['treatment_no'] is None:
-                raise serializers.ValidationError("treatment_no Field is required.")
-        if 'emp_no' in data:
-            if data['emp_no'] is None:
-                raise serializers.ValidationError("emp_no Field is required.")
-
-        if 'Trmt_Room_Codeid' in data:
-            if data['Trmt_Room_Codeid'] is None:
-                raise serializers.ValidationError("Trmt_Room_Code Field is required.")  
-
-        if 'cus_requests' in data:
-            if data['cus_requests'] is None:
-                raise serializers.ValidationError("cus_requests Field is required.") 
-
-        if 'products_used' in data:
-            if data['products_used'] is None:
-                raise serializers.ValidationError("products_used Field is required.")
-
-        if 'recurring_appointment' in data:
-            if data['recurring_appointment'] is None:
-                raise serializers.ValidationError("recurring_appointment Field is required.")
-            
-        return data
-
-    # def update(self, instance, validated_data):
-    #     instance.save()    
-    #     return instance      
-
-
-class StaffsAvailableSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    job_title = serializers.CharField(source='EMP_TYPEid.level_desc',required=False)
-    emp_img =  serializers.SerializerMethodField() 
-    services =  serializers.SerializerMethodField() 
-
-    def get_emp_img(self, obj):
-        ip = get_client_ip(self.context['request'])
-        if obj.emp_pic:
-            pic = str(ip)+str(obj.emp_pic.url)
-        else:
-            pic = None    
-        return pic
-
-    def get_services(self, obj):
-        if obj.skills.all():
-            string = ""
-            for i in obj.skills.all():
-                if string == "":
-                    string = string + i.item_desc
-                elif not string == "":
-                    string = string +","+ i.item_desc
-            return string
-        else:
-            return None        
-
-    class Meta:
-        model = Employee
-        fields = ['id','emp_name','display_name','emp_img','job_title','services']
-
-class PayGroupSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = PayGroup
-        fields = ['id','pay_group_code']        
-
-class PaytableSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    pay_group_name = serializers.CharField(source='pay_groupid.pay_group_code',required=False)
-
-    class Meta:
-        model = Paytable
-        fields = ['id','pay_code','pay_description','pay_groupid','pay_group_name','gt_group']
-
-class PostaudSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    billed_by_name = serializers.CharField(source='billed_by.pw_userlogin',required=False)
-    pay_type_name = serializers.CharField(source='pay_typeid.pay_description',required=False)
-    pay_group_name = serializers.CharField(source='pay_groupid.pay_group_code',required=False)
-
-    class Meta:
-        model = PosTaud
-        fields = ['id','sa_date','sa_time','billed_by','billed_by_name','sa_transacno','pay_groupid','pay_group_name',
-        'pay_typeid','pay_type_name','pay_desc','pay_tendamt','pay_amt','pay_actamt','ItemSIte_Codeid','itemsite_code','subtotal','tax','discount_amt',
-        'sa_transacno','billable_amount','pay_premise','credit_debit','points','prepaid','is_voucher','pay_rem1',
-        'pay_rem2','pay_rem3','pay_rem4']
-
-class PoshaudSerializer(serializers.ModelSerializer):
-    # billed_by_name = serializers.CharField(source='trans_user_loginid.pw_userlogin',required=False)
-
-    class Meta:
-        model = PosHaud
-        fields = ['id','sa_custno','sa_custname','sa_date','sa_time']
-
-class PosdaudSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-
-    class Meta:
-        model = PosDaud
-        fields = ['id','dt_itemdesc','dt_qty','dt_deposit','record_detail_type',
-        'dt_status','itemcart','staffs','isfoc','holditemqty','trmt_done_staff_name','dt_combocode']
-
-class PostaudprintSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    pay_type_name = serializers.CharField(source='pay_typeid.pay_description',required=False)
-
-    class Meta:
-        model = PosTaud
-        fields = ['id','pay_rem1','pay_type_name','pay_amt']
-
-class ItemStatusSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    class Meta:
-        model = ItemStatus
-        fields = ['id','status_code','status_desc','status_short_desc'] 
-
-class SourceSerializer(serializers.ModelSerializer):    
-    class Meta:
-        model = Source
-        fields = ['id','source_code','source_desc']
-
-class AppointmentPopupSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    contact_no = serializers.CharField(source='cust_noid.cust_phone2',required=False)
-    cust_dob = serializers.CharField(source='cust_noid.cust_dob',required=False)
-   
-
-    class Meta:
-        model = Appointment
-        fields = ['id','appt_fr_time','appt_to_time','cust_name','cust_refer','cust_noid',
-        'contact_no','cust_dob','appt_remark','appt_status',]
-
-class AppointmentResourcesSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    room_name = serializers.CharField(source='Room_Codeid.displayname',required=False)
-    edit_remark = serializers.SerializerMethodField()
-    emp_id = serializers.SerializerMethodField()
-    start_time = serializers.SerializerMethodField()
-    end_time = serializers.SerializerMethodField()
-    add_duration = serializers.SerializerMethodField()
-    item_id = serializers.SerializerMethodField()
-
-    def get_edit_remark(self, obj):
-        return None 
-
-    def get_emp_id(self, obj):
-        return None
-
-    def get_start_time(self, obj):
-        return None  
-
-    def get_end_time(self, obj):
-        return None 
-
-    def get_add_duration(self, obj):
-        return None   
-
-    def get_item_id(self, obj):
-        return None             
-
-
-    class Meta:
-        model = Appointment
-        fields = ['id','appt_date','cust_name','cust_noid','appt_status','new_remark',
-        'sec_status','Room_Codeid','room_name','requesttherapist','edit_remark','emp_id',
-        'start_time','end_time','add_duration','item_id']
-        extra_kwargs = {'edit_remark': {'required': True},'emp_id': {'required': True}}
-
-    def validate(self, data):
-        request = self.context['request']
-        if not 'edit_remark' in request.data:
-            raise serializers.ValidationError("edit_remark Field is required.")
-        else:
-            if request.data['edit_remark'] is None: 
-                raise serializers.ValidationError("edit_remark Field is required!!")
-        
-        return data  
-
-class SecuritiesSerializer(serializers.ModelSerializer):
-
-    id = serializers.IntegerField(source='pk',required=False)
-    class Meta:
-        model = Securities
-        fields = ['id', 'level_name', 'level_description', 'level_code']
-    
-class CustTransferSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    site_id = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Customer
-        fields = ['id', 'Site_Codeid', 'site_id']
-        extra_kwargs = {'site_id': {'required': True}}
-
-    def validate(self, data):
-        request = self.context['request']
-        if not 'site_id' in request.data:
-            raise serializers.ValidationError("site_id Field is required.")
-        else:
-            if request.data['site_id'] is None: 
-                raise serializers.ValidationError("site_id Field is required!!")
-        
-        return data     
-
-    
-class EmpTransferPerSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    site_id = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Employee
-        fields = ['id', 'emp_code', 'emp_name','site_id'] 
-        extra_kwargs = {'site_id': {'required': True}}
-
-    def validate(self, data):
-        request = self.context['request']
-        if not 'site_id' in request.data:
-            raise serializers.ValidationError("site_id Field is required.")
-        else:
-            if request.data['site_id'] is None: 
-                raise serializers.ValidationError("site_id Field is required!!")
-        
-        return data    
-
-class EmpTransferTempSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    site_id = serializers.SerializerMethodField()
-    start_date = serializers.DateField(required=True)
-    end_date = serializers.DateField(required=True)
-    hour_id = serializers.SerializerMethodField()
-
-
-    class Meta:
-        model = Employee
-        fields = ['id', 'emp_code', 'emp_name','site_id','start_date','end_date','hour_id'] 
-        extra_kwargs = {'site_id': {'required': True},'hour_id': {'required': True}}
-
-    def validate(self, data):
-        request = self.context['request']
-        if not 'site_id' in request.data:
-            raise serializers.ValidationError("site_id Field is required.")
-        else:
-            if request.data['site_id'] is None: 
-                raise serializers.ValidationError("site_id Field is required!!")
-        
-        if not 'hour_id' in request.data:
-            raise serializers.ValidationError("hour_id Field is required.")
-        else:
-            if request.data['hour_id'] is not None:
-                if ScheduleHour.objects.filter(id=request.data['hour_id'],itm_isactive=False):
-                    raise serializers.ValidationError("ScheduleHour ID Does not exist!!")
-                if not ScheduleHour.objects.filter(id=request.data['hour_id'],itm_isactive=True):
-                    raise serializers.ValidationError("ScheduleHour ID Does not exist!!")
-        
-        return data
-
-
 class EmpInfoSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk', required=False)
     # site_id = serializers.SerializerMethodField()
@@ -1584,198 +1961,163 @@ class EmpInfoSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-
-class EmpSitelistSerializer(serializers.ModelSerializer):
-
+class CustomerClassSerializer(serializers.ModelSerializer):
     class Meta:
-        model = EmpSitelist
-        fields = ['id','site_code']
-
-class ScheduleHourSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = ScheduleHour
-        fields = ['id','itm_code','itm_desc','offday']
-
-class EmpWorkScheduleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Workschedule
-        fields = ['id','monday','tuesday','wednesday','thursday','friday','saturday','sunday','emp_code']
-        read_only_fields = ('updated_at', 'created_at', 'emp_code')
-
-    def validate(self, data):
-        request = self.context['request']
-        print("req",data)
-        return data
+        model= CustomerClass
+        fields = ["id","class_desc","class_code"]
 
 
-    # def update(self, validated_data):
+class CustomerPlusSerializer(serializers.ModelSerializer):
 
-        # work_schedule = Workschedule.objects.create(emp_code=self.emp.emp_code,
-        #                                             monday=validated_data.get('monday'),
-        #                                             tuesday=validated_data.get('tuesday'),
-        #                                             wednesday=validated_data.get('wednesday'),
-        #                                             thursday=validated_data.get('thursday'),
-        #                                             friday=validated_data.get('friday'),
-        #                                             saturday=validated_data.get('saturday'),
-        #                                             sunday=validated_data.get('sunday'),
-        #                                             name=self.emp.emp_name,
-        #                                             )
-    def update(self, instance, validated_data):
-        print(validated_data)
-        instance.monday = validated_data.get('monday',instance.monday)
-        instance.tuesday = validated_data.get('tuesday',instance.tuesday)
-        instance.wednesday = validated_data.get('wednesday',instance.tuesday)
-        instance.thursday = validated_data.get('thursday',instance.tuesday)
-        instance.friday = validated_data.get('friday',instance.tuesday)
-        instance.saturday = validated_data.get('saturday',instance.tuesday)
-        instance.sunday = validated_data.get('sunday',instance.tuesday)
-
-        instance.save()
-        return instance
-        # instance.name=self.emp.emp_name,
-
-class CustApptSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk',required=False)
+    gender = serializers.CharField(source='Cust_sexesid.itm_name',required=False)
+    site_name = serializers.CharField(source='Site_Codeid.itemsite_desc',required=False)
+    class_name = serializers.CharField(source='Cust_Classid.class_desc',required=False)
+    custClass = CustomerClassSerializer(source="Cust_Classid",read_only=True)
+    masked_nric = serializers.SerializerMethodField()
+
+    def get_masked_nric(self,obj):
+        _nric = obj.cust_nric if obj.cust_nric else ""
+        if len(_nric) > 4:
+            _str = '*' * (len(_nric) - 4)
+            _nric = _str + _nric[-4:]
+        return _nric
+
+    def to_representation(self, data):
+        data = super(CustomerPlusSerializer,self).to_representation(data)
+        data['cust_nric'] = data.get("masked_nric")
+
+        return data
 
     class Meta:
         model = Customer
-        fields = ['id','cust_name','cust_email','cust_code','cust_nric']
+        fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit',
+                  'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
+                  'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
+                  'gender',
+                  'masked_nric',
+                  'cust_email',
+                  'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
+                  'custallowsendsms','cust_maillist','cust_title']
+        read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
+        'Site_Code','cust_code','ProneToComplain')
+        extra_kwargs = {'cust_name': {'required': True},'cust_address':{'required': True}}
 
 
-    def to_representation(self, instance):
-       
-        mapped_object = {'id':instance.pk,'cust_name':instance.cust_name if instance.cust_name else "",
-        'cust_phone1': instance.cust_phone2 if instance.cust_phone2 else "",
-        'cust_email': instance.cust_email if instance.cust_email else "",
-        'cust_code': instance.cust_code if instance.cust_code else "",
-        'cust_nric': instance.cust_nric if instance.cust_nric else ""}
-        return mapped_object    
+    def validate(self, data):
+        request = self.context['request']
 
-   
-           
-class ApptTypeSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
+        action = self.context.get('action')
+
+        # customer form settings validation
+        fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
+        site = fmspw[0].loginsite
+        form_control_qs = CustomerFormControl.objects.filter(isActive=True,Site_Codeid=site)
+        allowed_fields = []
+
+        # if action == "list":
+        #     allowed_fields = form_control_qs.filter(visible_in_listing=True).values_list("field_name",flat=True)
+        # elif action == "retrieve":
+        #     allowed_fields = form_control_qs.filter(visible_in_profile=True).values_list("field_name",flat=True)
+        # if action == "create":
+        #     allowed_fields = form_control_qs.filter(visible_in_registration=True) #.values_list("field_name",flat=True)
+        #
+        validate_data = {}
+        if action == "update":
+            allowed_fields = form_control_qs.filter(visible_in_registration=True).values_list("field_name",flat=True)
+        elif action == 'create':
+            allowed_fields = form_control_qs.filter(visible_in_registration=True).values_list("field_name",flat=True)
+
+
+        for f in allowed_fields:
+            if hasattr(Customer,f) and f in data:
+                validate_data[f] = data[f]
+
+
+        mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name", flat=True)
+
+        for _field in mandatory_fields:
+            # if request.data.get(_field) is None:
+            if validate_data.get(_field) is None:
+                raise serializers.ValidationError(f"{_field} Field is required.")
+
+
+        # if not 'cust_name' in request.data:
+        #     raise serializers.ValidationError("cust_name Field is required.")
+        # else:
+        #     if request.data['cust_name'] is None:
+        #         raise serializers.ValidationError("cust_name Field is required.")
+        # # if not 'cust_address' in request.data:
+        # #     raise serializers.ValidationError("cust_address Field is required.")
+        # # else:
+        # #     if request.data['cust_address'] is None:
+        # #         raise serializers.ValidationError("cust_address Field is required.")
+        # # if not 'cust_dob' in request.data:
+        # #     raise serializers.ValidationError("cust_dob Field is required.")
+        # # else:
+        # #     if request.data['cust_dob'] is None:
+        # #         raise serializers.ValidationError("cust_dob Field is required.")
+        # if not 'cust_phone2' in request.data:
+        #     raise serializers.ValidationError("cust_phone2 Field is required.")
+        # else:
+        #     if request.data['cust_phone2'] is None:
+        #         raise serializers.ValidationError("cust_phone2 Field is required.")
+        # if not 'Cust_sexesid' in request.data:
+        #     raise serializers.ValidationError("Cust_sexesid Field is required.")
+        # else:
+        #     if request.data['Cust_sexesid'] is None:
+        #         raise serializers.ValidationError("Cust_sexesid Field is required.")
+        # if not 'Site_Codeid' in request.data:
+        #     raise serializers.ValidationError("Site_Codeid Field is required.")
+        # else:
+        #     if request.data['Site_Codeid'] is None:
+        #         raise serializers.ValidationError("Site_Codeid Field is required.")
+
+        if 'Cust_sexesid' in data:
+            if data['Cust_sexesid'] is not None:
+                if Gender.objects.filter(pk=data['Cust_sexesid'].pk,itm_isactive=False):
+                    raise serializers.ValidationError("Gender ID Does not exist!!")
+
+                if not Gender.objects.filter(pk=data['Cust_sexesid'].pk,itm_isactive=True):
+                    result = {'status': status.HTTP_400_BAD_REQUEST,"message":"Gender Id does not exist!!",'error': True}
+                    raise serializers.ValidationError(result)
+        if 'Site_Codeid' in data:
+            if data['Site_Codeid'] is not None:
+                if ItemSitelist.objects.filter(pk=data['Site_Codeid'].pk,itemsite_isactive=False):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+                if not ItemSitelist.objects.filter(pk=data['Site_Codeid'].pk,itemsite_isactive=True):
+                    raise serializers.ValidationError("Site Code ID Does not exist!!")
+
+        # if not 'cust_maillist' in request.data:
+        #     raise serializers.ValidationError("cust_maillist Field is required.")
+        # else:
+        #     if request.data['cust_maillist'] is None:
+        #         raise serializers.ValidationError("cust_maillist Field is required.")
+        # if not 'custallowsendsms' in request.data:
+        #     raise serializers.ValidationError("custallowsendsms Field is required.")
+        # else:
+        #     if request.data['custallowsendsms'] is None:
+        #         raise serializers.ValidationError("custallowsendsms Field is required.")
+        # Email and Mobile number validation
+        # if request.data['cust_email']:
+        #     customer_mail =  Customer.objects.filter(cust_email=request.data['cust_email'])
+        #     if len(customer_mail) > 0:
+        #         raise serializers.ValidationError("Email id is already associated with another account")
+        # customer =  Customer.objects.filter(cust_phone2=request.data['cust_phone2'])
+        # if len(customer) > 0:
+        #     raise serializers.ValidationError("Mobile number is already associated with another account")
+        return validate_data
+
+    # def update(self, instance, validated_data):
+    #     update_fields = form_control_qs.filter(mandatory=True).values_list("field_name",flat=True)
+
+class SkillSerializer(serializers.ModelSerializer):
+    # Item_Class = serializers.CharField(source='Item_Classid.itm_desc',required=False)
 
     class Meta:
-        model = ApptType
-        fields = ['id','appt_type_desc','appt_type_code']
-
-
-class TmpItemHelperSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = TmpItemHelper
-        fields = ['id','helper_id','helper_name','wp1','appt_fr_time','appt_to_time','add_duration']
-
-class FocReasonSerializer(serializers.ModelSerializer):
-    
-    class Meta:
-        model = FocReason
-        fields = ['id','foc_reason_ldesc']
-
-class TreatmentApptSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-
-    class Meta:
-        model = Treatment
-        fields = ['id']
-
-
-
-class AppointmentSortSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk',required=False)
-    emp_ids = serializers.SerializerMethodField()
-
-    def get_emp_ids(self, obj):
-        return None 
-
-    class Meta:
-        model = Employee
-        fields = ['id', 'display_name','emp_ids'] 
-        extra_kwargs = {'emp_ids': {'required': True}}
-
-
-class CustomerFormControlSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomerFormControl
-        fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory','order','col_width']
-        read_only_fields = ('field_name','display_field_name')
-
-class RewardPolicySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RewardPolicy
-        fields = '__all__'
-        read_only_fields = ('reward_code',)
-
-    def create(self, validated_data):
-        reward = RewardPolicy(**validated_data)
-        reward.reward_code = code_generator(size=6)
-        reward.save()
-
-        return reward
-
-
-
-
-class RedeemPolicySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RedeemPolicy
-        fields = '__all__'
-        read_only_fields = ('redeem_code',)
-
-    def create(self, validated_data):
-        redeem = RedeemPolicy(**validated_data)
-        redeem.redeem_code = code_generator(size=6)
-        redeem.save()
-        return redeem
-
-
-
-class DiagnosisSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Diagnosis
-        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no']
-        read_only_fields = ("diagnosis_code","cust_code",)
-        extra_kwargs = {'diagnosis_code': {'required': False},
-                        'cust_code': {'required': False},
-                        'pic_path': {'required': True},
-                        'remark1': {'required': True},
-                        'diagnosis1_id': {'required': True},
-                        'diagnosis2_id': {'required': True},
-                        }
-
-    # def validate(self, attrs):
-    #     return attrs
-
-class DiagnosisCompareSerializer(serializers.ModelSerializer):
-    diagnosis1 = DiagnosisSerializer(source='diagnosis1_id')
-    diagnosis2 = DiagnosisSerializer(source='diagnosis2_id')
-    class Meta:
-        model = DiagnosisCompare
-        # fields = '__all__'
-        fields = ['id','compare_code','compare_remark','compare_datetime','compare_user',
-                  'cust_code','diagnosis1','diagnosis2','diagnosis1_id','diagnosis2_id']
-        extra_kwargs = {'compare_isactive': {'required': False},
-                        'diagnosis1_id': {'required': True},
-                        'diagnosis2_id': {'required': True},
-                        }
-
-    def validate(self, attrs):
-        if attrs['diagnosis1_id'].cust_no != attrs['diagnosis2_id'].cust_no or attrs['diagnosis1_id'].site_code != attrs['diagnosis2_id'].site_code:
-            raise serializers.ValidationError("diagnosis1_id and diagnosis2_id mismatch")
-
-        if attrs['cust_code'] != attrs['diagnosis1_id'].cust_no.cust_code:
-            raise serializers.ValidationError("cust_code mismatch")
-
-        return attrs
-
-
-class SecuritylevellistSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Securitylevellist
-        fields = ['id','controlname','controldesc','controlstatus','controlparent']
-        read_only_fields = ('id','controlname','controldesc','controlparent')
+        model = Stock
+        fields = ['item_no','item_desc','item_name','item_price','item_code']
+        read_only_fields = ('item_code','item_no')
 
 
 class DailysalesdataDetailSerializer(serializers.ModelSerializer):

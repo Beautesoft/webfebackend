@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import (SiteGroup,ItemSitelist,ReverseTrmtReason,VoidReason)
+from .models import (SiteGroup,ItemSitelist,ReverseTrmtReason,VoidReason,TreatmentUsage,UsageMemo,
+Treatmentface)
 from cl_table.models import (ItemDept, ItemRange, Stock, TreatmentAccount, Treatment,DepositAccount,
 PrepaidAccount,PosHaud,PosDaud, Customer, PosTaud,CreditNote,PrepaidAccountCondition,Fmspw,Holditemdetail)
 from django.utils import timezone
@@ -34,14 +35,14 @@ class StockSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Stock
-        fields = ['id','item_name','item_desc','Stock_PIC','item_price']
+        fields = ['id','item_name','item_desc','Stock_PIC','item_price','item_div']
 
 class StockRetailSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk',required=False)
 
     class Meta:
         model = Stock
-        fields = ['id','item_name','item_desc','Stock_PIC','onhand_qty']
+        fields = ['id','item_name','item_desc','Stock_PIC','onhand_qty','item_div']
 
 class StockIdSerializer(serializers.Serializer): 
     stock_id = serializers.IntegerField(required=True)
@@ -76,7 +77,7 @@ class TreatmentDoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Treatment
         fields = ['id','treatment_date','treatment_code','sa_transacno','course','type',
-        'expiry','unit_amount','status','times','isfoc']
+        'expiry','unit_amount','status','times','isfoc','treatment_parentcode','treatment_no']
 
 class TopupproductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -218,7 +219,7 @@ class CreditNoteAdjustSerializer(serializers.ModelSerializer):
 class ProductAccSerializer(serializers.ModelSerializer):
     class Meta:
         model = DepositAccount
-        fields = ['id','sa_date','package_code','qty','item_description','balance','outstanding']
+        fields = ['id','sa_date','package_code','item_description','balance','outstanding']
 
 class PrepaidAccSerializer(serializers.ModelSerializer):
     last_update = serializers.DateTimeField(source='sa_date',required=False)
@@ -227,7 +228,7 @@ class PrepaidAccSerializer(serializers.ModelSerializer):
         model = PrepaidAccount
         fields = ['id','pp_desc','last_update','sa_date','exp_date','exp_status',
         'pp_amt','pp_bonus','pp_total','use_amt','remain','voucher_no','topup_amt','outstanding',
-        'condition_type1']
+        'condition_type1','status','sa_status','cust_code','pp_no','line_no']
 
 class PrepaidacSerializer(serializers.ModelSerializer):
 
@@ -269,7 +270,8 @@ class DashboardSerializer(serializers.ModelSerializer):
         if repeat_cust !=[]:
             cust_repeat = len(repeat_cust)
        
-        payids = PosTaud.objects.filter(ItemSIte_Codeid__pk=instance.pk,created_at__date__month=month,pay_amt__gt = 0).only('itemsite_code','created_at').aggregate(Sum('pay_amt'))
+        # payids = PosTaud.objects.filter(ItemSIte_Codeid__pk=instance.pk,created_at__date__month=month,pay_amt__gt = 0).only('itemsite_code','created_at').aggregate(Sum('pay_amt'))
+        payids = PosTaud.objects.filter(ItemSIte_Codeid__pk=instance.pk,created_at__date__month=month).only('itemsite_code','created_at').aggregate(Sum('pay_amt'))
         
         round_val = float(round_calc(payids['pay_amt__sum'])) if payids['pay_amt__sum'] else 0 # round()
         if payids['pay_amt__sum']:
@@ -399,8 +401,6 @@ class CartPrepaidSerializer(serializers.ModelSerializer):
         'use':"0.00",'outstanding':str("{:.2f}".format(float(instance.deposit))) if instance.deposit else "0.00"}
         return mapped_object
 
-
-
 class HolditemdetailSerializer(serializers.ModelSerializer): 
     id = serializers.IntegerField(source='pk',required=False)
 
@@ -425,5 +425,83 @@ class HolditemupdateSerializer(serializers.ModelSerializer):
         model = Holditemdetail
         fields = ['id','issued_qty','emp_id']
 
+class TreatmentHistorySerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Treatment
+        fields = ['id','treatment_code','course','status','record_status','remarks','type']
+
+class StockUsageSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Treatment
+        fields = ['id','treatment_code','course']
+
+class StockUsageProductSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+
+    class Meta:
+        model = Stock
+        fields = ['id','item_desc','item_code','rpt_code','Stock_PIC']
 
 
+class TreatmentUsageSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk',required=False)
+    link_code = serializers.SerializerMethodField()
+    stock_id = serializers.SerializerMethodField()
+
+
+    def get_link_code(self, obj):
+        return None 
+
+    def get_stock_id(self, obj):
+        return None    
+
+
+    class Meta:
+        model = TreatmentUsage
+        fields = ['id','item_code','link_code','item_desc','qty','uom','stock_id']
+
+
+class StockUsageMemoSerializer(serializers.ModelSerializer):
+    stock_id = serializers.SerializerMethodField()
+    emp_id = serializers.SerializerMethodField()
+    quantity = serializers.SerializerMethodField()
+    date = serializers.SerializerMethodField()
+
+
+    def get_stock_id(self, obj):
+        return None   
+
+    def get_emp_id(self, obj):
+        return None 
+
+    def get_quantity(self, obj):
+        return None 
+
+    def get_date(self, obj):
+        return None          
+     
+    class Meta:
+        model = UsageMemo
+        fields = ['id','item_name','date_out','memo_no','staff_name','uom','qty','memo_remarks','stock_id','emp_id',
+        'quantity','date']
+
+
+class TreatmentfaceSerializer(serializers.ModelSerializer):
+
+    room_id = serializers.SerializerMethodField()
+    treat_remarks = serializers.SerializerMethodField()
+
+
+    def get_room_id(self, obj):
+        return None 
+
+    def get_treat_remarks(self, obj):
+        return None          
+         
+    class Meta:
+        model = Treatmentface
+        fields = ['id','treatment_code','str1','str2','str3','str4','str5','room_id','treat_remarks']

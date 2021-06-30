@@ -11,8 +11,6 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-import calendar
-from django.utils import timezone
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,7 +25,7 @@ SECRET_KEY = '0hvkn)58&z=%mogc(sz!324jk5-g4pp*8q=7$g(g7lvb3b(^hf'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['52.60.58.9','127.0.0.1','103.253.15.184']
+ALLOWED_HOSTS = ['52.60.58.9','127.0.0.1','103.253.15.184','103.253.15.185','UBUNTUCLOUD15-185']
 
 
 
@@ -43,7 +41,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
-    'django_crontab',
     'mathfilters',
     'corsheaders',
     'cl_table',
@@ -52,7 +49,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'Cl_beautesoft.middleware.open_access_middleware',
+    'Cl_beautesoft.middleware1.open_access_middleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -62,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # 'cl_table.middleware.OneSessionPerUserMiddleware',
+
 ]
 
 ROOT_URLCONF = 'Cl_beautesoft.urls'
@@ -85,11 +82,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Cl_beautesoft.wsgi.application'
 
-CRONJOBS = [
-    # ('1 8 * * *', 'cl_table.cron.token_create_job', '>> /home/monica/Doodle_Project/backend_beautesoft/tokcron.log')
-    #('0 8 * * *', 'cl_table.cron.token_create_job')
-
-]
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
@@ -113,7 +105,7 @@ CRONJOBS = [
 #     }
 # }
 
-# #microsoft sql client server
+#microsoft sql client server
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'sql_server.pyodbc',
@@ -132,9 +124,8 @@ CRONJOBS = [
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'sql_server.pyodbc',
-#         'NAME': 'healspahq_backup9',
-#         # 'HOST': 'localhost',
-#         'HOST': '103.253.15.184',
+#         'NAME': 'sittest',
+#         'HOST': 'localhost',
 #         'PORT': '1433',
 #         'USER': 'sa',
 #         'PASSWORD': 'Doodle@123',
@@ -144,7 +135,6 @@ CRONJOBS = [
 #     }
 # }
 
-# msSQL demo db
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
@@ -159,6 +149,7 @@ DATABASES = {
         }
     }
 }
+
 
 #mysql
 # DATABASES =  {
@@ -176,9 +167,6 @@ REST_FRAMEWORK = {
    'DEFAULT_AUTHENTICATION_CLASSES': (
        'rest_framework.authentication.TokenAuthentication',
    ),
-   'DEFAULT_AUTHENTICATION_CLASSES': (
-        'cl_table.authentication.ExpiringTokenAuthentication',  # custom authentication class
-    ),
    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
    ),
@@ -241,7 +229,7 @@ CORS_ALLOW_METHODS =['DELETE','GET','OPTIONS','PATCH','POST','PUT',]
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = (
-    'http://localhost:8000',
+    'http://localhost:8003',
     # 'http://3.6.59.208',
     
 )
@@ -258,72 +246,3 @@ SMS_SECRET_KEY = "JBSWY3DPEHPK3VAG"
 SMS_ACCOUNT_SID = 'AC2d4568886585462a8f7dbd240e09dc7c'
 SMS_AUTH_TOKEN = '55774b4bfa51688df9380670a364423a'
 SMS_SENDER = "+12097193857"
-
-# LOGIN_URL = '/api/login/'
-# LOGIN_REDIRECT_URL='/api/login/'
-
-TOKEN_EXPIRED_AFTER_HOURS = 24
-
-path = os.getcwd()
-paths = path+'/log'
-
-today = timezone.now().date()
-month = today.strftime('%B')
-year = today.strftime('%Y')
-
-directory = month+"_"+year
-month_folder = paths+'/'+directory
-try:
-    os.mkdir(month_folder)
-except OSError:
-    pass
-    # print("%s Folder already exists" % month_folder)
-else:
-    pass
-    # print("%s Successfully created" % month_folder)
-
-# month_no = (today.strftime('%m')).lstrip('0')
-# count = calendar.monthrange(int(year),int(month_no))
-# backupCount = count[1]
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s',
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class':  'logging.handlers.TimedRotatingFileHandler',
-            'filename': month_folder +'/debug.log',
-            'when': 'D', #D
-            'interval': 1, #1
-            'backupCount': 31, #31 
-            'formatter': 'verbose'
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'formatter': 'simple'
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    },
-}

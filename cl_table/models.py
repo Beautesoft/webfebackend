@@ -7,7 +7,6 @@ from django.utils import timezone
 #intial
 
 #Final
-
 class City(models.Model):
     itm_id = models.AutoField(primary_key=True)
     itm_desc = models.CharField(max_length=40, blank=True, null=True)
@@ -108,7 +107,7 @@ class Source(models.Model):
         unique_together = (('source_code'),)
 
     def __str__(self):
-        return str(self.source_desc)
+        return str(self.source_desc)     
 
     @property
     def choice_dict(self):
@@ -292,6 +291,12 @@ class Treatment_Master(models.Model):
         ('SU', 'SU'), # SU-Suspend
     ]
 
+    CHECK_TYPE = [
+        ('service', 'service'),
+        ('package', 'package'),
+        ('freetext', 'freetext'),
+    ]
+
     id = models.AutoField(primary_key=True)  # Field name made lowercase.
     treatment_code = models.CharField(db_column='Treatment_Code',  max_length=20,null=True, blank=True)  # Field name made lowercase.
     course = models.CharField(db_column='Course', max_length=255, blank=True, null=True)  # Field name made lowercase.
@@ -352,6 +357,8 @@ class Treatment_Master(models.Model):
     is_payment = models.BooleanField(default=False,null=True)
     appt_remark = models.CharField(db_column='Appt_remark', max_length=1950,null=True)  # Field name made lowercase.
     requesttherapist = models.BooleanField(db_column='requestTherapist',  null=True)  # Field name made lowercase.
+    checktype = models.CharField(db_column='checktype',choices=CHECK_TYPE, max_length=50, blank=True, null=True)  # Field name made lowercase.
+    treat_parentcode = models.CharField(db_column='Treat_ParentCode', max_length=20, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         db_table = 'Treatment_Master'
@@ -448,6 +455,7 @@ class Employee(models.Model):
     #     ('YES', 'YES'),
     #     ('NO', 'NO'),
     # ]
+
     emp_no = models.AutoField(db_column='Emp_no', primary_key=True)  # Field name made lowercase.
     emp_code = models.CharField(db_column='Emp_code', max_length=20, unique=True)  # Field name made lowercase.
     emp_name = models.CharField(db_column='Emp_name', max_length=60, blank=True, null=True)  # Field name made lowercase.
@@ -504,7 +512,6 @@ class Employee(models.Model):
     emp_address1 = models.CharField(db_column='Emp_address1', max_length=255, blank=True, null=True)  # Field name made lowercase.
     emp_address2 = models.CharField(db_column='Emp_address2', max_length=255, blank=True, null=True)  # Field name made lowercase.
     emp_address3 = models.CharField(db_column='Emp_address3', max_length=255, blank=True, null=True)  # Field name made lowercase.
-    emp_remarks = models.CharField(db_column='Emp_remarks', max_length=500, blank=True, null=True)  # Field name made lowercase.
     age_range0 = models.BooleanField(db_column='Age_Range0', null=True)  # Field name made lowercase.
     age_range1 = models.BooleanField(db_column='Age_Range1', null=True)  # Field name made lowercase.
     age_range2 = models.BooleanField(db_column='Age_Range2', null=True)  # Field name made lowercase.
@@ -561,14 +568,14 @@ class Employee(models.Model):
     pw_password = models.CharField(db_column='PW_Password', max_length=15,  null=True)  #, blank=True, null=True Field name made lowercase.
     LEVEL_ItmIDid = models.ForeignKey('cl_table.Securities', on_delete=models.PROTECT,null=True) #,null=True,blank=True
     emp_country = models.ForeignKey('cl_table.Country', on_delete=models.PROTECT,null=True) #,null=True,blank=True
-
+    emp_remarks = models.CharField(db_column='Emp_remarks', max_length=250, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         db_table = 'Employee'
         # unique_together = [['emp_name','emp_phone1']]
 
     def __str__(self):
-        return str(self.emp_name)
+        return str(self.emp_name)    
 
     @property
     def choice_dict(self):
@@ -669,8 +676,6 @@ class MenuSecuritylevellist(models.Model):
         managed = False
         db_table = 'Menu_SecurityLevelList'
 
-
-
 class Fmspw(models.Model):
     pw_id = models.AutoField(db_column='PW_ID', primary_key=True)  # Field name made lowercase.
     pw_userlogin = models.CharField(db_column='PW_UserLogin', max_length=50, blank=True, null=True)  # Field name made lowercase.
@@ -731,6 +736,7 @@ class Fmspw(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT, null=True) #
     loginsite = models.ForeignKey('cl_app.ItemSitelist', on_delete=models.PROTECT,null=True) #, null=True, blank=True
     flgsales = models.BooleanField(db_column='flgSales', null=True,default=False)  # Field name made lowercase.
+    is_reversal = models.BooleanField(db_column='is_reversal', default=False)
 
     class Meta:
         db_table = 'FMSPW'
@@ -900,12 +906,13 @@ class Customer(models.Model):
     creditnote =  models.FloatField( null=True)
     voucher_available =  models.CharField(max_length=1000, null=True)
     oustanding_payment = models.FloatField(null=True)
-
+    emergencycontact = models.CharField(max_length=20, blank=True, null=True)
     cardno1 = models.CharField(max_length=20, blank=True, null=True)
     cardno2 = models.CharField(max_length=20, blank=True, null=True)
     cardno3 = models.CharField(max_length=20, blank=True, null=True)
     cardno4 = models.CharField(max_length=20, blank=True, null=True)
     cardno5 = models.CharField(max_length=20, blank=True, null=True)
+
 
     class Meta:
         db_table = 'Customer'
@@ -1280,7 +1287,7 @@ class ItemUom(models.Model):
 class Holditemdetail(models.Model):
     STATUS = [
         ('OPEN', 'OPEN'),
-        ('CLOSE', 'CLOSE'),
+        ('Close', 'Close'),
         ('VOID', 'VOID'),
     ]
     
@@ -1479,6 +1486,7 @@ class PosDaud(models.Model):
         ('SA', 'SA'), # SA-Sales
         ('VT', 'VT'), # VT-Void Transaction
         ('SU', 'SU'), # SU-Suspend
+        ('EX', 'EX'),
     ]
     
     RECORD_DETAIL_TYPE = [
@@ -1635,6 +1643,7 @@ class PosTaud(models.Model):
     is_voucher = models.BooleanField(default=False, null=True)
     voucher_no = models.CharField(db_column='Voucher_No', max_length=50,  null=True)  # Field name made lowercase.
     voucher_amt = models.FloatField( null=True)
+    gt = models.CharField(db_column='gt', max_length=3,  null=True)
 
 
     class Meta:
@@ -1680,6 +1689,7 @@ class Multistaff(models.Model):
     level_group_code = models.CharField(db_column='Level_group_code', max_length=20, blank=True, null=True)  # Field name made lowercase.
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+    salescommpoints = models.FloatField(db_column='SalesCommPoints', blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         db_table = 'MultiStaff'
@@ -1710,6 +1720,8 @@ class ItemHelper(models.Model):
     td_type_short_desc = models.CharField(db_column='TD_Type_Short_Desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+    percent = models.FloatField(db_column='Percent', blank=True, null=True)
+    work_amt = models.FloatField(db_column='Work_Amount', blank=True, null=True)
 
     class Meta:
         db_table = 'Item_helper'
@@ -1749,7 +1761,9 @@ class TmpItemHelper(models.Model):
     treatment_no = models.CharField(db_column='Treatment_No', max_length=10, blank=True, null=True)  # Field name made lowercase.
     workcommpoints = models.FloatField(db_column='WorkCommPoints', blank=True, null=True,default=0.0)  # Field name made lowercase.
     treatment = models.ForeignKey('cl_table.Treatment', on_delete=models.PROTECT,null=True, blank=True)
-
+    percent = models.FloatField(db_column='Percent', blank=True, null=True)
+    work_amt = models.FloatField(db_column='Work_Amount', blank=True, null=True)
+    session = models.FloatField(db_column='session', blank=True, null=True)
 
     class Meta:
         db_table = 'Tmp_Item_helper'
@@ -1811,6 +1825,7 @@ class PayGroup(models.Model):
     iscreditcard = models.BooleanField(db_column='IsCreditCard', blank=True, null=True)  # Field name made lowercase.
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+    picturelocation = models.CharField(db_column='PICTURELOCATION', max_length=200, null=True)  # Field name made lowercase.
 
     class Meta:
         db_table = 'PAY_GROUP'
@@ -2335,13 +2350,13 @@ class ItemBatch(models.Model):
         db_table = 'ITEM_BATCH'
 
     def __str__(self):
-        return str(self.batch_no)
+        return str(self.item_code)
 
 class Stktrn(models.Model):
     id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
-    trn_post = models.DateTimeField(db_column='TRN_POST', auto_now=True, null=True)  # Field name made lowercase.
+    trn_post = models.DateTimeField(db_column='TRN_POST', blank=True, null=True)  # Field name made lowercase.
     trn_no = models.FloatField(db_column='TRN_NO', blank=True, null=True)  # Field name made lowercase.
-    trn_date = models.DateTimeField(db_column='TRN_DATE', auto_now=True, null=True)  # Field name made lowercase.
+    trn_date = models.DateTimeField(db_column='TRN_DATE', blank=True, null=True)  # Field name made lowercase.
     post_time = models.CharField(db_column='POST_TIME', max_length=6, blank=True, null=True)  # Field name made lowercase.
     aperiod = models.FloatField(db_column='APERIOD', blank=True, null=True)  # Field name made lowercase.
     itemcode = models.CharField(db_column='ITEMCODE', max_length=15, blank=True, null=True)  # Field name made lowercase.
@@ -2471,7 +2486,7 @@ class PackageHdr(models.Model):
         db_table = 'Package_Hdr'
 
     def __str__(self):
-        return str(self.code)
+        return str(self.Code)
 
 class PrepaidOpenCondition(models.Model):
     id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
@@ -2772,12 +2787,61 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     sec_status  = models.CharField(max_length=25,choices=SEC_STATUS, null=True, blank=True)
     remark_pts  = models.IntegerField(null=True, blank=True)
+    recurring_days = models.IntegerField(null=True, blank=True)
+    recurring_qty = models.IntegerField(null=True, blank=True)
+    recur_linkcode = models.CharField(db_column='Recur_Linkcode', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    linkcode = models.CharField(db_column='linkcode', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    link_flag = models.BooleanField(db_column='link_flag',default=False)  # Field name made lowercase.
 
     class Meta:
         db_table = 'Appointment'
 
     def __str__(self):
         return str(self.appt_code)
+
+class AppointmentLog(models.Model):
+
+    STATUS = [
+        ('Booking', 'Booking'),
+        ('Waiting', 'Waiting List'),
+        ('Confirmed', 'Confirmed'),
+        ('Cancelled', 'Cancelled'),
+        ('Arrived', 'Arrived'),
+        ('Done', 'Done'),
+        ('LastMinCancel', 'Cancelled Last Minute'),
+        ('Late', 'Late'),
+        ('No Show', 'No Show'),
+    ]
+
+    SEC_STATUS = [
+        ("Rescheduled", "Rescheduled" ),
+        ("Notified Once", "Notified Once"),
+        ("Notified Twice", "Notified Twice"),
+    ]
+
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    appt_id = models.ForeignKey('cl_table.Appointment',on_delete=models.PROTECT,null=True)
+    userid  = models.ForeignKey(Employee, on_delete=models.PROTECT,null=True)
+    username = models.CharField(db_column='User_Name', max_length=300, blank=True, null=True)  # Field name made lowercase.
+    appt_date = models.DateField(db_column='Appt_date', blank=True, null=True)  # Field name made lowercase.
+    appt_fr_time = models.TimeField(db_column='Appt_Fr_time', blank=True, null=True)  # Field name made lowercase.
+    appt_to_time = models.TimeField(db_column='Appt_To_time', blank=True, null=True)  # Field name made lowercase.
+    add_duration = models.TimeField(null=True)
+    emp_code = models.CharField(max_length=100, blank=True, null=True)
+    appt_status = models.CharField(db_column='Appt_Status', max_length=20,choices=STATUS, blank=True, null=True)  # Field name made lowercase.
+    sec_status  = models.CharField(max_length=25,choices=SEC_STATUS, null=True, blank=True)
+    appt_remark = models.CharField(db_column='Appt_remark', max_length=250, blank=True, null=True)  # Field name made lowercase.
+    item_code = models.CharField(db_column='item_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    requesttherapist = models.BooleanField(db_column='requestTherapist', null=True)  # Field name made lowercase.
+    new_remark = models.CharField(db_column='New_Remark', max_length=800, blank=True, null=True)  # Field name made lowercase.
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        db_table = 'Appointment_Log'
+
+    def __str__(self):
+        return str(self.appt_remark)
+
 
 class Appointmentdetails(models.Model):
     apptid = models.BigAutoField(db_column='ApptId',primary_key=True)  # Field name made lowercase.
@@ -3038,6 +3102,145 @@ class GstSetting(models.Model):
         return str(self.item_code)     
 
 
+class Language(models.Model):
+    itm_id = models.AutoField(primary_key=True)
+    itm_desc = models.CharField(db_column='ITM_DESC', max_length=40, blank=True, null=True)  # Field name made lowercase.
+    itm_code = models.CharField(db_column='ITM_CODE', max_length=40, blank=True, null=True)  # Field name made lowercase.
+    itm_isactive = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'Language'
+
+    def __str__(self):
+        return str(self.itm_desc)            
+    
+
+class BlockReason(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    b_no = models.CharField(db_column='B_No', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    b_reason = models.CharField(db_column='B_Reason', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    active = models.BooleanField(db_column='Active', blank=True, null=True,default=True)  # Field name made lowercase.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    
+    class Meta:
+        db_table = 'Block_Reason'
+
+    def __str__(self):
+        return str(self.b_no)     
+    
+class Tmptreatment(models.Model):
+    sys_code = models.AutoField(db_column='Sys_Code', primary_key=True)  # Field name made lowercase.
+    treatment_code = models.CharField(db_column='Treatment_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    course = models.CharField(db_column='Course', max_length=80, blank=True, null=True)  # Field name made lowercase.
+    times = models.CharField(db_column='Times', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    treatment_no = models.CharField(db_column='Treatment_No', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    price = models.FloatField(db_column='Price', blank=True, null=True)  # Field name made lowercase.
+    treatment_date = models.DateTimeField(db_column='Treatment_Date',auto_now_add=True, blank=True, null=True)  # Field name made lowercase.
+    next_appt = models.DateTimeField(db_column='Next_Appt', blank=True, null=True)  # Field name made lowercase.
+    cust_name = models.CharField(db_column='Cust_Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    cust_code = models.CharField(db_column='Cust_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    status = models.CharField(db_column='Status', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    unit_amount = models.FloatField(db_column='Unit_Amount', blank=True, null=True)  # Field name made lowercase.
+    item_code = models.CharField(db_column='Item_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    treatment_parentcode = models.CharField(db_column='Treatment_ParentCode', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    prescription = models.CharField(db_column='Prescription', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    allergy = models.CharField(db_column='Allergy', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    sa_transacno = models.CharField(max_length=20, blank=True, null=True)
+    sa_status = models.CharField(max_length=5, blank=True, null=True)
+    appt_time = models.CharField(db_column='Appt_Time', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    duration = models.IntegerField(db_column='Duration', blank=True, null=True)  # Field name made lowercase.
+    hold_item = models.CharField(db_column='Hold_Item', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    dt_lineno = models.IntegerField(db_column='dt_LineNo', blank=True, null=True)  # Field name made lowercase.
+    expiry = models.DateTimeField(db_column='Expiry', blank=True, null=True)  # Field name made lowercase.
+    lpackage = models.BooleanField(db_column='lPackage', blank=True, null=True)  # Field name made lowercase.
+    package_code = models.CharField(db_column='Package_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    site_code = models.CharField(db_column='Site_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    type = models.CharField(db_column='Type', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    treatment_limit_times = models.FloatField(db_column='Treatment_Limit_Times', blank=True, null=True)  # Field name made lowercase.
+    treatment_count_done = models.FloatField(db_column='Treatment_Count_Done', blank=True, null=True)  # Field name made lowercase.
+    mac_uid_ref = models.CharField(db_column='MAC_UID_Ref', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    trmt_is_auto_proportion = models.BooleanField(db_column='Trmt_Is_Auto_Proportion')  # Field name made lowercase.
+    itemcart = models.ForeignKey('custom.ItemCart', on_delete=models.PROTECT,null=True)
+    isfoc = models.BooleanField(db_column='isFOC', blank=True, null=True)  # Field name made lowercase.
+
+
+    class Meta:
+        db_table = 'TmpTreatment'
+
+class Tmpmultistaff(models.Model):
+    
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    sa_transacno = models.CharField(db_column='sa_transacNo', max_length=20, null=True)  # Field name made lowercase.
+    item_code = models.CharField(db_column='Item_Code', max_length=20, null=True)  # Field name made lowercase.
+    emp_code = models.CharField(db_column='Emp_Code', max_length=20, null=True)  # Field name made lowercase.
+    ratio = models.FloatField(db_column='Ratio', null=True)  # Field name made lowercase.
+    salesamt = models.FloatField(db_column='SalesAmt', null=True)  # Field name made lowercase.
+    type = models.CharField(db_column='Type', max_length=20, null=True)  # Field name made lowercase.
+    isdelete = models.BooleanField(db_column='IsDelete', null=True)  # Field name made lowercase.
+    role = models.CharField(db_column='Role', max_length=50, null=True)  # Field name made lowercase.
+    dt_lineno = models.IntegerField(db_column='dt_LineNo', null=True)  # Field name made lowercase.
+    mac_uid_ref = models.CharField(db_column='MAC_UID_Ref', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    level_group_code = models.CharField(db_column='Level_Group_Code', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    itemcart = models.ForeignKey('custom.ItemCart', on_delete=models.PROTECT,null=True, blank=True)
+    salescommpoints = models.FloatField(db_column='SalesCommPoints', blank=True, null=True)  # Field name made lowercase.
+    emp_id = models.ForeignKey(Employee, on_delete=models.PROTECT,null=True)
+
+    class Meta:
+        db_table = 'TmpMultiStaff'
+
+    def __str__(self):
+        return str(self.emp_code)
+
+class AppointmentStatus(models.Model):  
+
+    id = models.AutoField(db_column='ID', primary_key=True)  # Field name made lowercase.
+    value = models.CharField(db_column='Status', max_length=150, blank=True, null=True)  # Field name made lowercase.
+    lable = models.CharField(db_column='Display', max_length=150, blank=True, null=True)  # Field name made lowercase.
+    color = models.CharField(db_column='Color', max_length=150, blank=True, null=True)  # Field name made lowercase.
+    border_color = models.CharField(db_column='Border Color', max_length=150, blank=True, null=True)  # Field name made lowercase.
+    isactive = models.BooleanField(db_column='Isactive',default=True)  # Field name made lowercase.
+    is_secstatus = models.BooleanField(db_column='Sec Status',default=False)  # Field name made lowercase.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        db_table = 'AppointmentStatus'
+
+    def __str__(self):
+        return str(self.value) 
+
+class ExchangeDtl(models.Model):
+
+    id = models.BigAutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    exchange_no = models.CharField(db_column='Exchange_No', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    staff_code = models.CharField(db_column='Staff_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    staff_name = models.CharField(db_column='Staff_Name', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    original_item_code = models.CharField(db_column='Original_Item_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    original_item_name = models.CharField(db_column='Original_Item_Name', max_length=250, blank=True, null=True)  # Field name made lowercase.
+    exchange_item_code = models.CharField(db_column='Exchange_Item_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    exchange_item_name = models.CharField(db_column='Exchange_Item_Name', max_length=250, blank=True, null=True)  # Field name made lowercase.
+    trmt_code = models.CharField(db_column='Trmt_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    trmt_full_code = models.CharField(db_column='Trmt_Full_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    treatment_time = models.CharField(db_column='Treatment_Time', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    sa_transacno = models.CharField(db_column='Sa_TransacNo', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    sa_date = models.DateTimeField(db_column='Sa_Date', blank=True, null=True, auto_now_add=True)  # Field name made lowercase.
+    exchange_date = models.DateTimeField(db_column='Exchange_Date', blank=True, null=True , auto_now_add=True)  # Field name made lowercase.
+    status = models.BooleanField(db_column='Status', blank=True, null=True)  # Field name made lowercase.
+    reverse_date = models.DateTimeField(db_column='Reverse_Date', blank=True, null=True)  # Field name made lowercase.
+    site_code = models.CharField(db_column='Site_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    cust_code = models.CharField(db_column='Cust_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    cust_name = models.CharField(db_column='Cust_Name', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    fe_transacno = models.CharField(db_column='FE_TransacNo', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    
+    class Meta:
+        db_table = 'Exchange_Dtl'
+
+
 class CustomerFormControl(models.Model):
     id = models.AutoField(primary_key=True)
     field_name = models.CharField(db_column='fieldName', max_length=50, blank=True, null=True)  # Field name made lowercase.
@@ -3244,15 +3447,6 @@ class Multilanguage(models.Model):
     class Meta:
         db_table = 'MultiLanguage'
 
-class Language(models.Model):
-    itm_id = models.AutoField(primary_key=True)
-    itm_code = models.CharField(db_column='itm_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    itm_desc = models.CharField(db_column='itm_Desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    itm_isactive = models.BooleanField(db_column='itm_Isactive')  # Field name made lowercase.
-
-    class Meta:
-        managed = False
-        db_table = 'Language'
 
 
 class MultiLanguageWord(models.Model):

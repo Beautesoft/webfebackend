@@ -200,6 +200,7 @@ class ItemCart(models.Model):
         ('VT-Deposit', 'VT-Deposit'),
         ('VT-Top Up', 'VT-Top Up'),
         ('VT-Sales','VT-Sales'),
+        ('Exchange', 'Exchange'),
     ]
 
     id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
@@ -257,13 +258,19 @@ class ItemCart(models.Model):
     deposit_account = models.ForeignKey('cl_table.DepositAccount', on_delete=models.PROTECT,blank=True, null=True)
     prepaid_account = models.ForeignKey('cl_table.PrepaidAccount', on_delete=models.PROTECT,blank=True, null=True)
     is_foc =  models.BooleanField(default=False)
-    
+    recorddetail = models.CharField(max_length=20,  null=True)
+    itemtype = models.CharField(max_length=20,  null=True)
+    multistaff_ids = models.ManyToManyField('cl_table.Tmpmultistaff', related_name='multistaff', blank=True)
+    treatment_no = models.CharField(db_column='Treatment_No', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    free_sessions = models.CharField(db_column='Free_Sessions', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    exchange_id = models.ForeignKey('cl_table.ExchangeDtl', on_delete=models.PROTECT,blank=True, null=True)
+    is_total = models.BooleanField(default=False,null=True)
+
     class Meta:
         db_table = 'item_Cart'
 
     def __str__(self):
         return str(self.itemdesc)   
-
 
 class PosPackagedeposit(models.Model):
 
@@ -300,3 +307,46 @@ class PosPackagedeposit(models.Model):
 
     def __str__(self):
         return str(self.code)    
+
+class SmtpSettings(models.Model):
+
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    sender_name = models.CharField(db_column='Sender_Name', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    sender_address = models.CharField(db_column='Sender_Address', max_length=200, blank=True, null=True)  # Field name made lowercase.
+    smtp_serverhost = models.CharField(db_column='Smtp_Serverhost', max_length=500, blank=True, null=True)  # Field name made lowercase.
+    port = models.CharField(db_column='Port', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    user_email = models.EmailField(db_column='User_Email', max_length=255, blank=True, null=True)  # Field name made lowercase.
+    user_password = models.CharField(db_column='User_Password', max_length=15, blank=True, null=True)  # Field name made lowercase.
+    email_use_ssl = models.BooleanField(db_column='EMAIL_USE_SSL',default=True)
+    email_use_tls = models.BooleanField(db_column='EMAIL_USE_TLS',default=False)
+    email_subject = models.CharField(db_column='Email_Subject', max_length=300, blank=True, null=True)  # Field name made lowercase.
+    email_content = models.TextField(db_column='Email_Content', blank=True, null=True)  # Field name made lowercase.
+    sms_content = models.TextField(db_column='Sms_Content', blank=True, null=True)  # Field name made lowercase.
+    site_codeid =  models.ForeignKey('cl_app.ItemSitelist', on_delete=models.PROTECT, db_column='Site_Codeid',null=True)  # Field name made lowercase.
+    site_code = models.CharField(db_column='Site_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    updated_at  = models.DateTimeField(auto_now=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    
+    class Meta:
+        db_table = 'smtp_settings'
+        unique_together = (('site_code'),)
+
+
+    def __str__(self):
+        return str(self.sender_name)
+
+
+class MultiPricePolicy(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    item_class_code = models.CharField(db_column='Item_Class_Code', max_length=20)  # Field name made lowercase.
+    cust_class_code = models.CharField(db_column='Cust_Class_Code', max_length=20)  # Field name made lowercase.
+    disc_percent_limit = models.FloatField(db_column='Disc_Percent_Limit', blank=True, null=True)  # Field name made lowercase.
+    updated_at  = models.DateTimeField(auto_now=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    
+    class Meta:
+        db_table = 'Multi_Price_Policy'
+
+    def __str__(self):
+        return str(self.cust_class_code)
+    

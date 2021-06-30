@@ -68,6 +68,10 @@ class ItemSitelist(models.Model):
     created_at = models.DateTimeField(auto_now_add=True,null=True)
     skills_list = models.CharField(max_length=1000, null=True)
     updated_at  = models.DateTimeField(auto_now=True,null=True)
+    service_sel = models.BooleanField(db_column='Service Selection', default=False) 
+    service_text = models.BooleanField(db_column='Service Text', default=False) 
+    is_nric = models.BooleanField(db_column='is_nric', default=False) 
+    is_automember = models.BooleanField(db_column='is_automember', default=False) 
   
     class Meta:
         db_table = 'Item_SiteList'
@@ -131,13 +135,104 @@ class VoidReason(models.Model):
     def __str__(self):
         return str(self.reason_desc)    
     
-# class LoggedInUser(models.Model):
-#     user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='logged_in_user', on_delete=models.CASCADE)
-#     session_key = models.CharField(max_length=40, blank=True, null=True)
-#     current_key = models.CharField(max_length=40, blank=True, null=True)
+class LoggedInUser(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name='logged_in_user', on_delete=models.CASCADE)
+    session_key = models.CharField(max_length=40, blank=True, null=True)
+    current_key = models.CharField(max_length=40, blank=True, null=True)
     
-#     class Meta:
-#         db_table = 'logged_inuser'
+    class Meta:
+        db_table = 'logged_inuser'
 
-#     def str(self):
-#         return self.user.username
+    def str(self):
+        return self.user.username
+
+class TreatmentUsage(models.Model):
+    id = models.BigAutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    treatment_code = models.CharField(db_column='Treatment_Code',  max_length=20)  # Field name made lowercase.
+    item_code = models.CharField(db_column='Item_Code', max_length=20)  # Field name made lowercase.
+    item_desc = models.CharField(db_column='Item_Desc', max_length=50)  # Field name made lowercase.
+    qty = models.FloatField(db_column='Qty')  # Field name made lowercase.
+    uom = models.CharField(db_column='UOM', max_length=20)  # Field name made lowercase.
+    site_code = models.CharField(db_column='Site_Code', max_length=50)  # Field name made lowercase.
+    usage_status = models.CharField(db_column='Usage_Status', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    line_no = models.FloatField(db_column='Line_No', blank=True, null=True)  # Field name made lowercase.
+    void_line_ref = models.CharField(db_column='Void_Line_Ref', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    usage_update = models.CharField(db_column='Usage_Update', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    sa_transacno = models.CharField(db_column='SA_TRANSACNO', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    isactive = models.BooleanField(db_column='IsActive', blank=True, null=True,default=True)  # Field name made lowercase.
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    updated_at  = models.DateTimeField(auto_now=True,null=True)
+
+    class Meta:
+        db_table = 'Treatment_Usage'
+        # unique_together = (('treatment_code', 'item_code', 'site_code'),)
+
+    def __str__(self):
+        return str(self.treatment_code)    
+        
+class UsageMemo(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    memo_no = models.CharField(db_column='Memo_No', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    item_code = models.CharField(db_column='Item_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    item_name = models.CharField(db_column='Item_Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    date_out = models.DateTimeField(db_column='Date_Out', blank=True, null=True)  # Field name made lowercase.
+    time_out = models.DateTimeField(db_column='Time_Out',auto_now=True, blank=True, null=True)  # Field name made lowercase.
+    qty = models.IntegerField(db_column='Qty', blank=True, null=True)  # Field name made lowercase.
+    uom = models.CharField(db_column='UOM', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    staff_code = models.CharField(db_column='Staff_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    staff_name = models.CharField(db_column='Staff_Name', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    staff_barcode = models.CharField(db_column='Staff_Barcode', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    date_return = models.DateTimeField(db_column='Date_Return', blank=True, null=True)  # Field name made lowercase.
+    time_return = models.DateTimeField(db_column='Time_Return', blank=True, null=True)  # Field name made lowercase.
+    created_by = models.CharField(db_column='Created_By', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    status = models.CharField(db_column='Status', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    site_code = models.CharField(db_column='Site_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    memo_remarks = models.CharField(db_column='Memo_Remarks', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    updated_at  = models.DateTimeField(auto_now=True,null=True)
+
+    class Meta:
+        db_table = 'Usage_Memo'
+
+
+    def __str__(self):
+        return str(self.memo_no)    
+            
+
+class Treatmentface(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    treatment_code = models.CharField(db_column='Treatment_Code', max_length=50)  # Field name made lowercase.
+    str1 = models.CharField(db_column='Str1', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    str2 = models.CharField(db_column='Str2', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    str3 = models.CharField(db_column='Str3', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    str4 = models.CharField(db_column='Str4', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    str5 = models.CharField(db_column='Str5', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    str6 = models.CharField(db_column='Str6', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    str7 = models.CharField(db_column='Str7', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    site_code = models.CharField(db_column='Site_Code', max_length=50)  # Field name made lowercase.
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
+    updated_at  = models.DateTimeField(auto_now=True,null=True)
+
+    class Meta:
+        db_table = 'TreatmentFace'
+        unique_together = (('treatment_code', 'site_code'),)
+
+class Usagelevel(models.Model):
+
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    service_code = models.CharField(db_column='Service_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    item_code = models.CharField(db_column='Item_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    qty = models.CharField(db_column='Qty', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    uom = models.CharField(db_column='UOM', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    sequence = models.IntegerField(db_column='Sequence', blank=True, null=True)  # Field name made lowercase.
+    service_desc = models.CharField(db_column='Service_Desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    item_desc = models.CharField(db_column='Item_desc', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    isactive = models.BooleanField(db_column='IsActive',default=True)  # Field name made lowercase.
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    optional = models.BooleanField(db_column='Optional')  # Field name made lowercase.
+
+
+    class Meta:
+        db_table = 'UsageLevel'
+

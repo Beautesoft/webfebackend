@@ -28,10 +28,10 @@ from cl_table.models import Diagnosis, DiagnosisCompare, Employee, Fmspw, Reward
 # @receiver(user_logged_in)
 # def on_user_logged_in(sender, request, **kwargs):
 #     # print(sender,"sender")
-#     # print(request,"request")
-#     # print(kwargs,"kwargs")
-#     # print(request.session.session_key,"Signals")
-#     LoggedInUser.objects.get_or_create(user=kwargs.get('user'))
+#    # print(request,"request")
+#    # print(kwargs,"kwargs")
+#    print(request.session.session_key,"Signals")
+#    LoggedInUser.objects.get_or_create(user=kwargs.get('user'))
 
 
 # @receiver(user_logged_out)
