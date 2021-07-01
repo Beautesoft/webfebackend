@@ -97,7 +97,7 @@ from fpdf import FPDF
 import os
 from Cl_beautesoft.settings import BASE_DIR
 import io
-# import xlsxwriter # todo: uncomment this
+import xlsxwriter
 from django.db.models import Count
 from django.db.models import F    
 from django.utils.html import strip_tags

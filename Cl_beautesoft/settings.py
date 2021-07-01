@@ -135,6 +135,8 @@ WSGI_APPLICATION = 'Cl_beautesoft.wsgi.application'
 #     }
 # }
 
+
+# # normal db
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
@@ -150,6 +152,22 @@ DATABASES = {
     }
 }
 
+
+## # KPI db with real data.
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'sql_server.pyodbc',
+#         'NAME': 'JeanYipBeauty_JYHQ',
+#         # 'NAME': 'MidysonTrain',
+#         'HOST': 'jeanyip.acy7lab.com',
+#         'PORT': '8890',
+#         'USER': 'zoonpavithra',
+#         'PASSWORD': 'Zoon24Python',
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#         }
+#     }
+# }
 
 #mysql
 # DATABASES =  {
