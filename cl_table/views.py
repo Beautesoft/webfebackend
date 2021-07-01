@@ -13316,18 +13316,21 @@ class IndividualEmpSettings(APIView):
 
 
 class DailySalesView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated & authenticated_only]
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self,request):
         start = request.GET.get("start")
         end = request.GET.get("end")
-        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
-        site = fmspw[0].loginsite
-        if not site:
-            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
-        qs = DailysalesdataDetail.objects.filter(sitecode=site.itemsite_code).order_by('business_date')
+        # fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        # site = fmspw[0].loginsite
+        # if not site:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        qs = DailysalesdataDetail.objects.all().order_by('business_date')
+        site_code = request.GET.get("site_code")
+        if site_code:
+            qs = qs.filter(sitecode=site_code)
         try:
             if start:
                 qs = qs.filter(business_date__gte=datetime.datetime.strptime(start, "%Y-%m-%d"))
