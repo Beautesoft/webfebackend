@@ -3516,3 +3516,9 @@ class DailysalesdataSummary(models.Model):
     class Meta:
         db_table = 'DailySalesData_Summary'
 
+    @property
+    def get_total_amount(self):
+        gt1 = self.sales_gt1_withgst if self.sales_gt1_withgst else 0
+        gt2 = self.sales_gt2_withgst if self.sales_gt2_withgst else 0
+        return {"GT1":gt1, "GT2": gt2, "BOTH": gt1 + gt2}
+

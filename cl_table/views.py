@@ -13316,18 +13316,21 @@ class IndividualEmpSettings(APIView):
 
 
 class DailySalesView(APIView):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated & authenticated_only]
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self,request):
         start = request.GET.get("start")
         end = request.GET.get("end")
-        fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
-        site = fmspw[0].loginsite
-        if not site:
-            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
-        qs = DailysalesdataDetail.objects.filter(sitecode=site.itemsite_code).order_by('business_date')
+        # fmspw = Fmspw.objects.filter(user=self.request.user, pw_isactive=True)
+        # site = fmspw[0].loginsite
+        # if not site:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user must have login site", 'error': True, "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        qs = DailysalesdataDetail.objects.all().order_by('business_date')
+        site_code = request.GET.get("site_code")
+        if site_code:
+            qs = qs.filter(sitecode=site_code)
         try:
             if start:
                 qs = qs.filter(business_date__gte=datetime.datetime.strptime(start, "%Y-%m-%d"))
@@ -13439,3 +13442,77 @@ class MonthlySalesSummeryView(APIView):
             # start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
             # end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
             # date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
+
+class DailySalesSummeryBySiteView(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request):
+        sales_setting = request.GET.get("setting","BOTH")
+        if not sales_setting in ["GT1","GT2","BOTH"]:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "settings query parameter must be GT1 or GT2 or BOTH ", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
+            date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "start and end query parameters are mandatory. format is YYYY-MM-DD",
+                      'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
+                exclude(itemsite_code__icontains="HQ").\
+                values_list('itemsite_code', flat=True)
+
+        if _siteCodes:
+            site_code_list = _siteCodes.split(",")
+        elif _siteGroup:
+            site_code_list = site_code_list.filter(site_group=_siteGroup)
+
+
+        sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=site_code_list,business_date__range=[start_date,end_date])
+
+        responseData = []
+
+        for date in date_range:
+            row_dict = {"date":date}
+            # _amount = {"GT1":0, "GT2": 0, "BOTH": 0}
+            _amount = 0
+            for site in site_code_list:
+                try:
+                    sale_obj = sales_qs.get(sitecode=site, business_date=date)
+                    total = sale_obj.get_total_amount[sales_setting]
+                except Exception as e:
+                    print(e)
+                    # total = {"GT1":0, "GT2": 0, "BOTH": 0}
+                    total = 0
+                # _amount["GT1"] += total['GT1']
+                # _amount["GT2"] += total["GT2"]
+                # _amount["BOTH"] += total["BOTH"]
+                _amount += total
+                row_dict[site] = round(total,2)
+            row_dict["total"] = round(_amount,2)
+            responseData.append(row_dict)
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
