@@ -13407,7 +13407,6 @@ class MonthlySalesSummeryView(APIView):
             try:
                 next = month_list[i+1] - datetime.timedelta(days=1)
                 month_qs = DailysalesdataSummary.objects.filter(business_date__range=[curr, next],sitecode=site.itemsite_code)
-                print([curr, next])
                 # change to date range
                 month_dict = month_qs.aggregate(
                     sales_gt1_withgst=Sum('sales_gt1_withgst'),
@@ -13448,10 +13447,10 @@ class DailySalesSummeryBySiteView(APIView):
     # permission_classes = [IsAuthenticated & authenticated_only]
 
     def get(self,request):
-        sales_setting = request.GET.get("setting","BOTH")
-        if not sales_setting in ["GT1","GT2","BOTH"]:
-            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "settings query parameter must be GT1 or GT2 or BOTH ", 'error': True, "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # sales_setting = request.GET.get("setting","GT1")
+        # if not sales_setting in ["GT1","GT2","BOTH"]:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "settings query parameter must be GT1 or GT2 or BOTH ", 'error': True, "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
@@ -13493,7 +13492,8 @@ class DailySalesSummeryBySiteView(APIView):
             for site in site_code_list:
                 try:
                     sale_obj = sales_qs.get(sitecode=site, business_date=date)
-                    total = sale_obj.get_total_amount[sales_setting]
+                    # total = sale_obj.get_total_amount[sales_setting]
+                    total = sale_obj.sales_gt1_withgst if sale_obj.sales_gt1_withgst else 0
                 except Exception as e:
                     print(e)
                     # total = {"GT1":0, "GT2": 0, "BOTH": 0}
@@ -13504,6 +13504,66 @@ class DailySalesSummeryBySiteView(APIView):
                 _amount += total
                 row_dict[site] = round(total,2)
             row_dict["total"] = round(_amount,2)
+            responseData.append(row_dict)
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class MonthlySalesSummeryBySiteView(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request):
+        try:
+            s_year = int(request.GET.get("syear"))
+            e_year = int(request.GET.get("eyear"))
+            s_month = int(request.GET.get("smonth"))
+            e_month = int(request.GET.get("emonth"))
+            start_date = datetime.datetime(year=s_year, month=s_month, day=1)
+            end_date = datetime.datetime(year=e_year, month=e_month + 1, day=1)
+
+            month_list = list(rrule.rrule(rrule.MONTHLY, dtstart=start_date, until=end_date))
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "syear, eyear, smonth and emonth query parameters are mandatory.",
+                      'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
+                exclude(itemsite_code__icontains="HQ").\
+                values_list('itemsite_code', flat=True)
+
+        if _siteCodes:
+            site_code_list = _siteCodes.split(",")
+        elif _siteGroup:
+            site_code_list = site_code_list.filter(site_group=_siteGroup)
+
+
+        sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=site_code_list,business_date__range=[start_date,end_date])
+        responseData = []
+        for i, curr_month in enumerate(month_list):
+            row_dict = {'month':curr_month.strftime("%b, %Y")}
+            _amount = 0
+            try:
+                for site in site_code_list:
+                    next_month = month_list[i+1]
+                    _tot = sales_qs.filter(business_date__range=[curr_month, next_month],sitecode=site).aggregate(Sum('sales_gt1_withgst'))
+                    total = _tot['sales_gt1_withgst__sum']
+                    row_dict[site] = round(total,2)
+                    _amount += total
+            except IndexError:
+                continue
+            row_dict['total'] = _amount
             responseData.append(row_dict)
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
