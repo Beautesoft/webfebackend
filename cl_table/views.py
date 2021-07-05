@@ -13625,7 +13625,7 @@ class DailySalesSummeryByConsultantView(APIView):
             # responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
             # for row in raw_qs:
             data_list = []
-            site_total_dict = []
+            site_total_dict = {}
             for i,row in enumerate(raw_qs):
                 _d = dict(zip([col[0] for col in desc], row))
                 _d['id'] = i
