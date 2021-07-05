@@ -13558,7 +13558,7 @@ class MonthlySalesSummeryBySiteView(APIView):
                 for site in site_code_list:
                     next_month = month_list[i+1]
                     _tot = sales_qs.filter(business_date__range=[curr_month, next_month],sitecode=site).aggregate(Sum('sales_gt1_withgst'))
-                    total = _tot['sales_gt1_withgst__sum']
+                    total = _tot['sales_gt1_withgst__sum'] if type(_tot['sales_gt1_withgst__sum']) == float else 0
                     row_dict[site] = round(total,2)
                     _amount += total
             except IndexError:
