@@ -71,6 +71,9 @@ urlpatterns = [
     path('api/DailySalesByConsultant/', views.DailySalesSummeryByConsultantView.as_view(), name='DailySalesSummeryByConsultantView'),
 
 
+    path('api/temp_login', views.temp_login, name='temp_login'),
+
+
 
     
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

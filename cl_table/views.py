@@ -13650,8 +13650,21 @@ class DailySalesSummeryByConsultantView(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": list(raw_qs)}
         return Response(result, status=status.HTTP_200_OK)
 
+@api_view(['GET', 'POST'])
+def temp_login(request):
+    u = User.objects.get(username="ABC")
+    tokens, _ = Token.objects.get_or_create(user=u)
+    if tokens:
+        token = multiple_expire_handler(tokens)
+    data = {}
+    # is_expired, token = token_expire_handler(token)
+    data["token"] = token.key
+    data['salon'] = "HEALSPA"
+    data['branch'] = "JY01"
+    data['session_id'] = request.session.session_key
+    data['role'] = "ADMINISTRATOR"
 
 
-
-
+    result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': data}
+    return Response(result, status=status.HTTP_200_OK)
 
