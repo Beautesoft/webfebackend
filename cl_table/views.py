@@ -13552,7 +13552,7 @@ class MonthlySalesSummeryBySiteView(APIView):
         sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=site_code_list,business_date__range=[start_date,end_date])
         responseData = []
         for i, curr_month in enumerate(month_list):
-            row_dict = {'month':curr_month.strftime("%b, %Y")}
+            row_dict = {'id':i+1, 'month':curr_month.strftime("%b, %Y")}
             _amount = 0
             try:
                 for site in site_code_list:
