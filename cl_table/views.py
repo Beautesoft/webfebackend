@@ -13483,8 +13483,8 @@ class DailySalesSummeryBySiteView(APIView):
 
         responseData = []
 
-        for date in date_range:
-            row_dict = {"date":date}
+        for i, date in enumerate(date_range):
+            row_dict = {"id":i+1 ,"date":date}
             # _amount = {"GT1":0, "GT2": 0, "BOTH": 0}
             _amount = 0
             for site in site_code_list:
