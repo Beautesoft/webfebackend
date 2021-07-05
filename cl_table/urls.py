@@ -68,6 +68,7 @@ urlpatterns = [
     path('api/MonthlySalesSummery/', views.MonthlySalesSummeryView.as_view(), name='MonthlySalesSummeryView'),
     path('api/DailySalesBySite/', views.DailySalesSummeryBySiteView.as_view(), name='DailySalesSummeryBySiteView'),
     path('api/MonthlySalesBySite/', views.MonthlySalesSummeryBySiteView.as_view(), name='MonthlySalesSummeryBySiteView'),
+    path('api/DailySalesByConsultant/', views.DailySalesSummeryByConsultantView.as_view(), name='DailySalesSummeryByConsultantView'),
 
 
 

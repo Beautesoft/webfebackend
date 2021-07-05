@@ -1,5 +1,5 @@
 from django.core.exceptions import FieldError
-from django.db import transaction
+from django.db import transaction, connection
 from django.shortcuts import render
 from django.http import HttpResponse
 from rest_framework import status,viewsets
@@ -13601,34 +13601,53 @@ class DailySalesSummeryByConsultantView(APIView):
             site_code_list = _siteCodes.split(",")
         elif _siteGroup:
             site_code_list = site_code_list.filter(site_group=_siteGroup)
+        site_code_q = ', '.join(['\''+str(code)+'\'' for code in site_code_list])
+        raw_q = f"SELECT MAX(e.display_name) Consultant, " \
+                        f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
+                        f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) FullName " \
+                f"FROM pos_daud pd " \
+                f"INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
+                f"LEFT JOIN employee e on ms.emp_code = e.emp_code " \
+                f"WHERE pd.ItemSite_Code IN ({site_code_q})" \
+                f"AND pd.sa_date BETWEEN '{start_date}' AND '{end_date}' " \
+                f"GROUP BY ms.emp_code, pd.ItemSite_Code " \
+                f"ORDER BY Amount DESC"
 
+        with connection.cursor() as cursor:
+            cursor.execute(raw_q)
+            raw_qs = cursor.fetchall()
+            desc = cursor.description
+            responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
+            # for row in raw_qs:
 
-        sales_qs = PosDaud.objects.filter(itemsite_code__in=site_code_list,sa_date__range=[start_date,end_date]).exclude(record_detail_type__startswith='TD')
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+            return Response(result, status=status.HTTP_200_OK)
+        # sales_qs = PosDaud.objects.filter(itemsite_code__in=site_code_list,sa_date__range=[start_date,end_date]).exclude(record_detail_type__startswith='TD')
+        #
+        # responseData = []
+        #
+        # for date in date_range:
+        #     row_dict = {"date":date}
+        #     # _amount = {"GT1":0, "GT2": 0, "BOTH": 0}
+        #     _amount = 0
+        #     for site in site_code_list:
+        #         try:
+        #             sale_obj = sales_qs.get(sitecode=site, business_date=date)
+        #             # total = sale_obj.get_total_amount[sales_setting]
+        #             total = sale_obj.sales_gt1_withgst if sale_obj.sales_gt1_withgst else 0
+        #         except Exception as e:
+        #             print(e)
+        #             # total = {"GT1":0, "GT2": 0, "BOTH": 0}
+        #             total = 0
+        #         # _amount["GT1"] += total['GT1']
+        #         # _amount["GT2"] += total["GT2"]
+        #         # _amount["BOTH"] += total["BOTH"]
+        #         _amount += total
+        #         row_dict[site] = round(total,2)
+        #     row_dict["total"] = round(_amount,2)
+        #     responseData.append(row_dict)
 
-        responseData = []
-
-        for date in date_range:
-            row_dict = {"date":date}
-            # _amount = {"GT1":0, "GT2": 0, "BOTH": 0}
-            _amount = 0
-            for site in site_code_list:
-                try:
-                    sale_obj = sales_qs.get(sitecode=site, business_date=date)
-                    # total = sale_obj.get_total_amount[sales_setting]
-                    total = sale_obj.sales_gt1_withgst if sale_obj.sales_gt1_withgst else 0
-                except Exception as e:
-                    print(e)
-                    # total = {"GT1":0, "GT2": 0, "BOTH": 0}
-                    total = 0
-                # _amount["GT1"] += total['GT1']
-                # _amount["GT2"] += total["GT2"]
-                # _amount["BOTH"] += total["BOTH"]
-                _amount += total
-                row_dict[site] = round(total,2)
-            row_dict["total"] = round(_amount,2)
-            responseData.append(row_dict)
-
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": list(raw_qs)}
         return Response(result, status=status.HTTP_200_OK)
 
 
