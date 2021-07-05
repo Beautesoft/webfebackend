@@ -13481,7 +13481,7 @@ class DailySalesSummeryBySiteView(APIView):
 
         sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=site_code_list,business_date__range=[start_date,end_date])
 
-        responseData = []
+        data_list = []
         site_total_dict = {}
 
         for i, date in enumerate(date_range):
@@ -13504,9 +13504,10 @@ class DailySalesSummeryBySiteView(APIView):
                 row_dict[site] = round(total,2)
                 site_total_dict[site] = round(site_total_dict.get(site,0) + total,2)
             row_dict["total"] = round(_amount,2)
-            responseData.append(row_dict)
-        # responseData.append(site_total_dict)
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData, "chartData":site_total_dict}
+            data_list.append(row_dict)
+        # data_list.append(site_total_dict)
+        responseData = {"data":data_list, "chart":site_total_dict}
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
 
 
