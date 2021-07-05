@@ -13671,6 +13671,17 @@ def temp_login(request):
     return Response(result, status=status.HTTP_200_OK)
 
 
+@api_view(['GET', ])
+def site_group_list(request):
+    qs = SiteGroup.objects.filter(is_active=True).values('id','code','description')
+    response_data = {
+        "groups": list(qs),
+        "message": "Listed successfuly"
+    }
+    result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': response_data}
+    return Response(result, status=status.HTTP_200_OK)
+
+
 class SalesSummeryByOutletView(APIView):
     # authentication_classes = [TokenAuthentication]
     # permission_classes = [IsAuthenticated & authenticated_only]

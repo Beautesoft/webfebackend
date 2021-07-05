@@ -18,7 +18,7 @@ urlpatterns = [
     path('api/branchlogin/', views.ItemSiteListAPIViewLogin.as_view(), name='branchlogin'),
     path('api/treatmentstock/<int:pk>/', views.StockDetail.as_view(), name='treatmentstock'),
     path('api/staffsavailable/', views.StaffsAvailable.as_view(), name='staffsavailable'),
-    path('api/userlist/', views.UsersList.as_view(), name='userlist'),
+    path('api/userlist/', views.UsersList.as_view(), name='userlist'), #
     path('api/paytable/', views.PaytableListAPIView.as_view(), name='paytable'),
     path('api/customerreceiptprint/', views.CustomerReceiptPrintList.as_view(), name='customerreceiptprint'),
     path('api/source/', views.SourceAPI.as_view(), name='source'),
@@ -69,6 +69,7 @@ urlpatterns = [
     path('api/DailySalesBySite/', views.DailySalesSummeryBySiteView.as_view(), name='DailySalesSummeryBySiteView'),
     path('api/MonthlySalesBySite/', views.MonthlySalesSummeryBySiteView.as_view(), name='MonthlySalesSummeryBySiteView'),
     path('api/DailySalesByConsultant/', views.DailySalesSummeryByConsultantView.as_view(), name='DailySalesSummeryByConsultantView'),
+    path('api/site_group_list/', views.site_group_list, name='site_group_list'),
 
 
     path('api/temp_login', views.temp_login, name='temp_login'),
