@@ -52,7 +52,7 @@ from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializ
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import Http404
 from rest_framework.generics import GenericAPIView, CreateAPIView
 from rest_framework import generics
@@ -70,7 +70,7 @@ from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.views import APIView
 import base64 
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 import pandas as pd 
 from dateutil import parser, rrule
 from .authentication import token_expire_handler, expires_in, multiple_expire_handler
@@ -13650,7 +13650,9 @@ class DailySalesSummeryByConsultantView(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": list(raw_qs)}
         return Response(result, status=status.HTTP_200_OK)
 
+
 @api_view(['GET', 'POST'])
+@permission_classes((AllowAny,))
 def temp_login(request):
     u = User.objects.get(username="ABC")
     tokens, _ = Token.objects.get_or_create(user=u)
@@ -13668,3 +13670,48 @@ def temp_login(request):
     result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': data}
     return Response(result, status=status.HTTP_200_OK)
 
+
+class SalesSummeryByOutletView(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request):
+
+        try:
+            start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
+            date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "start and end query parameters are mandatory. format is YYYY-MM-DD",
+                      'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
+                exclude(itemsite_code__icontains="HQ").\
+                values_list('itemsite_code', flat=True)
+
+        if _siteCodes:
+            site_code_list = _siteCodes.split(",")
+        elif _siteGroup:
+            site_code_list = site_code_list.filter(site_group=_siteGroup)
+
+        _query = f"Select pos_haud.ID, pos_haud.itemSite_code,pos_daud.dt_deposit as PrdctSales, pos_daud.record_detail_type " \
+                 f"from pos_haud " \
+                 f"inner join pos_daud on pos_haud.sa_transacno=pos_daud.sa_transacno " \
+                 f"Where pos_haud.sa_date>='{start_date}' " \
+                 f"and pos_haud.sa_date<='{end_date}' " \
+                 f"and pos_haud.isVoid!=1 " \
+                 f"and pos_daud.record_detail_type in ('PRODUCT','TP PRODUCT')"
+
+        pos_haud_qs = PosHaud.objects.raw(_query)
