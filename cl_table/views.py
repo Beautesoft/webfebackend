@@ -13551,7 +13551,8 @@ class MonthlySalesSummeryBySiteView(APIView):
 
 
         sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=site_code_list,business_date__range=[start_date,end_date])
-        responseData = []
+        data_list = []
+        site_total_dict = {}
         for i, curr_month in enumerate(month_list):
             row_dict = {'id':i+1, 'month':curr_month.strftime("%b, %Y")}
             _amount = 0
@@ -13562,11 +13563,12 @@ class MonthlySalesSummeryBySiteView(APIView):
                     total = _tot['sales_gt1_withgst__sum'] if type(_tot['sales_gt1_withgst__sum']) == float else 0
                     row_dict[site] = round(total,2)
                     _amount += total
+                    site_total_dict[site] = round(site_total_dict.get(site, 0) + total, 2)
             except IndexError:
                 continue
             row_dict['total'] = _amount
-            responseData.append(row_dict)
-
+            data_list.append(row_dict)
+            responseData = {"data": data_list, "chart": site_total_dict}
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
 
