@@ -13633,7 +13633,6 @@ class DailySalesSummeryByConsultantView(APIView):
                 site_total_dict[_d['Consultant']] = round(site_total_dict.get(_d['Consultant'], 0) + _d['amount'], 2)
 
             responseData = {"data": data_list, "chart": site_total_dict}
-            print("RR",data_list)
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
             return Response(result, status=status.HTTP_200_OK)
         # sales_qs = PosDaud.objects.filter(itemsite_code__in=site_code_list,sa_date__range=[start_date,end_date]).exclude(record_detail_type__startswith='TD')
