@@ -70,6 +70,8 @@ urlpatterns = [
     path('api/MonthlySalesBySite/', views.MonthlySalesSummeryBySiteView.as_view(), name='MonthlySalesSummeryBySiteView'),
     path('api/DailySalesByConsultant/', views.DailySalesSummeryByConsultantView.as_view(), name='DailySalesSummeryByConsultantView'),
     path('api/ServicesByOutlet/', views.ServicesByOutletView.as_view(), name='ServicesByOutletView'),
+    path('api/ProductByOutlet/', views.ProductByOutletView.as_view(), name='ProductByOutletView'),
+    path('api/RankingByOutlet/', views.RankingByOutletView.as_view(), name='RankingByOutletView'),
     path('api/site_group_list/', views.site_group_list, name='site_group_list'),
 
 
