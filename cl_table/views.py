@@ -13663,15 +13663,20 @@ class ServicesByOutletView(APIView):
                       'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         else:
-            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
-                exclude(itemsite_code__icontains="HQ").\
-                values_list('itemsite_code', flat=True)
+            # site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
+            #     exclude(itemsite_code__icontains="HQ").\
+            #     values_list('itemsite_code', flat=True)
+            site_filter = ""
 
         if _siteCodes:
             site_code_list = _siteCodes.split(",")
+            _site_code_q = ', '.join(['\'' + str(code) + '\'' for code in site_code_list])
+            site_filter = f"and a.itemSite_code in ({_site_code_q}) "
         elif _siteGroup:
-            site_code_list = site_code_list.filter(site_group=_siteGroup)
-        site_code_q = ', '.join(['\''+str(code)+'\'' for code in site_code_list])
+            # site_code_list = site_code_list.filter(site_group=_siteGroup)
+            site_filter = f"and item_sitelist.Site_Group = {_siteGroup}"
+
+        # site_code_q = ', '.join(['\''+str(code)+'\'' for code in site_code_list])
         raw_q = f"select a.itemSite_code as SiteCode,item_sitelist.ItemSite_Desc as Outlet,sum(a.dt_deposit) as Sales " \
                 f"from pos_daud a " \
                 f"inner join pos_haud ph on a.sa_transacno=ph.sa_transacno " \
@@ -13680,10 +13685,10 @@ class ServicesByOutletView(APIView):
                 f"where  a.sa_date BETWEEN '{start_date}' and '{end_date}' " \
                 f"and a.Record_Detail_Type in ('SERVICE') " \
                 f"and ph.Isvoid!=1 " \
-                f"and stock.Item_type='SINGLE'  " \
+                f"and stock.Item_type='SINGLE' {site_filter}" \
                 f"group by a.itemSite_code,item_sitelist.ItemSite_Desc " \
                 f"ORDER BY Sales DESC"
-
+        print(raw_q)
         with connection.cursor() as cursor:
             cursor.execute(raw_q)
             raw_qs = cursor.fetchall()
