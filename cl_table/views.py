@@ -13681,6 +13681,7 @@ class ServicesByOutletView(APIView):
                 f"from pos_daud a " \
                 f"inner join pos_haud ph on a.sa_transacno=ph.sa_transacno " \
                 f"inner join stock on stock.item_code+'0000'=a.dt_itemno " \
+                f"inner join Item_Dept on stock.item_dept=Item_Dept.itm_code " \
                 f"left join item_sitelist on item_sitelist.ItemSite_Code=a.itemSite_code " \
                 f"where  a.sa_date BETWEEN '{start_date}' and '{end_date}' " \
                 f"and a.Record_Detail_Type in ('SERVICE') " \
@@ -13688,7 +13689,6 @@ class ServicesByOutletView(APIView):
                 f"and stock.Item_type='SINGLE' {site_filter}" \
                 f"group by a.itemSite_code,item_sitelist.ItemSite_Desc " \
                 f"ORDER BY Sales DESC"
-        print(raw_q)
         with connection.cursor() as cursor:
             cursor.execute(raw_q)
             raw_qs = cursor.fetchall()
@@ -13700,12 +13700,15 @@ class ServicesByOutletView(APIView):
             for i,row in enumerate(raw_qs):
                 _d = dict(zip([col[0] for col in desc], row))
                 _d['id'] = i +1
+                _d['Ranks'] = i+1
                 data_list.append(_d)
                 site_total_dict[_d['SiteCode']] = round(site_total_dict.get(_d['SiteCode'], 0) + _d['Sales'], 2)
 
             responseData = {"data": data_list, "chart": site_total_dict}
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
             return Response(result, status=status.HTTP_200_OK)
+
+
 
 
 
