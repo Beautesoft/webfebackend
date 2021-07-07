@@ -79,6 +79,7 @@ urlpatterns = [
 
     path('api/temp_login', views.temp_login, name='temp_login'),
     path('api/temp_branches', views.brnchs_temp, name='brnchs_temp'),
+    path('api/temp_user', views.temp_user, name='temp_user'),
 
 
 

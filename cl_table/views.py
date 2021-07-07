@@ -14017,9 +14017,9 @@ class ServicesByConsultantView(APIView):
                                          count=Sum('daily_share_count'),
                                          average=Sum('daily_share_amount')/Sum('daily_share_count')).order_by('-'+_order)
 
-        # prev_rank_dict = {}
-        # for i, _s in enumerate(prev_sales_qs):
-        #     prev_rank_dict[_s["sitecode"]] = i + 1
+        prev_rank_dict = {}
+        for i, _s in enumerate(prev_sales_qs):
+            prev_rank_dict[_s["helper_code"]] = i + 1
 
 
         responseData = []
@@ -14027,20 +14027,21 @@ class ServicesByConsultantView(APIView):
             # _outlet = site_code_list.get(itemsite_code=sale['sitecode'])[1]
             _curr_rank = i + 1
             try:
+                staff_name = Employee.objects.filter(emp_code=sale['helper_code']).values('emp_name').first()['emp_name']
                 responseData.append({
                     "id": _curr_rank,
                     "Rank": _curr_rank,
                     "empCode": sale['helper_code'],
-                    "Consultant": sale['helper_code'],
-                    "rankDif": 0, #prev_rank_dict.get(sale['sitecode'], len(_q_sitecode)) - _curr_rank,  # should calc
+                    "Consultant": staff_name,
+                    "rankDif": prev_rank_dict.get(sale['helper_code'], 0) - _curr_rank,  # should calc
                     # "SiteCode": sale['sitecode'],
                     # "Outlet": _outlet,
                     "Amount": sale['amount'],
                     "Count": sale['count'],
                     "Average": sale['average'],
                 })
-            except:
-                continue
+            except Exception as e:
+                print(e)
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
@@ -14208,6 +14209,37 @@ def temp_login(request):
     data['branch'] = "JY01"
     data['session_id'] = request.session.session_key
     data['role'] = "ADMINISTRATOR"
+
+
+    result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': data}
+    return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes((AllowAny,))
+def temp_user(request):
+    """{"username":"seqadmin",
+    "currency":"S$","foc":0,
+    "token":"3078ba9235c9003e08f15a2712258cdfd9098839",
+    "role":"ADMINISTRATOR",
+    "branch":"HEALSPA AMARA (HS01) - Demo",
+    "service_sel":true,
+    "service_text":true}"""
+    u = User.objects.get(username="ABC")
+    token = Token.objects.filter(user=u).first()
+    data = {}
+    # is_expired, token = token_expire_handler(token)
+    data["username"] = "ABC"
+    data["token"] = token.key
+    data['salon'] = "HEALSPA"
+    data['role'] = "ADMINISTRATOR"
+    data['branch'] = "JY01"
+    data['session_id'] = request.session.session_key
+    data['role'] = "ADMINISTRATOR"
+    data['service_sel'] = True
+    data['service_text'] = True
+    data['currency'] = "$"
+    data['foc'] = 0
 
 
     result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': data}
