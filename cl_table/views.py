@@ -13856,51 +13856,6 @@ def site_group_list(request):
     return Response(result, status=status.HTTP_200_OK)
 
 
-class SalesSummeryByOutletView(APIView):
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = [IsAuthenticated & authenticated_only]
-
-    def get(self,request):
-
-        try:
-            start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
-            end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
-            date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
-        except:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "start and end query parameters are mandatory. format is YYYY-MM-DD",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
-
-        # filters
-        _siteCodes = request.GET.get("siteCodes")
-        _siteGroup = request.GET.get("siteGroup")
-
-        if _siteGroup and _siteCodes:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
-                exclude(itemsite_code__icontains="HQ").\
-                values_list('itemsite_code', flat=True)
-
-        if _siteCodes:
-            site_code_list = _siteCodes.split(",")
-        elif _siteGroup:
-            site_code_list = site_code_list.filter(site_group=_siteGroup)
-
-        _query = f"Select pos_haud.ID, pos_haud.itemSite_code,pos_daud.dt_deposit as PrdctSales, pos_daud.record_detail_type " \
-                 f"from pos_haud " \
-                 f"inner join pos_daud on pos_haud.sa_transacno=pos_daud.sa_transacno " \
-                 f"Where pos_haud.sa_date>='{start_date}' " \
-                 f"and pos_haud.sa_date<='{end_date}' " \
-                 f"and pos_haud.isVoid!=1 " \
-                 f"and pos_daud.record_detail_type in ('PRODUCT','TP PRODUCT')"
-
-        pos_haud_qs = PosHaud.objects.raw(_query)
-
 
 class RankingByOutletView(APIView):
     # authentication_classes = [TokenAuthentication]
@@ -14003,3 +13958,110 @@ class RankingByOutletView(APIView):
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
+
+
+class ServicesByConsultantView(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self,request):
+        """
+            query parm: start: datetime string(2021-01-01T00:00:00)
+                        in: day, week, month
+                        type: sales, service, product, prepaid
+        """
+
+        # try:
+        #     start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
+        #     end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
+        #     date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
+        # except:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "start and end query parameters are mandatory. format is YYYY-MM-DD",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        _in = request.GET.get('in','')
+        if _in.lower()=='day':
+            _delta = datetime.timedelta(days=1)
+        elif _in.lower()=='week':
+            _delta = datetime.timedelta(days=14)
+        elif _in.lower()=='month':
+            _delta = relativedelta.relativedelta(months=1)
+        else:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                        'message': "in query parameters are mandatory. (day,week,month)",
+                        'error': True,
+                        "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+
+        start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
+        _pre_start = start - _delta
+        end = start + _delta
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True). \
+                exclude(itemsite_code__icontains="HQ"). \
+                values_list('itemsite_code', flat=True)
+
+        if _siteCodes:
+            site_code_list = _siteCodes.split(",")
+        elif _siteGroup:
+            site_code_list = site_code_list.filter(site_group=_siteGroup)
+
+        site_code_q = ', '.join(['\''+str(code)+'\'' for code in site_code_list])
+
+        # _type = request.GET.get('type','').lower()
+        # if _type == "sales":
+        #     amount = Sum("sales_gt1_gst")
+        # elif _type == "service":
+        #     amount = Sum("servicesales_gt1")
+        # elif _type == "product":
+        #     amount = Sum("productsales_gt1")
+        # elif _type == "prepaid":
+        #     amount = Sum("prepaidsales_gt1")
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "type query parameters are mandatory. (sales,service,product,prepaid)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        raw_q = f"SELECT MAX(e.display_name) Consultant, " \
+                f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
+                f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) FullName " \
+                f"FROM pos_daud pd " \
+                f"INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
+                f"LEFT JOIN employee e on ms.emp_code = e.emp_code " \
+                f"WHERE pd.ItemSite_Code IN ({site_code_q})" \
+                f"AND pd.sa_date BETWEEN '{start}' AND '{end}' " \
+                f"GROUP BY ms.emp_code, pd.ItemSite_Code " \
+                f"ORDER BY Amount DESC"
+
+        with connection.cursor() as cursor:
+            cursor.execute(raw_q)
+            raw_qs = cursor.fetchall()
+            desc = cursor.description
+            # responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
+            # for row in raw_qs:
+            data_list = []
+            site_total_dict = {}
+            for i, row in enumerate(raw_qs):
+                _d = dict(zip([col[0] for col in desc], row))
+                _d['id'] = i + 1
+                _d['Rank'] = i + 1
+                _d['rankDif'] = 0
+                data_list.append(_d)
+
+            responseData = {"data": data_list}
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+            return Response(result, status=status.HTTP_200_OK)
