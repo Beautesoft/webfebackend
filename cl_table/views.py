@@ -21,7 +21,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      CustomerClass, Tmpmultistaff,
                      Skillstaff, ItemType, CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare,
                      Securitylevellist, DailysalesdataSummary, DailysalesdataDetail, Multilanguage, Workschedule,
-                     Religious, Nationality, Races)
+                     Religious, Nationality, Races, DailysalestdSummary)
 from cl_app.models import ItemSitelist, SiteGroup, LoggedInUser
 from custom.models import Room,ItemCart,VoucherRecord,EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -13957,19 +13957,8 @@ class ServicesByConsultantView(APIView):
         """
             query parm: start: datetime string(2021-01-01T00:00:00)
                         in: day, week, month
-                        type: sales, service, product, prepaid
+                        order: sales, service, product, prepaid
         """
-
-        # try:
-        #     start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
-        #     end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
-        #     date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
-        # except:
-        #     result = {'status': status.HTTP_400_BAD_REQUEST,
-        #               'message': "start and end query parameters are mandatory. format is YYYY-MM-DD",
-        #               'error': True,
-        #               "data": None}
-        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         _in = request.GET.get('in','')
         if _in.lower()=='day':
@@ -13985,7 +13974,6 @@ class ServicesByConsultantView(APIView):
                         "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
         _pre_start = start - _delta
         end = start + _delta
@@ -14000,60 +13988,93 @@ class ServicesByConsultantView(APIView):
         else:
             site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True). \
                 exclude(itemsite_code__icontains="HQ"). \
-                values_list('itemsite_code', flat=True)
+                values_list('itemsite_code', 'itemsite_desc')
 
         if _siteCodes:
-            site_code_list = _siteCodes.split(",")
+            site_code_list = site_code_list.filter(itemsite_code__in=_siteCodes.split(","))
         elif _siteGroup:
             site_code_list = site_code_list.filter(site_group=_siteGroup)
 
-        site_code_q = ', '.join(['\''+str(code)+'\'' for code in site_code_list])
+        _q_sitecode = list(site_code_list.values_list('itemsite_code', flat=True))
 
-        # _type = request.GET.get('type','').lower()
-        # if _type == "sales":
-        #     amount = Sum("sales_gt1_gst")
-        # elif _type == "service":
-        #     amount = Sum("servicesales_gt1")
-        # elif _type == "product":
-        #     amount = Sum("productsales_gt1")
-        # elif _type == "prepaid":
-        #     amount = Sum("prepaidsales_gt1")
-        # else:
-        #     result = {'status': status.HTTP_400_BAD_REQUEST,
-        #               'message': "type query parameters are mandatory. (sales,service,product,prepaid)",
-        #               'error': True,
-        #               "data": None}
-        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        #order by filter
+        _order = request.GET.get("order","count")
+        if _order not in ['amount','count','average']:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "order query parameters should be one of these ('amount','count','average')", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-        raw_q = f"SELECT MAX(e.display_name) Consultant, " \
-                f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
-                f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) FullName " \
-                f"FROM pos_daud pd " \
-                f"INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
-                f"LEFT JOIN employee e on ms.emp_code = e.emp_code " \
-                f"WHERE pd.ItemSite_Code IN ({site_code_q})" \
-                f"AND pd.sa_date BETWEEN '{start}' AND '{end}' " \
-                f"GROUP BY ms.emp_code, pd.ItemSite_Code " \
-                f"ORDER BY Amount DESC"
 
-        with connection.cursor() as cursor:
-            cursor.execute(raw_q)
-            raw_qs = cursor.fetchall()
-            desc = cursor.description
-            # responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
-            # for row in raw_qs:
-            data_list = []
-            site_total_dict = {}
-            for i, row in enumerate(raw_qs):
-                _d = dict(zip([col[0] for col in desc], row))
-                _d['id'] = i + 1
-                _d['Rank'] = i + 1
-                _d['rankDif'] = 0
-                data_list.append(_d)
+        sales_qs = DailysalestdSummary.objects.filter(sitecode__in=_q_sitecode,
+                                                      business_date__range=[start, end]) \
+                            .values('helper_code').annotate(amount=Sum('daily_share_amount'),
+                                         count=Sum('daily_share_count'),
+                                         average=Sum('daily_share_amount')/Sum('daily_share_count')).order_by('-'+_order)
+        prev_sales_qs = DailysalestdSummary.objects.filter(sitecode__in=_q_sitecode,
+                                                      business_date__range=[_pre_start, start]) \
+                            .values('helper_code').annotate(amount=Sum('daily_share_amount'),
+                                         count=Sum('daily_share_count'),
+                                         average=Sum('daily_share_amount')/Sum('daily_share_count')).order_by('-'+_order)
 
-            responseData = {"data": data_list}
-            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
-            return Response(result, status=status.HTTP_200_OK)
+        # prev_rank_dict = {}
+        # for i, _s in enumerate(prev_sales_qs):
+        #     prev_rank_dict[_s["sitecode"]] = i + 1
+
+
+        responseData = []
+        for i, sale in enumerate(sales_qs):
+            # _outlet = site_code_list.get(itemsite_code=sale['sitecode'])[1]
+            _curr_rank = i + 1
+            try:
+                responseData.append({
+                    "id": _curr_rank,
+                    "Rank": _curr_rank,
+                    "empCode": sale['helper_code'],
+                    "Consultant": sale['helper_code'],
+                    "rankDif": 0, #prev_rank_dict.get(sale['sitecode'], len(_q_sitecode)) - _curr_rank,  # should calc
+                    # "SiteCode": sale['sitecode'],
+                    # "Outlet": _outlet,
+                    "Amount": sale['amount'],
+                    "Count": sale['count'],
+                    "Average": sale['average'],
+                })
+            except:
+                continue
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+        # raw_q = f"SELECT MAX(e.display_name) Consultant, " \
+        #         f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
+        #         f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) FullName " \
+        #         f"FROM pos_daud pd " \
+        #         f"INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
+        #         f"LEFT JOIN employee e on ms.emp_code = e.emp_code " \
+        #         f"WHERE pd.ItemSite_Code IN ({site_code_q})" \
+        #         f"AND pd.sa_date BETWEEN '{start}' AND '{end}' " \
+        #         f"GROUP BY ms.emp_code, pd.ItemSite_Code " \
+        #         f"ORDER BY Amount DESC"
+        #
+        # with connection.cursor() as cursor:
+        #     cursor.execute(raw_q)
+        #     raw_qs = cursor.fetchall()
+        #     desc = cursor.description
+        #     # responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
+        #     # for row in raw_qs:
+        #     data_list = []
+        #     site_total_dict = {}
+        #     for i, row in enumerate(raw_qs):
+        #         _d = dict(zip([col[0] for col in desc], row))
+        #         _d['id'] = i + 1
+        #         _d['Rank'] = i + 1
+        #         _d['rankDif'] = 0
+        #         data_list.append(_d)
+        #
+        #     responseData = {"data": data_list}
+        #     result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        #     return Response(result, status=status.HTTP_200_OK)
+
 
 class SalesByConsultantView(APIView):
     # authentication_classes = [TokenAuthentication]

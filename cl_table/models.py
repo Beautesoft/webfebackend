@@ -3522,3 +3522,17 @@ class DailysalesdataSummary(models.Model):
         gt2 = self.sales_gt2_withgst if self.sales_gt2_withgst else 0
         return {"GT1":gt1, "GT2": gt2, "BOTH": gt1 + gt2}
 
+
+class DailysalestdSummary(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    sitecode = models.CharField(db_column='SiteCode', max_length=20)  # Field name made lowercase.
+    business_date = models.DateTimeField(db_column='Business_Date')  # Field name made lowercase.
+    helper_code = models.CharField(db_column='Helper_Code', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    daily_share_count = models.FloatField(db_column='Daily_Share_Count', blank=True, null=True)  # Field name made lowercase.
+    daily_share_amount = models.FloatField(db_column='Daily_Share_Amount', blank=True, null=True)  # Field name made lowercase.
+    lastupdate = models.DateTimeField(db_column='LastUpDate')  # Field name made lowercase.
+
+
+    class Meta:
+        managed = False
+        db_table = 'DailySalesTD_Summary'
