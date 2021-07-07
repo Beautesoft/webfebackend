@@ -14178,8 +14178,8 @@ class SalesByConsultantView(APIView):
                 _d['rankDif'] = 0
                 data_list.append(_d)
 
-            responseData = {"data": data_list}
-            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+            # responseData = {"data": data_list}
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": data_list}
             return Response(result, status=status.HTTP_200_OK)
 
 
