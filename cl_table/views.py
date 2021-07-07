@@ -13920,19 +13920,24 @@ class RankingByOutletView(APIView):
                                                         business_date__range=[start, end])\
             .values('sitecode').annotate(amount=amount).order_by('-amount')
 
-        # prev_sales_qs = DailysalesdataSummary.objects.filter(
-        #     sitecode__in=_q_sitecode,
-        #     business_date__range=[_pre_start, start]) \
-        #     .values('sitecode').annotate(amount=amount).order_by('-amount')
+        prev_sales_qs = DailysalesdataSummary.objects.filter(
+            sitecode__in=_q_sitecode,
+            business_date__range=[_pre_start, start]) \
+            .values('sitecode').annotate(amount=amount).order_by('-amount')
+
+        prev_rank_dict = {}
+        for i, _s in enumerate(prev_sales_qs):
+            prev_rank_dict[_s["sitecode"]] = i+1
 
         responseData = []
         for i,sale in enumerate(sales_qs):
             _outlet = site_code_list.get(itemsite_code=sale['sitecode'])[1]
+            _curr_rank = i+1
             try:
                 responseData.append({
-                    "id": i+1,
-                    "Rank": i+1,
-                    "rankDif": 0, #should calc
+                    "id": _curr_rank,
+                    "Rank": _curr_rank,
+                    "rankDif": prev_rank_dict.get(sale['sitecode'],len(_q_sitecode)) - _curr_rank, #should calc
                     "SiteCode": sale['sitecode'],
                     "Outlet": _outlet,
                     "Amount": sale['amount'],
@@ -14058,7 +14063,6 @@ class SalesByConsultantView(APIView):
         """
             query parm: start: datetime string(2021-01-01T00:00:00)
                         in: day, week, month
-                        type: sales, service, product, prepaid
         """
 
         # try:
@@ -14167,6 +14171,7 @@ def brnchs_temp(request):
         site_list.append(i)
     result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": site_list}
     return Response(result, status=status.HTTP_200_OK)
+
 
 @api_view(['GET', 'POST'])
 @permission_classes((AllowAny,))
