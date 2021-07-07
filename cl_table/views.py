@@ -13825,24 +13825,6 @@ class ProductByOutletView(APIView):
 
 
 
-@api_view(['GET', 'POST'])
-@permission_classes((AllowAny,))
-def temp_login(request):
-    u = User.objects.get(username="ABC")
-    tokens, _ = Token.objects.get_or_create(user=u)
-    if tokens:
-        token = multiple_expire_handler(tokens)
-    data = {}
-    # is_expired, token = token_expire_handler(token)
-    data["token"] = token.key
-    data['salon'] = "HEALSPA"
-    data['branch'] = "JY01"
-    data['session_id'] = request.session.session_key
-    data['role'] = "ADMINISTRATOR"
-
-
-    result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': data}
-    return Response(result, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', ])
@@ -14173,3 +14155,34 @@ class SalesByConsultantView(APIView):
             responseData = {"data": data_list}
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
             return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes((AllowAny,))
+def brnchs_temp(request):
+    qs = ItemSitelist.objects.filter(itemsite_isactive=True).values('itemsite_id','itemsite_code','itemsite_desc')
+    site_list = []
+    for i in qs:
+        i['id'] = i['itemsite_id']
+        site_list.append(i)
+    result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": site_list}
+    return Response(result, status=status.HTTP_200_OK)
+
+@api_view(['GET', 'POST'])
+@permission_classes((AllowAny,))
+def temp_login(request):
+    u = User.objects.get(username="ABC")
+    tokens, _ = Token.objects.get_or_create(user=u)
+    if tokens:
+        token = multiple_expire_handler(tokens)
+    data = {}
+    # is_expired, token = token_expire_handler(token)
+    data["token"] = token.key
+    data['salon'] = "HEALSPA"
+    data['branch'] = "JY01"
+    data['session_id'] = request.session.session_key
+    data['role'] = "ADMINISTRATOR"
+
+
+    result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': data}
+    return Response(result, status=status.HTTP_200_OK)

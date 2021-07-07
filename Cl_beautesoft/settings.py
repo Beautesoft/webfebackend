@@ -136,7 +136,7 @@ WSGI_APPLICATION = 'Cl_beautesoft.wsgi.application'
 # }
 
 
-# # # normal db
+# # # # normal db
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'sql_server.pyodbc',
@@ -153,7 +153,7 @@ WSGI_APPLICATION = 'Cl_beautesoft.wsgi.application'
 # }
 
 
-# # KPI db with real data.
+# KPI db with real data.
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
