@@ -13945,16 +13945,18 @@ class RankingByOutletView(APIView):
 
         responseData = []
         for i,sale in enumerate(sales_qs):
-            responseData.append({
-                "id": i+1,
-                "Rank": i+1,
-                "rankDif": 0, #should calc
-                "Outlet": sale['sitecode'],
-                "Amount": sale['amount'],
-            })
-
-
-
+            _outlet = site_code_list.get(itemsite_code=sale['sitecode'])[1]
+            try:
+                responseData.append({
+                    "id": i+1,
+                    "Rank": i+1,
+                    "rankDif": 0, #should calc
+                    "SiteCode": sale['sitecode'],
+                    "Outlet": _outlet,
+                    "Amount": sale['amount'],
+                })
+            except:
+                continue
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
