@@ -13936,11 +13936,11 @@ class RankingByOutletView(APIView):
             try:
                 responseData.append({
                     "id": _curr_rank,
-                    "Rank": _curr_rank,
+                    "rank": _curr_rank,
                     "rankDif": prev_rank_dict.get(sale['sitecode'],len(_q_sitecode)) - _curr_rank, #should calc
-                    "SiteCode": sale['sitecode'],
-                    "Outlet": _outlet,
-                    "Amount": sale['amount'],
+                    "siteCode": sale['sitecode'],
+                    "outlet": _outlet,
+                    "amount": sale['amount'],
                 })
             except:
                 continue
@@ -14030,15 +14030,15 @@ class ServicesByConsultantView(APIView):
                 staff_name = Employee.objects.filter(emp_code=sale['helper_code']).values('emp_name').first()['emp_name']
                 responseData.append({
                     "id": _curr_rank,
-                    "Rank": _curr_rank,
+                    "rank": _curr_rank,
                     "empCode": sale['helper_code'],
-                    "Consultant": staff_name,
+                    "consultant": staff_name,
                     "rankDif": prev_rank_dict.get(sale['helper_code'], 0) - _curr_rank,  # should calc
                     # "SiteCode": sale['sitecode'],
                     # "Outlet": _outlet,
-                    "Amount": sale['amount'],
-                    "Count": sale['count'],
-                    "Average": sale['average'],
+                    "amount": sale['amount'],
+                    "count": sale['count'],
+                    "average": sale['average'],
                 })
             except Exception as e:
                 print(e)
@@ -14152,16 +14152,16 @@ class SalesByConsultantView(APIView):
         #               "data": None}
         #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-        raw_q = f"SELECT MAX(e.display_name) Consultant, " \
+        raw_q = f"SELECT MAX(e.display_name) consultant, " \
                 f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
-                f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) FullName " \
+                f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) fullName " \
                 f"FROM pos_daud pd " \
                 f"INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
                 f"LEFT JOIN employee e on ms.emp_code = e.emp_code " \
                 f"WHERE pd.ItemSite_Code IN ({site_code_q})" \
                 f"AND pd.sa_date BETWEEN '{start}' AND '{end}' " \
                 f"GROUP BY ms.emp_code, pd.ItemSite_Code " \
-                f"ORDER BY Amount DESC"
+                f"ORDER BY amount DESC"
 
         with connection.cursor() as cursor:
             cursor.execute(raw_q)
@@ -14174,7 +14174,7 @@ class SalesByConsultantView(APIView):
             for i, row in enumerate(raw_qs):
                 _d = dict(zip([col[0] for col in desc], row))
                 _d['id'] = i + 1
-                _d['Rank'] = i + 1
+                _d['rank'] = i + 1
                 _d['rankDif'] = 0
                 data_list.append(_d)
 
