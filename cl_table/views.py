@@ -13927,23 +13927,26 @@ class RankingByOutletView(APIView):
 
         prev_rank_dict = {}
         for i, _s in enumerate(prev_sales_qs):
-            prev_rank_dict[_s["sitecode"]] = i+1
+            prev_rank_dict[_s["sitecode"]] = [i + 1,_s['amount']]
 
         responseData = []
         for i,sale in enumerate(sales_qs):
             _outlet = site_code_list.get(itemsite_code=sale['sitecode'])[1]
             _curr_rank = i+1
+            prev_dict = prev_rank_dict.get(sale['sitecode'],[len(_q_sitecode),0])
             try:
                 responseData.append({
                     "id": _curr_rank,
                     "rank": _curr_rank,
-                    "rankDif": prev_rank_dict.get(sale['sitecode'],len(_q_sitecode)) - _curr_rank, #should calc
+                    "rankDif": prev_dict[0] - _curr_rank, #should calc
+                    "prevValue": round(prev_dict[1], 0),
                     # "siteCode": sale['sitecode'],
                     "outlet": _outlet,
                     "amount": round(sale['amount'],2),
                     "startDate": start.date()
                 })
-            except:
+            except Exception as e:
+                print(e)
                 continue
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
@@ -14020,7 +14023,7 @@ class ServicesByConsultantView(APIView):
 
         prev_rank_dict = {}
         for i, _s in enumerate(prev_sales_qs):
-            prev_rank_dict[_s["helper_code"]] = i + 1
+            prev_rank_dict[_s["helper_code"]] = [i + 1,_s[_order]]
 
 
         responseData = []
@@ -14029,12 +14032,14 @@ class ServicesByConsultantView(APIView):
             _curr_rank = i + 1
             try:
                 staff_name = Employee.objects.filter(emp_code=sale['helper_code']).values('emp_name').first()['emp_name']
+                prv_dict = prev_rank_dict.get(sale['helper_code'], [0,0])
                 responseData.append({
                     "id": _curr_rank,
                     "rank": _curr_rank,
                     # "empCode": sale['helper_code'],
                     "consultant": staff_name,
-                    "rankDif": prev_rank_dict.get(sale['helper_code'], 0) - _curr_rank,  # should calc
+                    "rankDif": prv_dict[0] - _curr_rank,  # should calc
+                    "prevValue": round(prv_dict[1],0),
                     # "SiteCode": sale['sitecode'],
                     # "Outlet": _outlet,
                     "amount": round(sale['amount'],2),
