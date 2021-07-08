@@ -13938,9 +13938,10 @@ class RankingByOutletView(APIView):
                     "id": _curr_rank,
                     "rank": _curr_rank,
                     "rankDif": prev_rank_dict.get(sale['sitecode'],len(_q_sitecode)) - _curr_rank, #should calc
-                    "siteCode": sale['sitecode'],
+                    # "siteCode": sale['sitecode'],
                     "outlet": _outlet,
-                    "amount": sale['amount'],
+                    "amount": round(sale['amount'],2),
+                    "startDate": start.date()
                 })
             except:
                 continue
@@ -14031,14 +14032,16 @@ class ServicesByConsultantView(APIView):
                 responseData.append({
                     "id": _curr_rank,
                     "rank": _curr_rank,
-                    "empCode": sale['helper_code'],
+                    # "empCode": sale['helper_code'],
                     "consultant": staff_name,
                     "rankDif": prev_rank_dict.get(sale['helper_code'], 0) - _curr_rank,  # should calc
                     # "SiteCode": sale['sitecode'],
                     # "Outlet": _outlet,
-                    "amount": sale['amount'],
+                    "amount": round(sale['amount'],2),
                     "count": sale['count'],
-                    "average": sale['average'],
+                    "average": round(sale['average'],2),
+                    "startDate": start.date()
+
                 })
             except Exception as e:
                 print(e)
@@ -14154,13 +14157,13 @@ class SalesByConsultantView(APIView):
 
         raw_q = f"SELECT MAX(e.display_name) consultant, " \
                 f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
-                f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) fullName " \
+                f"MAX(e.emp_name) fullName " \
                 f"FROM pos_daud pd " \
                 f"INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
                 f"LEFT JOIN employee e on ms.emp_code = e.emp_code " \
                 f"WHERE pd.ItemSite_Code IN ({site_code_q})" \
                 f"AND pd.sa_date BETWEEN '{start}' AND '{end}' " \
-                f"GROUP BY ms.emp_code, pd.ItemSite_Code " \
+                f"GROUP BY ms.emp_code " \
                 f"ORDER BY amount DESC"
 
         with connection.cursor() as cursor:
