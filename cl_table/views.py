@@ -14160,19 +14160,31 @@ class SalesByConsultantView(APIView):
         #               "data": None}
         #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-        raw_q = f"SELECT MAX(e.display_name) consultant, " \
-                f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
-                f"MAX(e.emp_name) fullName " \
-                f"FROM pos_daud pd " \
-                f"INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
-                f"LEFT JOIN employee e on ms.emp_code = e.emp_code " \
-                f"WHERE pd.ItemSite_Code IN ({site_code_q})" \
-                f"AND pd.sa_date BETWEEN '{start}' AND '{end}' " \
-                f"GROUP BY ms.emp_code " \
-                f"ORDER BY amount DESC"
+        raw_q = "SELECT MAX(e.display_name) consultant, " \
+                "cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
+                "ms.emp_code AS empCode, " \
+                "MAX(e.emp_name) AS fullName " \
+                "FROM pos_daud pd " \
+                "INNER JOIN multistaff ms ON pd.sa_transacno = ms.sa_transacno and pd.dt_lineno = ms.dt_lineno " \
+                "LEFT JOIN employee e on ms.emp_code = e.emp_code " \
+                "WHERE pd.ItemSite_Code IN ({0})" \
+                "AND pd.sa_date BETWEEN '{1}' AND '{2}' " \
+                "GROUP BY ms.emp_code " \
+                "ORDER BY amount DESC"
+
+        # #previous qs
+        _prev_dict = {}
+        with connection.cursor() as cursor:
+            cursor.execute(raw_q.format(site_code_q,_pre_start,start))
+            raw_qs = cursor.fetchall()
+            desc = cursor.description
+            for i, row in enumerate(raw_qs):
+                _d = dict(zip([col[0] for col in desc], row))
+                _prev_dict[_d['empCode']] = [i+1,_d['amount']]
+
 
         with connection.cursor() as cursor:
-            cursor.execute(raw_q)
+            cursor.execute(raw_q.format(site_code_q,start,end))
             raw_qs = cursor.fetchall()
             desc = cursor.description
             # responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
@@ -14180,11 +14192,23 @@ class SalesByConsultantView(APIView):
             data_list = []
             site_total_dict = {}
             for i, row in enumerate(raw_qs):
+                _prev = _prev_dict.get(_d['empCode'], [0,0]) #todo: this index 0 value should be change to emp list length
+                _curr_rank = i + 1
                 _d = dict(zip([col[0] for col in desc], row))
                 _d['id'] = i + 1
                 _d['rank'] = i + 1
                 _d['rankDif'] = 0
-                data_list.append(_d)
+                data_list.append({
+                    "id" : _curr_rank,
+                    "rank": _curr_rank,
+                    "rankDiff": _prev[0]- _curr_rank,
+                    "prevValue": round(_prev[1], 0),
+                    "fullName": _d['fullName'],
+                    "consultant": _d['consultant'],
+                    "amount": _d['amount'],
+                    # "empCode": _d['empCode'],
+                })
+                # print(_d)
 
             # responseData = {"data": data_list}
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": data_list}
