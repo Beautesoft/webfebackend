@@ -14202,7 +14202,7 @@ class SalesByConsultantView(APIView):
                     "id" : _curr_rank,
                     "rank": _curr_rank,
                     "rankDif": _prev[0]- _curr_rank,
-                    "prevValue": round(_prev[1], 0),
+                    "prevValue": round(_prev[1], 2),
                     "fullName": _d['fullName'],
                     "consultant": _d['consultant'],
                     "amount": _d['amount'],
