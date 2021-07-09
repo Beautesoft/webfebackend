@@ -14201,7 +14201,7 @@ class SalesByConsultantView(APIView):
                 data_list.append({
                     "id" : _curr_rank,
                     "rank": _curr_rank,
-                    "rankDiff": _prev[0]- _curr_rank,
+                    "rankDif": _prev[0]- _curr_rank,
                     "prevValue": round(_prev[1], 0),
                     "fullName": _d['fullName'],
                     "consultant": _d['consultant'],
