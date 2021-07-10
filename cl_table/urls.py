@@ -63,23 +63,21 @@ urlpatterns = [
     path('api/IndividualEmpSettings/<int:emp_no>', views.IndividualEmpSettings.as_view(), name='IndividualEmpSettings'),
     path('api/MultiLanguage/', views.MultiLanguage, name='MultiLanguage'),
     path('api/EmployeeLevels/', views.EmployeeLevels, name='EmployeeLevels'),
-    path('api/DailySales/', views.DailySalesView.as_view(), name='DailySales'),
-    path('api/DailySalesSummery/', views.DailySalesSummeryView.as_view(), name='DailySalesSummeryView'),
-    path('api/MonthlySalesSummery/', views.MonthlySalesSummeryView.as_view(), name='MonthlySalesSummeryView'),
+
+    # KPI APIs
     path('api/DailySalesBySite/', views.DailySalesSummeryBySiteView.as_view(), name='DailySalesSummeryBySiteView'),
     path('api/MonthlySalesBySite/', views.MonthlySalesSummeryBySiteView.as_view(), name='MonthlySalesSummeryBySiteView'),
     path('api/DailySalesByConsultant/', views.DailySalesSummeryByConsultantView.as_view(), name='DailySalesSummeryByConsultantView'),
-    path('api/ServicesByOutlet/', views.ServicesByOutletView.as_view(), name='ServicesByOutletView'),
-    path('api/ProductByOutlet/', views.ProductByOutletView.as_view(), name='ProductByOutletView'),
     path('api/RankingByOutlet/', views.RankingByOutletView.as_view(), name='RankingByOutletView'),
     path('api/ServicesByConsultant/', views.ServicesByConsultantView.as_view(), name='ServicesByConsultantView'),
     path('api/SalesByConsultant/', views.SalesByConsultantView.as_view(), name='SalesByConsultantView'),
     path('api/site_group_list/', views.site_group_list, name='site_group_list'),
 
-
+    # DO NOT DEPLOY BELOW ----> #
     path('api/temp_login', views.temp_login, name='temp_login'),
     path('api/temp_branches', views.brnchs_temp, name='brnchs_temp'),
     path('api/temp_user', views.temp_user, name='temp_user'),
+    # ------> ###
 
 
 
