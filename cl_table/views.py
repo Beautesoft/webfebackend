@@ -13345,43 +13345,42 @@ class DailySalesSummeryBySiteView(APIView):
         _siteGroup = request.GET.get("siteGroup")
         if _siteGroup and _siteCodes:
             result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         else:
-            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
-                exclude(itemsite_code__icontains="HQ").\
-                values_list('itemsite_code', flat=True)
-
+            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True). \
+                exclude(itemsite_code__icontains="HQ"). \
+                values_list('itemsite_code', 'itemsite_desc')
+        print(site_code_list)
         if _siteCodes:
-            site_code_list = _siteCodes.split(",")
+            site_code_list = site_code_list.filter(itemsite_code__in=_siteCodes.split(","))
         elif _siteGroup:
             site_code_list = site_code_list.filter(site_group=_siteGroup)
 
+        _q_sitecode = list(site_code_list.values_list('itemsite_code', flat=True))
 
-        sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=site_code_list,business_date__range=[start_date,end_date])
+
+        sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=_q_sitecode,business_date__range=[start_date,end_date])
 
         data_list = []
         site_total_dict = {}
 
         for i, date in enumerate(date_range):
-            row_dict = {"id":i+1 ,"date":date}
+            row_dict = {"id":i+1 ,"date":date.strftime("%d/%m/%Y")}
             # _amount = {"GT1":0, "GT2": 0, "BOTH": 0}
             _amount = 0
             for site in site_code_list:
                 try:
-                    sale_obj = sales_qs.get(sitecode=site, business_date=date)
+                    sale_obj = sales_qs.get(sitecode=site[0], business_date=date)
                     # total = sale_obj.get_total_amount[sales_setting]
                     total = sale_obj.sales_gt1_withgst if sale_obj.sales_gt1_withgst else 0
                 except Exception as e:
-                    print(e)
-                    # total = {"GT1":0, "GT2": 0, "BOTH": 0}
                     total = 0
-                # _amount["GT1"] += total['GT1']
-                # _amount["GT2"] += total["GT2"]
-                # _amount["BOTH"] += total["BOTH"]
                 _amount += total
-                row_dict[site] = round(total,2)
-                site_total_dict[site] = round(site_total_dict.get(site,0) + total,2)
+                _outlet = site[1]
+                row_dict[_outlet] = round(total,2)
+                site_total_dict[_outlet] = round(site_total_dict.get(_outlet,0) + total,2)
             row_dict["total"] = round(_amount,2)
             data_list.append(row_dict)
         # data_list.append(site_total_dict)
@@ -13416,20 +13415,23 @@ class MonthlySalesSummeryBySiteView(APIView):
         _siteGroup = request.GET.get("siteGroup")
         if _siteGroup and _siteCodes:
             result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         else:
-            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
-                exclude(itemsite_code__icontains="HQ").\
-                values_list('itemsite_code', flat=True)
+            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True). \
+                exclude(itemsite_code__icontains="HQ"). \
+                values_list('itemsite_code', 'itemsite_desc')
 
         if _siteCodes:
-            site_code_list = _siteCodes.split(",")
+            site_code_list = site_code_list.filter(itemsite_code__in=_siteCodes.split(","))
         elif _siteGroup:
             site_code_list = site_code_list.filter(site_group=_siteGroup)
 
+        _q_sitecode = list(site_code_list.values_list('itemsite_code', flat=True))
 
-        sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=site_code_list,business_date__range=[start_date,end_date])
+
+        sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=_q_sitecode,business_date__range=[start_date,end_date])
         data_list = []
         site_total_dict = {}
         for i, curr_month in enumerate(month_list):
@@ -13438,11 +13440,12 @@ class MonthlySalesSummeryBySiteView(APIView):
             try:
                 for site in site_code_list:
                     next_month = month_list[i+1]
-                    _tot = sales_qs.filter(business_date__range=[curr_month, next_month],sitecode=site).aggregate(Sum('sales_gt1_withgst'))
+                    _tot = sales_qs.filter(business_date__range=[curr_month, next_month],sitecode=site[0]).aggregate(Sum('sales_gt1_withgst')) # index 0 is site code
                     total = _tot['sales_gt1_withgst__sum'] if type(_tot['sales_gt1_withgst__sum']) == float else 0
-                    row_dict[site] = round(total,2)
+                    row_dict[_outlet] = round(total,2)
                     _amount += total
-                    site_total_dict[site] = round(site_total_dict.get(site, 0) + total, 2)
+                    _outlet = site[1] # index 1 is outlet name
+                    site_total_dict[_outlet] = round(site_total_dict.get(_outlet, 0) + total, 2)
             except IndexError:
                 continue
             row_dict['total'] = _amount
@@ -13630,11 +13633,11 @@ class RankingByOutletView(APIView):
                     "id": _curr_rank,
                     "rank": _curr_rank,
                     "rankDif": prev_dict[0] - _curr_rank, #should calc
-                    "prevValue": round(prev_dict[1], 0),
+                    "prevValue": round(prev_dict[1], 2),
                     # "siteCode": sale['sitecode'],
                     "outlet": _outlet,
                     "amount": round(sale['amount'],2),
-                    "startDate": start.date()
+                    "startDate": start.date().strftime("%d/%m/%Y")
                 })
             except Exception as e:
                 print(e)
@@ -13730,7 +13733,7 @@ class ServicesByConsultantView(APIView):
                     # "empCode": sale['helper_code'],
                     "consultant": staff_name,
                     "rankDif": prv_dict[0] - _curr_rank,  # should calc
-                    "prevValue": round(prv_dict[1],0),
+                    "prevValue": round(prv_dict[1],2),
                     # "SiteCode": sale['sitecode'],
                     # "Outlet": _outlet,
                     "amount": round(sale['amount'],2),
