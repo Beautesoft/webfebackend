@@ -21,7 +21,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      CustomerClass, Tmpmultistaff,
                      Skillstaff, ItemType, CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare,
                      Securitylevellist, DailysalesdataSummary, DailysalesdataDetail, Multilanguage, Workschedule,
-                     Religious, Nationality, Races, DailysalestdSummary)
+                     Religious, Nationality, Races, DailysalestdSummary, MultiLanguageWord)
 from cl_app.models import ItemSitelist, SiteGroup, LoggedInUser
 from custom.models import Room,ItemCart,VoucherRecord,EmpLevel
 from .serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -13233,12 +13233,20 @@ class EmployeeSecuritySettings(APIView):
 @api_view(['GET', ])
 @permission_classes((AllowAny,))
 def MultiLanguage(request):
-    qs = Multilanguage.objects.all().values('id', 'english', 'zh_sg')
+    lang_qs = Language.objects.filter(itm_isactive=True)
+
+    responseDict = {}
+    for lang in lang_qs:
+        qs = MultiLanguageWord.objects.filter(language=lang).values('wordCode', 'word')
+        responseDict[lang.itm_desc] = list(qs)
+
     response_data = {
-        "language": list(qs),
+        "language": responseDict,
         "message": "Listed successfuly"
     }
     return JsonResponse(response_data, status=status.HTTP_200_OK)
+
+
 
 
 @api_view(['GET', ])
