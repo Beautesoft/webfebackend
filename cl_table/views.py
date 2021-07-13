@@ -13231,6 +13231,7 @@ class EmployeeSecuritySettings(APIView):
 
 
 @api_view(['GET', ])
+@permission_classes((AllowAny,))
 def MultiLanguage(request):
     qs = Multilanguage.objects.all().values('id', 'english', 'zh_sg')
     response_data = {

@@ -136,38 +136,38 @@ WSGI_APPLICATION = 'Cl_beautesoft.wsgi.application'
 # }
 
 
-# # # # normal db
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'sql_server.pyodbc',
-#         'NAME': 'healspahqtrain',
-#         # 'NAME': 'MidysonTrain',
-#         'HOST': '103.253.15.184',
-#         'PORT': '1433',
-#         'USER': 'sa',
-#         'PASSWORD': 'Doodle@123',
-#         'OPTIONS': {
-#             'driver': 'ODBC Driver 17 for SQL Server',
-#         }
-#     }
-# }
-
-
-# KPI db with real data.
+# # # normal db
 DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'JeanYipBeauty_JYHQ',
+        'NAME': 'healspahqtrain',
         # 'NAME': 'MidysonTrain',
-        'HOST': 'jeanyip.acy7lab.com',
-        'PORT': '8890',
-        'USER': 'zoonpavithra',
-        'PASSWORD': 'Zoon24Python',
+        'HOST': '103.253.15.184',
+        'PORT': '1433',
+        'USER': 'sa',
+        'PASSWORD': 'Doodle@123',
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
         }
     }
 }
+
+
+# # KPI db with real data.
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'sql_server.pyodbc',
+#         'NAME': 'JeanYipBeauty_JYHQ',
+#         # 'NAME': 'MidysonTrain',
+#         'HOST': 'jeanyip.acy7lab.com',
+#         'PORT': '8890',
+#         'USER': 'zoonpavithra',
+#         'PASSWORD': 'Zoon24Python',
+#         'OPTIONS': {
+#             'driver': 'ODBC Driver 17 for SQL Server',
+#         }
+#     }
+# }
 
 #mysql
 # DATABASES =  {
