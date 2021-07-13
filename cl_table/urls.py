@@ -62,6 +62,7 @@ urlpatterns = [
     path('api/EmployeeSecuritySettings/', views.EmployeeSecuritySettings.as_view(), name='EmployeeSecuritySettings'),
     path('api/IndividualEmpSettings/<int:emp_no>', views.IndividualEmpSettings.as_view(), name='IndividualEmpSettings'),
     path('api/MultiLanguage/', views.MultiLanguage, name='MultiLanguage'),
+    path('api/MultiLanguageList/', views.MultiLanguage_list, name='MultiLanguage_list'),
     path('api/EmployeeLevels/', views.EmployeeLevels, name='EmployeeLevels'),
 
     # KPI APIs
