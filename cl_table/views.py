@@ -13246,6 +13246,26 @@ def MultiLanguage(request):
     }
     return JsonResponse(response_data, status=status.HTTP_200_OK)
 
+@api_view(['GET', ])
+@permission_classes((AllowAny,))
+def MultiLanguage_list(request):
+    lang_qs = Language.objects.filter(itm_isactive=True)
+    qs = MultiLanguageWord.objects.all()
+    responseDict = {}
+
+    for w in qs:
+        w_dict = responseDict.get(w.wordCode,{})
+        w_dict[w.language.itm_desc] = w.word
+        responseDict[w.wordCode] = w_dict
+    # for lang in lang_qs:
+    #     qs = MultiLanguageWord.objects.filter(language=lang).values('wordCode', 'word')
+    #     responseDict[lang.itm_desc] = list(qs)
+    resData = [val for key, val in responseDict.items()]
+    response_data = {
+        "language": resData,
+        "message": "Listed successfuly"
+    }
+    return JsonResponse(response_data, status=status.HTTP_200_OK)
 
 
 
