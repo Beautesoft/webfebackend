@@ -678,7 +678,7 @@ class MenuSecuritylevellist(models.Model):
 
 class Fmspw(models.Model):
     pw_id = models.AutoField(db_column='PW_ID', primary_key=True)  # Field name made lowercase.
-    pw_userlogin = models.CharField(db_column='PW_UserLogin', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    pw_userlogin = models.CharField(db_column='PW_UserLogin', max_length=50, unique=True)  # Field name made lowercase.
     pw_password = models.CharField(db_column='PW_Password', max_length=15, blank=True, null=True)  # Field name made lowercase.
     flgdisc = models.BooleanField(default=False)
     LEVEL_ItmIDid = models.ForeignKey(Securities, on_delete=models.PROTECT,null=True) #,null=True,blank=True
@@ -746,7 +746,7 @@ class Fmspw(models.Model):
 
 class Customer(models.Model):
     cust_no = models.AutoField(db_column='Cust_No', primary_key=True)  # Field name made lowercase.
-    cust_code = models.CharField(db_column='Cust_code', max_length=255,null=True)  # Field name made lowercase.
+    cust_code = models.CharField(db_column='Cust_code', max_length=255,null=True,unique=True)  # Field name made lowercase.
     join_status = models.BooleanField(db_column='Join_status',null=True)  # Field name made lowercase.
     cust_joindate = models.DateTimeField(db_column='Cust_JoinDate', blank=True, null=True)  # Field name made lowercase.
     cust_name = models.CharField(db_column='Cust_name', max_length=255, blank=True, null=True)  # Field name made lowercase.
@@ -3539,16 +3539,28 @@ class DailysalestdSummary(models.Model):
 
 
 ## for KPI (those models are
-class PosHaud1(models.Model):
-    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+class PosHaud_Reporting(models.Model):
+    SA_STATUS = [
+        ('SA', 'SA'), #SA-Sales
+        ('VT', 'VT'), # VT-Void Transaction
+        ('SU', 'SU'), # SU-Suspend
+    ]
+
+    SA_TRANSACNO_TYPE = [
+        ('Receipt', 'Receipt'),
+        ('Redeem Service', 'Redeem Service'),
+        ('Non Sales', 'Non Sales'),
+        ('Void Transaction','Void Transaction')
+    ]
+
     mac_code = models.CharField(max_length=15, blank=True, null=True)
     cas_name = models.CharField(max_length=60, blank=True, null=True)
-    cas_logno = models.CharField(max_length=20)
+    cas_logno = models.CharField( max_length=20)
     sa_transacno = models.CharField(max_length=20)
-    sa_date = models.DateTimeField(blank=True, null=True)
-    sa_time = models.DateTimeField(blank=True, null=True)
+    sa_date = models.DateTimeField(blank=True, null=True, default=timezone.now, editable=False)
+    sa_time = models.DateTimeField(blank=True, null=True, default=timezone.now, editable=False)
     sa_postdate = models.DateTimeField(blank=True, null=True)
-    sa_status = models.CharField(max_length=5, blank=True, null=True)
+    sa_status = models.CharField(max_length=5, blank=True, null=True,choices=SA_STATUS)
     sa_remark = models.CharField(max_length=50, blank=True, null=True)
     sa_totamt = models.FloatField(blank=True, null=True)
     sa_totqty = models.IntegerField(db_column='sa_totQty', blank=True, null=True)  # Field name made lowercase.
@@ -3556,9 +3568,11 @@ class PosHaud1(models.Model):
     sa_totgst = models.FloatField(blank=True, null=True)
     sa_totservice = models.FloatField(blank=True, null=True)
     sa_amtret = models.FloatField(blank=True, null=True)
-    sa_staffno = models.CharField(max_length=100, blank=True, null=True)
+    sa_staffno = models.ForeignKey(Employee,to_field='emp_code',db_column='sa_staffno', on_delete=models.PROTECT, null=True,db_constraint=False,related_name='pos_haud_related')
+    # sa_staffno = models.CharField(max_length=100, blank=True, null=True)
     sa_staffname = models.CharField(max_length=600, blank=True, null=True)
-    sa_custno = models.CharField(max_length=20)
+    sa_custno = models.ForeignKey(Customer,to_field='cust_code',db_column='sa_custno', on_delete=models.PROTECT,  null=True,db_constraint=False,related_name='pos_haud_related')
+    # sa_custno = models.CharField(max_length=20, null=True)
     sa_custname = models.CharField(max_length=60, blank=True, null=True)
     sa_reason = models.IntegerField(db_column='sa_Reason', blank=True, null=True)  # Field name made lowercase.
     sa_discuser = models.CharField(db_column='sa_DiscUser', max_length=50, blank=True, null=True)  # Field name made lowercase.
@@ -3567,7 +3581,8 @@ class PosHaud1(models.Model):
     sa_discvalue = models.FloatField(blank=True, null=True)
     sa_discamt = models.FloatField(blank=True, null=True)
     sa_disctotal = models.FloatField(db_column='sa_discTotal', blank=True, null=True)  # Field name made lowercase.
-    itemsite_code = models.CharField(db_column='ItemSite_Code', max_length=10)  # Field name made lowercase.
+    itemsite_code  = models.ForeignKey('cl_app.ItemSitelist',db_column='ItemSite_Code',to_field='itemsite_code', on_delete=models.PROTECT, null=True, db_constraint=False,related_name='pos_haud_related')
+    # itemsite_code = models.CharField(db_column='ItemSite_Code', max_length=10, null=True)  # Field name made lowercase.
     sa_cardno = models.CharField(db_column='sa_CardNo', max_length=20, blank=True, null=True)  # Field name made lowercase.
     seat_no = models.CharField(db_column='Seat_No', max_length=10, blank=True, null=True)  # Field name made lowercase.
     sa_depositamt = models.FloatField(db_column='sa_depositAmt', blank=True, null=True)  # Field name made lowercase.
@@ -3595,12 +3610,13 @@ class PosHaud1(models.Model):
     previous_pts = models.FloatField(db_column='Previous_pts', blank=True, null=True)  # Field name made lowercase.
     today_pts = models.FloatField(db_column='Today_pts', blank=True, null=True)  # Field name made lowercase.
     total_balance_pts = models.FloatField(db_column='Total_Balance_pts', blank=True, null=True)  # Field name made lowercase.
-    trans_user_login = models.CharField(db_column='Trans_User_Login', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    trans_user_login = models.ForeignKey('cl_table.Fmspw',db_column='Trans_User_Login',to_field='pw_userlogin', on_delete=models.PROTECT,null=True, db_constraint=False,related_name='pos_haud_related')
+    # trans_user_login = models.CharField(db_column='Trans_User_Login', max_length=20, blank=True, null=True)  # Field name made lowercase.
     sync_lstupd = models.DateTimeField(db_column='Sync_LstUpd')  # Field name made lowercase.
     sync_clientindex = models.IntegerField(db_column='Sync_ClientIndex', blank=True, null=True)  # Field name made lowercase.
     sync_guid = models.CharField(db_column='Sync_GUID', max_length=36)  # Field name made lowercase.
     sa_transacno_ref = models.CharField(db_column='SA_TransacNo_Ref', max_length=20, blank=True, null=True)  # Field name made lowercase.
-    sa_transacno_type = models.CharField(db_column='SA_TransacNo_Type', max_length=20, blank=True, null=True)  # Field name made lowercase.
+    sa_transacno_type = models.CharField(db_column='SA_TransacNo_Type', max_length=20, choices=SA_TRANSACNO_TYPE,blank=True, null=True)  # Field name made lowercase.
     cust_sig_path = models.CharField(db_column='Cust_Sig_Path', max_length=250, blank=True, null=True)  # Field name made lowercase.
     trans_reason = models.CharField(db_column='Trans_Reason', max_length=200, blank=True, null=True)  # Field name made lowercase.
     trans_remark = models.CharField(db_column='Trans_Remark', max_length=200, blank=True, null=True)  # Field name made lowercase.
