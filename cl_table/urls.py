@@ -74,7 +74,10 @@ urlpatterns = [
     path('api/SalesByConsultant/', views.SalesByConsultantView.as_view(), name='SalesByConsultantView'),
     path('api/site_group_list/', views.site_group_list, name='site_group_list'),
 
-    # DO NOT DEPLOY BELOW ----> #
+    # reporting apis
+    path('api/SalesDailyReporting/', views.SalesDailyReporting.as_view(), name='SalesDailyReporting'),
+
+                  # DO NOT DEPLOY BELOW ----> #
     path('api/temp_login', views.temp_login, name='temp_login'),
     path('api/temp_branches', views.brnchs_temp, name='brnchs_temp'),
     path('api/temp_user', views.temp_user, name='temp_user'),
