@@ -12,7 +12,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      BlockReason, Tmpmultistaff, Tmptreatment, AppointmentStatus, AppointmentLog, Diagnosis,
                      Workschedule, Securitycontrollist, Securitylevellist, MenuSecurity, DiagnosisCompare,
                      MenuSecuritylevellist, Skillstaff, CustomerFormControl, RewardPolicy, RedeemPolicy, Multilanguage,
-                     MultiLanguageWord, Language,
+                     MultiLanguageWord, Language, PosHaud_Reporting,
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 
@@ -89,3 +89,7 @@ admin.site.register(AppointmentLog)
 admin.site.register(Multilanguage)
 admin.site.register(MultiLanguageWord)
 admin.site.register(Language)
+
+
+
+admin.site.register(PosHaud_Reporting)

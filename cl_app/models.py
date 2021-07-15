@@ -24,7 +24,7 @@ class SiteGroup(models.Model):
 
 class ItemSitelist(models.Model):
     itemsite_id = models.BigAutoField(db_column='ItemSite_ID', primary_key=True)  # Field name made lowercase.
-    itemsite_code = models.CharField(db_column='ItemSite_Code', max_length=20, null=True)  # Field name made lowercase.
+    itemsite_code = models.CharField(db_column='ItemSite_Code', max_length=20, unique=True)  # Field name made lowercase.
     itemsite_desc = models.CharField(db_column='ItemSite_Desc', max_length=60, blank=True, null=True)  # Field name made lowercase.
     itemsite_type = models.CharField(db_column='ItemSite_Type', max_length=10, blank=True, null=True)  # Field name made lowercase.
     item_purchasedept = models.CharField(db_column='Item_PurchaseDept', max_length=20, blank=True, null=True)  # Field name made lowercase.
