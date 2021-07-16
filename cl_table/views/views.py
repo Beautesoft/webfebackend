@@ -13394,7 +13394,7 @@ class DailySalesSummeryBySiteView(APIView):
 
         data_list = []
         site_total_dict = {}
-
+        full_total = 0 # all dates and all sites
         for i, date in enumerate(date_range):
             row_dict = {"id":i+1 ,"date":date.strftime("%d/%m/%Y")}
             # _amount = {"GT1":0, "GT2": 0, "BOTH": 0}
@@ -13409,10 +13409,16 @@ class DailySalesSummeryBySiteView(APIView):
                 _amount += total
                 _outlet = site[1]
                 row_dict[_outlet] = round(total,2)
+                full_total += total
                 site_total_dict[_outlet] = round(site_total_dict.get(_outlet,0) + total,2)
             row_dict["total"] = round(_amount,2)
             data_list.append(row_dict)
-        # data_list.append(site_total_dict)
+
+        site_total_dict["total"] = round(full_total, 2)
+        site_total_dict["id"] = i + 1
+        site_total_dict["date"] = "Total"
+
+        data_list.append(site_total_dict)
         responseData = {"data":data_list, "chart":site_total_dict}
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
@@ -13468,6 +13474,7 @@ class MonthlySalesSummeryBySiteView(APIView):
             _amount = 0
             try:
                 for site in site_code_list:
+                    _outlet = site[1] # outlet name
                     next_month = month_list[i+1]
                     _tot = sales_qs.filter(business_date__range=[curr_month, next_month],sitecode=site[0]).aggregate(Sum('sales_gt1_withgst')) # index 0 is site code
                     total = _tot['sales_gt1_withgst__sum'] if type(_tot['sales_gt1_withgst__sum']) == float else 0
