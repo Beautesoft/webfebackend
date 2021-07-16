@@ -13506,18 +13506,21 @@ class DailySalesSummeryByConsultantView(APIView):
         _siteGroup = request.GET.get("siteGroup")
         if _siteGroup and _siteCodes:
             result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True, "data": None}
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
         else:
-            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True).\
-                exclude(itemsite_code__icontains="HQ").\
-                values_list('itemsite_code', flat=True)
+            site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True). \
+                exclude(itemsite_code__icontains="HQ"). \
+                values_list('itemsite_code', 'itemsite_desc')
 
         if _siteCodes:
-            site_code_list = _siteCodes.split(",")
+            site_code_list = site_code_list.filter(itemsite_code__in=_siteCodes.split(","))
         elif _siteGroup:
             site_code_list = site_code_list.filter(site_group=_siteGroup)
-        site_code_q = ', '.join(['\''+str(code)+'\'' for code in site_code_list])
+
+        # _q_sitecode = list(site_code_list.values_list('itemsite_code', flat=True))
+        site_code_q = ', '.join(['\''+str(code)+'\'' for code in site_code_list.values_list('itemsite_code', flat=True)])
         raw_q = f"SELECT MAX(e.display_name) Consultant, " \
                         f"cast(SUM(pd.dt_deposit/100*ms.ratio) AS decimal(9,2)) amount, " \
                         f"pd.ItemSite_Code AS siteCode, MAX(e.emp_name) FullName " \
@@ -13539,6 +13542,8 @@ class DailySalesSummeryByConsultantView(APIView):
             site_total_dict = {}
             for i,row in enumerate(raw_qs):
                 _d = dict(zip([col[0] for col in desc], row))
+                _site = site_code_list.get(itemsite_code=_d.pop('siteCode'))
+                _d['outlet'] = _site[1]
                 _d['id'] = i+1
                 data_list.append(_d)
                 site_total_dict[_d['Consultant']] = round(site_total_dict.get(_d['Consultant'], 0) + _d['amount'], 2)
