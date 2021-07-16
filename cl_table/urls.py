@@ -76,6 +76,7 @@ urlpatterns = [
 
     # reporting apis
     path('api/SalesDailyReporting/', views.SalesDailyReporting.as_view(), name='SalesDailyReporting'),
+    path('api/CollectionByOutlet/', views.CollectionByOutletView.as_view(), name='CollectionByOutletView'),
 
                   # DO NOT DEPLOY BELOW ----> #
     path('api/temp_login', views.temp_login, name='temp_login'),
