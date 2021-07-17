@@ -13394,7 +13394,7 @@ class DailySalesSummeryBySiteView(APIView):
 
         data_list = []
         site_total_dict = {}
-        full_total = 0 # all dates and all sites
+        responseData = {}
         for i, date in enumerate(date_range):
             row_dict = {"id":i+1 ,"date":date.strftime("%d/%m/%Y")}
             # _amount = {"GT1":0, "GT2": 0, "BOTH": 0}
@@ -13409,17 +13409,20 @@ class DailySalesSummeryBySiteView(APIView):
                 _amount += total
                 _outlet = site[1]
                 row_dict[_outlet] = round(total,2)
-                full_total += total
                 site_total_dict[_outlet] = round(site_total_dict.get(_outlet,0) + total,2)
             row_dict["total"] = round(_amount,2)
             data_list.append(row_dict)
 
-        site_total_dict["total"] = round(full_total, 2)
+        responseData['chart'] = site_total_dict.copy() #shallow copy of sites totals
+
+        # add last row, total of columns
+        full_total = sum(site_total_dict.values()) # all dates and all sites
         site_total_dict["id"] = i + 1
         site_total_dict["date"] = "Total"
-
+        site_total_dict["total"] = full_total
         data_list.append(site_total_dict)
-        responseData = {"data":data_list, "chart":site_total_dict}
+
+        responseData["data"]= data_list
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
 
@@ -13469,6 +13472,7 @@ class MonthlySalesSummeryBySiteView(APIView):
         sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=_q_sitecode,business_date__range=[start_date,end_date])
         data_list = []
         site_total_dict = {}
+        responseData = {}
         for i, curr_month in enumerate(month_list):
             row_dict = {'id':i+1, 'month':curr_month.strftime("%b, %Y")}
             _amount = 0
@@ -13484,9 +13488,21 @@ class MonthlySalesSummeryBySiteView(APIView):
                     site_total_dict[_outlet] = round(site_total_dict.get(_outlet, 0) + total, 2)
             except IndexError:
                 continue
-            row_dict['total'] = _amount
+
+            row_dict['total'] = round(_amount, 2)
             data_list.append(row_dict)
-            responseData = {"data": data_list, "chart": site_total_dict}
+
+        responseData["chart"] = site_total_dict.copy() # shallow copy of site_totals for chart
+
+        # add final row totals of columns
+        full_total = sum(site_total_dict.values())  # all dates and all sites
+        site_total_dict["id"] = i + 1
+        site_total_dict["month"] = "Total"
+        site_total_dict["total"] = full_total
+
+        data_list.append(site_total_dict)
+
+        responseData['data'] = data_list
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
 
@@ -13539,6 +13555,7 @@ class DailySalesSummeryByConsultantView(APIView):
                 f"GROUP BY ms.emp_code, pd.ItemSite_Code " \
                 f"ORDER BY Amount DESC"
 
+        responseData = {}
         with connection.cursor() as cursor:
             cursor.execute(raw_q)
             raw_qs = cursor.fetchall()
@@ -13555,7 +13572,17 @@ class DailySalesSummeryByConsultantView(APIView):
                 data_list.append(_d)
                 site_total_dict[_d['Consultant']] = round(site_total_dict.get(_d['Consultant'], 0) + _d['amount'], 2)
 
-            responseData = {"data": data_list, "chart": site_total_dict}
+            responseData['chart'] = site_total_dict.copy()  # shallow copy of sites totals
+
+            # add last row, total of columns
+            full_total = sum(site_total_dict.values())  # all dates and all sites
+            site_total_dict["id"] = i + 1
+            site_total_dict["outlet"] = "Total"
+            site_total_dict["total"] = full_total
+            data_list.append(site_total_dict)
+
+            responseData["data"] = data_list
+
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
             return Response(result, status=status.HTTP_200_OK)
 
