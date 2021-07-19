@@ -13625,11 +13625,11 @@ class RankingByOutletView(APIView):
 
         _in = request.GET.get('in','')
         if _in.lower()=='day':
-            _delta = datetime.timedelta(days=1)
+            _delta = datetime.timedelta(days=1,microseconds=-1)
         elif _in.lower()=='week':
-            _delta = datetime.timedelta(days=14)
+            _delta = datetime.timedelta(days=14,microseconds=-1)
         elif _in.lower()=='month':
-            _delta = relativedelta.relativedelta(months=1)
+            _delta = relativedelta.relativedelta(months=1,microseconds=-1)
         else:
             result = {'status': status.HTTP_400_BAD_REQUEST,
                         'message': "in query parameters are mandatory. (day,week,month)",
@@ -13663,7 +13663,7 @@ class RankingByOutletView(APIView):
 
         _type = request.GET.get('type','').lower()
         if _type == "sales":
-            amount = Sum("sales_gt1_gst")
+            amount = Sum("sales_gt1_withgst")
         elif _type == "service":
             amount = Sum("servicesales_gt1")
         elif _type == "product":
@@ -13676,7 +13676,6 @@ class RankingByOutletView(APIView):
                       'error': True,
                       "data": None}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
-
 
         sales_qs = DailysalesdataSummary.objects.filter(sitecode__in=_q_sitecode,
                                                         business_date__range=[start, end])\
