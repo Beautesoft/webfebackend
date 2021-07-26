@@ -464,7 +464,7 @@ class Paytable_Reporting(models.Model):
     rw_usebp = models.BooleanField(db_column='RW_useBP')  
     iscomm = models.BooleanField(db_column='IsComm')  
     show_in_report = models.BooleanField(db_column='Show_In_Report')  
-    bank_charges = models.FloatField(db_column='Bank_Charges', blank=True, null=True)  
+    bank_charges = models.FloatField(db_column='Bank_Charges', default=0)
     eps = models.FloatField(db_column='EPS', blank=True, null=True)  
     sequence = models.IntegerField(db_column='Sequence', blank=True, null=True)  
     voucher_payment_control = models.BooleanField(db_column='Voucher_Payment_Control')  
