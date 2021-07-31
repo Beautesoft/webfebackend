@@ -1,6 +1,12 @@
 import re,string,random
 # from django.apps import apps
 # from django.db.models import Max
+from django.db.models import QuerySet, Model, ForeignObject
+from django.db.models.expressions import Col
+from django.db.models.sql.constants import INNER
+from django.db.models.sql.datastructures import Join
+from django.db.models.options import Options
+
 
 from cl_table.models import Fmspw, Securitylevellist
 
@@ -59,3 +65,48 @@ class PermissionValidator:
             return True
         self.error = "user hasn't any permissions"
         return False
+
+
+def model_joiner(queryset: QuerySet, to_model: Model, relations: tuple, from_model: Model = None,select:list=[]):
+    """
+     this function will facilitate complex JOIN clauses into the FROM entry.
+     For example, the SQL generated could be
+        LEFT OUTER JOIN "sometable" T1 ON ("othertable"."sometable_id1" = "sometable"."id1"
+                                        AND "othertable"."sometable_id2" = "sometable"."id2")
+
+        model_joiner(qs,SomeTable,(('sometable_id1', 'sometable_id1'), ('sometable_id2', 'sometable_id2'),),select=['some_field',])
+    :param queryset: the queryset from parent model.
+    :param to_model: the table that other end
+    :param relations: the relationship fields as array of 2-tuples
+    :param from_model: the parent model. can be none.
+    :param select: the fields from other table. can be none.
+    :return: queryset
+    """
+    if from_model is None:
+        _alias = queryset.query.get_initial_alias()
+        from_model = queryset.model
+    else:
+        _alias = from_model._meta.db_table
+
+    _to_table_name = to_model._meta.db_table
+    _fk = ForeignObject(to=to_model, on_delete=False, from_fields=[None],
+                        to_fields=[None])
+
+    _fk.opts = Options(from_model._meta)
+    _fk.opts.model = from_model
+    _fk.get_joining_columns = lambda : relations
+
+    _join = Join(_to_table_name,from_model._meta.db_table,_to_table_name,INNER,_fk,True)
+    print("1",queryset.query)
+    queryset.query.join(_join)
+    print("2",queryset.query)
+    if select:
+        _annotate_dict = {}
+        for sel in select:
+            _field = to_model._meta.get_field(sel)
+            _annotate_dict[_to_table_name+'__'+sel] = Col(_to_table_name,_field)
+
+        queryset = queryset.annotate(**_annotate_dict)
+        print("3", queryset.query)
+
+    return queryset

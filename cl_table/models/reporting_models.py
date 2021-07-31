@@ -740,3 +740,20 @@ class PosDaud_Reporting(models.Model):
         db_table = 'pos_daud'
         unique_together = (('cas_logno', 'sa_transacno', 'dt_itemdesc', 'itemsite_code', 'dt_lineno', 'st_ref_treatmentcode'),)
 
+
+class Multistaff_Reporting(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    sa_transacno = models.ForeignKey(PosHaud_Reporting,db_column='sa_transacno',to_field='sa_transacno',db_constraint=False,related_name='multistaff_related', on_delete=models.PROTECT, null=True)
+    item_code = models.CharField(db_column='Item_Code', max_length=20)  # Field name made lowercase.
+    emp_code = models.ForeignKey(Employee_Reporting,to_field='emp_code',db_column='emp_code', on_delete=models.PROTECT, null=True,db_constraint=False,related_name='multistaff_related')
+    ratio = models.FloatField(db_column='Ratio')  # Field name made lowercase.
+    salesamt = models.FloatField(db_column='SalesAmt')  # Field name made lowercase.
+    type = models.CharField(db_column='Type', max_length=20)  # Field name made lowercase.
+    isdelete = models.BooleanField(db_column='IsDelete')  # Field name made lowercase.
+    role = models.CharField(db_column='Role', max_length=50)  # Field name made lowercase.
+    dt_lineno = models.IntegerField(db_column='Dt_LineNo')  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'multistaff'
+        unique_together = (('sa_transacno', 'item_code', 'emp_code', 'role', 'dt_lineno'),)

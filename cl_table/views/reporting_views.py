@@ -1,14 +1,20 @@
 import datetime
+from copy import copy
 
 from dateutil import relativedelta
 from django.db import connection
-from django.db.models import Sum, Case, When, F, Value
+from django.db.models import Sum, Case, When, F, Value, Subquery, OuterRef
+from django.db.models.expressions import Col
+from django.db.models.sql.constants import LOUTER
+from django.db.models.sql.datastructures import Join
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from cl_app.models import ItemSitelist
-from cl_table.models import ItemSitelist_Reporting, PosHaud_Reporting, PosTaud_Reporting, PosDaud_Reporting
+from cl_table.models import ItemSitelist_Reporting, PosHaud_Reporting, PosTaud_Reporting, PosDaud_Reporting, \
+    Multistaff_Reporting
+from cl_table.utils import model_joiner
 
 
 class SalesDailyReporting(APIView):
@@ -338,8 +344,15 @@ class DailyCollectionReportAPI(APIView):
         #         _pay_dict = _data_dict.get(trans.)
         # q = PosHaud_Reporting.objects.prefetch_related('pos_taud_related')
         site_dict = {}
-        payment_qs = PosTaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start, end]).\
-            values('sa_transacno','sa_transacno__itemsite_code','sa_transacno__itemsite_code__itemsite_desc','pay_type','pay_type__bank_charges','dt_lineno').\
+        # x = PosTaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start, end]).query.join()
+        payment_qs = PosTaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start, end],sa_transacno__itemsite_code__in=site_code_list).\
+            extra(tables=['pos_daud'],
+                  where=['pos_daud.sa_transacno=pos_taud.sa_transacno','pos_taud.dt_lineno=pos_daud.dt_LineNo'],
+                  select={"itemName":'pos_daud.dt_itemdesc'}).\
+            values('sa_transacno','sa_transacno__itemsite_code','sa_transacno__sa_date',
+                   'sa_transacno__sa_transacno_ref','sa_transacno__sa_custno','sa_transacno__sa_custname',
+                   'sa_transacno__itemsite_code__itemsite_desc','pay_type',
+                   'pay_type__bank_charges','pay_group','dt_lineno','itemName').\
             annotate(
                 beforeGST=Sum(
                             Case(When(pay_type='CN',then=Value(0)),default=F('pay_actamt')) *
@@ -350,25 +363,26 @@ class DailyCollectionReportAPI(APIView):
                         Case(When(pay_gst__isnull=False,then=F('pay_gst')),default=0)
                         ),
                 afterGST=Sum(
-                            Case(When(pay_type='CN',then=Value(0)),default=F('pay_actamt'))
-                )
+                            Case(When(pay_type='CN',then=Value(0)),default=F('pay_actamt')),
+                             ),
                     )
         print(payment_qs.query.__str__())
         for payment in payment_qs:
             transsacNo = payment['sa_transacno']
-            # _item_obj = PosDaud_Reporting.objects.filter(dt_lineno=payment['dt_lineno'],sa_transacno=transsacNo).first()
+            # _item_obj = PosDaud_Reporting.objects.filter(dt_lineno=payment['dt_lineno'],sa_transacno=transsacNo).values('dt_itemdesc').first()
             _site = site_dict.get(payment['sa_transacno__itemsite_code'],{})
             _pay = _site.get(payment['pay_type'],[])
             _pay.append({
                 "Outlet": payment['sa_transacno__itemsite_code__itemsite_desc'],
                 "site1": payment['sa_transacno__itemsite_code'],
-                # "PayGroup": payment['pay_group'],
+                "PayGroup": payment['pay_group'],
                 "payTypes": payment['pay_type'],
-                # "payDate": payment.sa_transacno.sa_date,
-                # "InvoiceRef": payment.sa_transacno.sa_transacno_ref,
-                # "customerCode": payment.sa_transacno.sa_custno,
-                # "customer":  payment.sa_transacno.sa_custname,
-                # "ItemName": _item_obj.dt_itemdesc,
+                "payDate": payment['sa_transacno__sa_date'],
+                "InvoiceRef": payment['sa_transacno__sa_transacno_ref'],
+                "customerCode": payment['sa_transacno__sa_custno'],
+                "customer":  payment['sa_transacno__sa_custname'],
+                # "ItemName": _item_obj['dt_itemdesc'] if _item_obj else "",
+                "ItemName": payment['itemName'],
                 "beforeGST": payment['beforeGST'],
                 "GST": payment['GST'],
                 "afterGST": payment['afterGST']
@@ -377,12 +391,84 @@ class DailyCollectionReportAPI(APIView):
             site_dict[payment['sa_transacno__itemsite_code']] = _site
 
         print(site_dict)
-        # # q = PosTaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start, end]).values()
-        # print(q.query.__str__())
-        # for i in q[:10]:
-        #     # print(i.sa_transacno,type(i.sa_transacno))
-        #     print(i)
-        #     # print(i.posdaudtotal_balance_pts)
+
         responseData = site_dict
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
+
+
+class StaffPerformanceAPI(APIView):
+    def get(self,request):
+        """
+        Staff perfomance api will return individual employee performance for a day
+            | Payment Date | Invoice ref. | Customer | Customer ref. | Item Name | Payment Amount |
+        :param request:
+        :return:
+        """
+        _in = request.GET.get('in', '')
+        if _in.lower() == 'day':
+            _delta = datetime.timedelta(days=1)
+        elif _in.lower() == 'week':
+            _delta = datetime.timedelta(days=14)
+        elif _in.lower() == 'month':
+            _delta = relativedelta.relativedelta(months=1)
+        else:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "in query parameters are mandatory. (day,week,month)",
+                      'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
+        _pre_start = start - _delta
+        end = start + _delta
+        # filters
+        # site
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            site_code_list = ItemSitelist_Reporting.objects.filter(itemsite_isactive=True)  # . \
+            # exclude(itemsite_code__icontains="HQ"). \
+            # values('itemsite_code', 'itemsite_desc')
+
+        if _siteCodes:
+            site_code_list = site_code_list.filter(itemsite_code__in=_siteCodes.split(","))
+        elif _siteGroup:
+            site_code_list = site_code_list.filter(site_group=_siteGroup)
+
+        #
+        items_qs = PosDaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start, end],
+                                                # sa_transacno__itemsite_code__in=site_code_list
+                                                )\
+            .values('sa_transacno__sa_date','sa_transacno__itemsite_code','sa_transacno__itemsite_code__itemsite_desc',
+                'sa_transacno__sa_transacno_ref','sa_transacno__sa_custno__cust_name','sa_transacno__sa_custno__cust_refer',
+                'dt_itemdesc'
+                )
+        items_qs = model_joiner(items_qs,
+                                Multistaff_Reporting,
+                                (('sa_transacno', 'sa_transacno'), ('dt_lineno', 'dt_lineno'),),select=['ratio'])\
+            .filter(multistaff__ratio__isnull=False,sa_transacno__sa_custno__isnull=False)\
+            .annotate(
+                    date=F('sa_transacno__sa_date'),
+                    outlet=F('sa_transacno__itemsite_code__itemsite_desc'),
+                    invoiceRef=F('sa_transacno__sa_transacno_ref'),
+                    customerName=F('sa_transacno__sa_custno__cust_name'),
+                    customerRef=F('sa_transacno__sa_custno__cust_refer'),
+                    item=F('dt_itemdesc'),
+                    total=Sum(F('dt_deposit') /
+                        (100 * Col(Multistaff_Reporting._meta.db_table, Multistaff_Reporting._meta.get_field('ratio')))
+                              ),
+                      ).values('date','outlet','invoiceRef','customerName','customerRef','item','total')
+
+        print(items_qs.query.__str__())
+
+        responseData = items_qs
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+
