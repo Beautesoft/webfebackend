@@ -79,6 +79,9 @@ urlpatterns = [
     path('api/DailyCollectionReport/', views.DailyCollectionReportAPI.as_view(), name='DailyCollectionReport'),
     path('api/CollectionByOutlet/', views.CollectionByOutletView.as_view(), name='CollectionByOutletView'),
     path('api/StaffPerformance/', views.StaffPerformanceAPI.as_view(), name='StaffPerformanceAPI'),
+    path('api/SalesByDepartment/', views.SalesByDepartment.as_view(), name='SalesByDepartment'),
+    path('api/DailyInvoiceReport/', views.DailyInvoiceReport.as_view(), name='DailyInvoiceReport'),
+    path('api/TreatmentDone/', views.TreatmentDone.as_view(), name='TreatmentDone'),
 
                   # DO NOT DEPLOY BELOW ----> #
     path('api/temp_login', views.temp_login, name='temp_login'),

@@ -2,7 +2,7 @@ import re,string,random
 # from django.apps import apps
 # from django.db.models import Max
 from django.db.models import QuerySet, Model, ForeignObject
-from django.db.models.expressions import Col
+from django.db.models.expressions import Col, Func
 from django.db.models.sql.constants import INNER
 from django.db.models.sql.datastructures import Join
 from django.db.models.options import Options
@@ -97,16 +97,24 @@ def model_joiner(queryset: QuerySet, to_model: Model, relations: tuple, from_mod
     _fk.get_joining_columns = lambda : relations
 
     _join = Join(_to_table_name,from_model._meta.db_table,_to_table_name,INNER,_fk,True)
-    print("1",queryset.query)
     queryset.query.join(_join)
-    print("2",queryset.query)
     if select:
         _annotate_dict = {}
         for sel in select:
             _field = to_model._meta.get_field(sel)
-            _annotate_dict[_to_table_name+'__'+sel] = Col(_to_table_name,_field)
+            _annotate_dict[to_model.__name__+'__'+sel] = Col(_to_table_name,_field)
 
         queryset = queryset.annotate(**_annotate_dict)
-        print("3", queryset.query)
 
     return queryset
+
+# """SELECT
+# SUBSTR(your_column, 0, LENGTH(your_column) - 1)
+# FROM your_table;"""
+
+
+class SUBSTR(Func):
+    function = 'SUBSTR'
+
+class LENGTH(Func):
+    function = 'LEN'

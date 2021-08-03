@@ -757,3 +757,268 @@ class Multistaff_Reporting(models.Model):
         managed = False
         db_table = 'multistaff'
         unique_together = (('sa_transacno', 'item_code', 'emp_code', 'role', 'dt_lineno'),)
+
+
+class Stock_Reporting(models.Model):
+    item_no = models.AutoField(db_column='Item_no',primary_key=True)  # Field name made lowercase.
+    item_code = models.CharField(max_length=20,unique=True, blank=True, null=True)
+    itm_icid = models.FloatField(db_column='Itm_ICID', blank=True, null=True)  # Field name made lowercase.
+    itm_code = models.CharField(db_column='Itm_Code', max_length=20, blank=True,
+                                null=True)  # Field name made lowercase.
+    item_div = models.CharField(db_column='Item_Div', max_length=20, blank=True,
+                                null=True)  # Field name made lowercase.
+    item_dept = models.CharField(db_column='Item_Dept', max_length=20, blank=True,
+                                 null=True)  # Field name made lowercase.
+    item_class = models.CharField(db_column='Item_Class', max_length=20, blank=True,
+                                  null=True)  # Field name made lowercase.
+    item_barcode = models.CharField(db_column='Item_Barcode', max_length=20, blank=True,
+                                    null=True)  # Field name made lowercase.
+    onhand_cst = models.FloatField(db_column='ONHAND_CST', blank=True, null=True)  # Field name made lowercase.
+    item_margin = models.FloatField(db_column='Item_Margin', blank=True, null=True)  # Field name made lowercase.
+    item_isactive = models.BooleanField()
+    item_name = models.CharField(db_column='Item_Name', max_length=40, blank=True,
+                                 null=True)  # Field name made lowercase.
+    item_abbc = models.CharField(db_column='Item_abbc', max_length=60, blank=True,
+                                 null=True)  # Field name made lowercase.
+    item_desc = models.CharField(db_column='Item_Desc', max_length=60, blank=True,
+                                 null=True)  # Field name made lowercase.
+    cost_price = models.DecimalField(db_column='COST_PRICE', max_digits=19, decimal_places=4, blank=True,
+                                     null=True)  # Field name made lowercase.
+    item_price = models.DecimalField(db_column='Item_Price', max_digits=19, decimal_places=4, blank=True,
+                                     null=True)  # Field name made lowercase.
+    onhand_qty = models.FloatField(db_column='ONHAND_QTY', blank=True, null=True)  # Field name made lowercase.
+    itm_promotionyn = models.CharField(db_column='Itm_PromotionYN', max_length=20, blank=True,
+                                       null=True)  # Field name made lowercase.
+    itm_disc = models.FloatField(db_column='Itm_Disc', blank=True, null=True)  # Field name made lowercase.
+    itm_commission = models.FloatField(db_column='Itm_Commission', blank=True, null=True)  # Field name made lowercase.
+    item_type = models.CharField(db_column='Item_Type', max_length=20, blank=True,
+                                 null=True)  # Field name made lowercase.
+    itm_duration = models.FloatField(db_column='Itm_Duration', blank=True, null=True)  # Field name made lowercase.
+    item_price2 = models.FloatField(db_column='Item_Price2', blank=True, null=True)  # Field name made lowercase.
+    item_price3 = models.FloatField(db_column='Item_Price3', blank=True, null=True)  # Field name made lowercase.
+    item_price4 = models.FloatField(db_column='Item_Price4', blank=True, null=True)  # Field name made lowercase.
+    item_price5 = models.FloatField(db_column='Item_Price5', blank=True, null=True)  # Field name made lowercase.
+    itm_remark = models.CharField(db_column='Itm_Remark', max_length=100, blank=True,
+                                  null=True)  # Field name made lowercase.
+    itm_value = models.CharField(db_column='Itm_Value', max_length=10, blank=True,
+                                 null=True)  # Field name made lowercase.
+    itm_expiredate = models.DateTimeField(db_column='Itm_ExpireDate', blank=True,
+                                          null=True)  # Field name made lowercase.
+    itm_status = models.CharField(db_column='Itm_Status', max_length=10, blank=True,
+                                  null=True)  # Field name made lowercase.
+    item_minqty = models.IntegerField(blank=True, null=True)
+    item_maxqty = models.IntegerField(blank=True, null=True)
+    item_onhandcost = models.CharField(db_column='item_OnHandCost', max_length=20, blank=True,
+                                       null=True)  # Field name made lowercase.
+    item_barcode1 = models.CharField(db_column='item_Barcode1', max_length=20, blank=True,
+                                     null=True)  # Field name made lowercase.
+    item_barcode2 = models.CharField(db_column='item_Barcode2', max_length=20, blank=True,
+                                     null=True)  # Field name made lowercase.
+    item_barcode3 = models.CharField(db_column='item_Barcode3', max_length=20, blank=True,
+                                     null=True)  # Field name made lowercase.
+    item_marginamt = models.FloatField(blank=True, null=True)
+    item_date = models.DateTimeField(blank=True, null=True)
+    item_time = models.DateTimeField(blank=True, null=True)
+    item_moddate = models.DateTimeField(db_column='item_ModDate', blank=True, null=True)  # Field name made lowercase.
+    item_modtime = models.DateTimeField(db_column='item_ModTime', blank=True, null=True)  # Field name made lowercase.
+    item_createuser = models.CharField(max_length=60, blank=True, null=True)
+    item_supp = models.CharField(max_length=10, blank=True, null=True)
+    item_parentcode = models.CharField(db_column='Item_Parentcode', max_length=20, blank=True,
+                                       null=True)  # Field name made lowercase.
+    item_color = models.CharField(max_length=10, blank=True, null=True)
+    item_sizepack = models.CharField(db_column='item_SizePack', max_length=10, blank=True,
+                                     null=True)  # Field name made lowercase.
+    item_size = models.CharField(db_column='item_Size', max_length=10, blank=True,
+                                 null=True)  # Field name made lowercase.
+    item_season = models.CharField(db_column='item_Season', max_length=10, blank=True,
+                                   null=True)  # Field name made lowercase.
+    item_fabric = models.CharField(max_length=10, blank=True, null=True)
+    item_brand = models.CharField(db_column='item_Brand', max_length=10, blank=True,
+                                  null=True)  # Field name made lowercase.
+    lstpo_ucst = models.FloatField(db_column='LSTPO_UCST', blank=True, null=True)  # Field name made lowercase.
+    lstpo_no = models.CharField(db_column='LSTPO_NO', max_length=20, blank=True,
+                                null=True)  # Field name made lowercase.
+    lstpo_date = models.DateTimeField(db_column='LSTPO_Date', blank=True, null=True)  # Field name made lowercase.
+    item_havechild = models.BooleanField(db_column='item_haveChild')  # Field name made lowercase.
+    value_applytochild = models.BooleanField(db_column='Value_ApplyToChild')  # Field name made lowercase.
+    package_disc = models.FloatField(db_column='Package_Disc', blank=True, null=True)  # Field name made lowercase.
+    have_package_disc = models.BooleanField(db_column='Have_Package_Disc')  # Field name made lowercase.
+    pic_path = models.CharField(db_column='PIC_Path', max_length=255, blank=True,
+                                null=True)  # Field name made lowercase.
+    item_foc = models.BooleanField(db_column='Item_FOC')  # Field name made lowercase.
+    item_uom = models.CharField(db_column='Item_UOM', max_length=20, blank=True,
+                                null=True)  # Field name made lowercase.
+    mixbrand = models.BooleanField(db_column='MIXBRAND')  # Field name made lowercase.
+    serviceretail = models.BooleanField(db_column='SERVICERETAIL', blank=True, null=True)  # Field name made lowercase.
+    item_range = models.CharField(db_column='Item_Range', max_length=20, blank=True,
+                                  null=True)  # Field name made lowercase.
+    commissionable = models.BooleanField(db_column='Commissionable', blank=True,
+                                         null=True)  # Field name made lowercase.
+    trading = models.BooleanField(db_column='Trading', blank=True, null=True)  # Field name made lowercase.
+    cust_replenish_days = models.CharField(db_column='Cust_Replenish_Days', max_length=10, blank=True,
+                                           null=True)  # Field name made lowercase.
+    cust_advance_days = models.CharField(db_column='Cust_Advance_Days', max_length=10, blank=True,
+                                         null=True)  # Field name made lowercase.
+    salescomm = models.CharField(db_column='SalesComm', max_length=20, blank=True,
+                                 null=True)  # Field name made lowercase.
+    workcomm = models.CharField(db_column='WorkComm', max_length=20, blank=True,
+                                null=True)  # Field name made lowercase.
+    reminder_active = models.BooleanField(db_column='Reminder_Active', blank=True,
+                                          null=True)  # Field name made lowercase.
+    disclimit = models.FloatField(db_column='DiscLimit', blank=True, null=True)  # Field name made lowercase.
+    disctypeamount = models.BooleanField(db_column='DiscTypeAmount', blank=True,
+                                         null=True)  # Field name made lowercase.
+    autocustdisc = models.BooleanField(db_column='AutoCustDisc')  # Field name made lowercase.
+    reorder_active = models.BooleanField(db_column='ReOrder_Active', blank=True,
+                                         null=True)  # Field name made lowercase.
+    reorder_minqty = models.FloatField(db_column='ReOrder_MinQty', blank=True, null=True)  # Field name made lowercase.
+    service_expire_active = models.BooleanField(db_column='Service_Expire_Active')  # Field name made lowercase.
+    service_expire_month = models.FloatField(db_column='Service_Expire_Month', blank=True,
+                                             null=True)  # Field name made lowercase.
+    treatment_limit_active = models.BooleanField(db_column='Treatment_Limit_Active')  # Field name made lowercase.
+    treatment_limit_count = models.FloatField(db_column='Treatment_Limit_Count', blank=True,
+                                              null=True)  # Field name made lowercase.
+    limitservice_flexionly = models.BooleanField(db_column='LimitService_FlexiOnly')  # Field name made lowercase.
+    salescommpoints = models.FloatField(db_column='SalesCommPoints', blank=True,
+                                        null=True)  # Field name made lowercase.
+    workcommpoints = models.FloatField(db_column='WorkCommPoints', blank=True, null=True)  # Field name made lowercase.
+    item_price_floor = models.FloatField(db_column='Item_Price_Floor', blank=True,
+                                         null=True)  # Field name made lowercase.
+    voucher_value = models.FloatField(db_column='Voucher_Value', blank=True, null=True)  # Field name made lowercase.
+    voucher_value_is_amount = models.BooleanField(db_column='Voucher_Value_Is_Amount')  # Field name made lowercase.
+    voucher_valid_period = models.CharField(db_column='Voucher_Valid_Period', max_length=20, blank=True,
+                                            null=True)  # Field name made lowercase.
+    prepaid_value = models.FloatField(db_column='Prepaid_Value', blank=True, null=True)  # Field name made lowercase.
+    prepaid_sell_amt = models.FloatField(db_column='Prepaid_Sell_Amt', blank=True,
+                                         null=True)  # Field name made lowercase.
+    prepaid_valid_period = models.CharField(db_column='Prepaid_Valid_Period', max_length=20, blank=True,
+                                            null=True)  # Field name made lowercase.
+    membercardnoaccess = models.BooleanField(db_column='MemberCardNoAccess', blank=True,
+                                             null=True)  # Field name made lowercase.
+    rpt_code = models.CharField(db_column='Rpt_Code', max_length=20, blank=True,
+                                null=True)  # Field name made lowercase.
+    is_gst = models.BooleanField(db_column='IS_GST')  # Field name made lowercase.
+    account_code = models.CharField(db_column='Account_Code', max_length=20, blank=True,
+                                    null=True)  # Field name made lowercase.
+    stock_pic_b = models.BinaryField(db_column='Stock_PIC_B', blank=True, null=True)  # Field name made lowercase.
+    is_open_prepaid = models.BooleanField(db_column='IS_OPEN_PREPAID')  # Field name made lowercase.
+    appt_wd_min = models.FloatField(db_column='Appt_WD_Min', blank=True, null=True)  # Field name made lowercase.
+    service_cost = models.FloatField(db_column='Service_Cost', blank=True, null=True)  # Field name made lowercase.
+    service_cost_percent = models.BooleanField(db_column='Service_Cost_Percent')  # Field name made lowercase.
+    sync_guid = models.CharField(db_column='Sync_GUID', max_length=36)  # Field name made lowercase.
+    sync_clientindex = models.IntegerField(db_column='Sync_ClientIndex', blank=True,
+                                           null=True)  # Field name made lowercase.
+    sync_lstupd = models.DateTimeField(db_column='Sync_LstUpd', blank=True, null=True)  # Field name made lowercase.
+    account_code_td = models.CharField(db_column='Account_Code_TD', max_length=20, blank=True,
+                                       null=True)  # Field name made lowercase.
+    sync_clientindexstring = models.TextField(db_column='Sync_ClientIndexString', blank=True,
+                                              null=True)  # Field name made lowercase.
+    voucher_isvalid_until_date = models.BooleanField(
+        db_column='Voucher_IsValid_Until_Date')  # Field name made lowercase.
+    voucher_valid_until_date = models.DateTimeField(db_column='Voucher_Valid_Until_Date', blank=True,
+                                                    null=True)  # Field name made lowercase.
+    workcommholder = models.CharField(max_length=6, blank=True, null=True)
+    equipmentcost = models.FloatField(blank=True, null=True)
+    postatus = models.BooleanField(blank=True, null=True)
+    gst_item_code = models.CharField(db_column='GST_Item_Code', max_length=20, blank=True,
+                                     null=True)  # Field name made lowercase.
+    istnc = models.BooleanField(db_column='isTnc', blank=True, null=True)  # Field name made lowercase.
+    consultantcomm = models.BooleanField(db_column='ConsultantComm', blank=True,
+                                         null=True)  # Field name made lowercase.
+    t1_tax_code = models.CharField(db_column='T1_Tax_Code', max_length=20, blank=True,
+                                   null=True)  # Field name made lowercase.
+    is_have_tax = models.BooleanField(db_column='IS_HAVE_TAX')  # Field name made lowercase.
+    t2_tax_code = models.CharField(db_column='T2_Tax_Code', max_length=20, blank=True,
+                                   null=True)  # Field name made lowercase.
+    is_allow_foc = models.BooleanField(db_column='IS_ALLOW_FOC')  # Field name made lowercase.
+    vilidity_from_date = models.DateTimeField(db_column='Vilidity_From_Date', blank=True,
+                                              null=True)  # Field name made lowercase.
+    vilidity_to_date = models.DateTimeField(db_column='Vilidity_To_date', blank=True,
+                                            null=True)  # Field name made lowercase.
+    vilidity_from_time = models.DateTimeField(db_column='Vilidity_From_Time', blank=True,
+                                              null=True)  # Field name made lowercase.
+    vilidity_to_time = models.DateTimeField(db_column='Vilidity_To_Time', blank=True,
+                                            null=True)  # Field name made lowercase.
+    prepaid_disc_type = models.CharField(db_column='Prepaid_Disc_Type', max_length=20, blank=True,
+                                         null=True)  # Field name made lowercase.
+    prepaid_disc_percent = models.FloatField(db_column='Prepaid_Disc_Percent', blank=True,
+                                             null=True)  # Field name made lowercase.
+    srv_duration = models.FloatField(db_column='Srv_Duration', blank=True, null=True)  # Field name made lowercase.
+    voucher_template_name = models.CharField(db_column='Voucher_Template_Name', max_length=50, blank=True,
+                                             null=True)  # Field name made lowercase.
+    autoproportion = models.BooleanField(db_column='AutoProportion')
+    expiry_days = models.IntegerField(blank=True, null=True)
+    smsprimary = models.IntegerField(blank=True, null=True)
+    smssecondary = models.IntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'Stock'
+
+
+class Treatment_Reporting(models.Model):
+
+    STATUS = [
+        ('Open', 'Open'),
+        ('Done', 'Done'),
+        ('Cancel','Cancel'),
+    ]
+
+    RECORD_STATUS = [
+        ('PENDING', 'PENDING'),
+    ]
+
+    SA_STATUS = [
+        ('SA', 'SA'), #SA-Sales
+        ('VOID', 'VOID'), # VT-Void Transaction
+        ('SU', 'SU'), # SU-Suspend
+    ]
+
+    sys_code = models.AutoField(db_column='Sys_Code', primary_key=True)
+    treatment_code = models.CharField(db_column='Treatment_Code', max_length=20, null=True)
+    course = models.CharField(db_column='Course', max_length=255, blank=True, null=True)
+    times = models.CharField(db_column='Times', max_length=10, blank=True, null=True)
+    treatment_no = models.CharField(db_column='Treatment_No', max_length=10, blank=True, null=True)
+    price = models.FloatField(db_column='Price', blank=True, null=True)
+    treatment_date = models.DateTimeField(db_column='Treatment_Date', blank=True, null=True)
+    next_appt = models.DateTimeField(db_column='Next_Appt', blank=True, null=True)
+    cust_name = models.CharField(db_column='Cust_Name', max_length=100, blank=True, null=True)
+    cust_code = models.ForeignKey(Customer_Reporting,db_column='cust_code',to_field='cust_code', on_delete=models.PROTECT,  null=True,db_constraint=False,related_name='treatment_related')
+    # cust_code = models.CharField(db_column='Cust_Code', max_length=50, blank=True, null=True)
+    status = models.CharField(db_column='Status',choices=STATUS, max_length=50, blank=True, null=True, default='open')
+    unit_amount = models.FloatField(db_column='Unit_Amount', blank=True, null=True)
+    item_code = models.ForeignKey(Stock_Reporting,db_column='Item_Code',to_field='item_code',db_constraint=False,related_name='treatment_related', on_delete=models.PROTECT,  null=True)
+    # item_code = models.CharField(db_column='Item_Code', max_length=20, blank=True, null=True)
+    treatment_parentcode = models.CharField(db_column='Treatment_ParentCode', max_length=20, blank=True, null=True)
+    prescription = models.CharField(db_column='Prescription', max_length=255, blank=True, null=True)
+    allergy = models.CharField(db_column='Allergy', max_length=255, blank=True, null=True)
+    sa_transacno = models.CharField(max_length=20, blank=True, null=True)
+    sa_status = models.CharField(max_length=5,choices=SA_STATUS, blank=True, null=True)
+    record_status = models.CharField(db_column='Record_Status',choices=RECORD_STATUS, max_length=10, blank=True, null=True)
+    appt_time = models.DateTimeField(db_column='Appt_Time', blank=True, null=True)
+    remarks = models.CharField(db_column='Remarks', max_length=255, blank=True, null=True)
+    duration = models.IntegerField(db_column='Duration', blank=True, null=True)
+    hold_item = models.CharField(db_column='Hold_Item', max_length=50, blank=True, null=True)
+    transaction_time = models.DateTimeField(db_column='Transaction_Time', blank=True, null=True)
+    dt_lineno = models.IntegerField(db_column='dt_LineNo', blank=True, null=True)
+    expiry = models.DateTimeField(db_column='Expiry', blank=True, null=True)
+    lpackage = models.BooleanField(db_column='lPackage')
+    package_code = models.CharField(db_column='Package_Code', max_length=50, blank=True, null=True)
+    site_code = models.ForeignKey(ItemSitelist_Reporting,db_column='site_code',to_field='itemsite_code',db_constraint=False,related_name='treatment_related', on_delete=models.PROTECT, null=True)
+    # site_code = models.CharField(db_column='Site_Code', max_length=50)
+    type = models.CharField(db_column='Type', max_length=50, blank=True, null=True)
+    treatment_limit_times = models.FloatField(db_column='Treatment_Limit_Times', blank=True, null=True)
+    treatment_count_done = models.FloatField(db_column='Treatment_Count_Done', blank=True, null=True)
+    treatment_history_last_modify = models.DateTimeField(db_column='Treatment_History_Last_Modify', blank=True, null=True)
+    service_itembarcode = models.CharField(db_column='Service_ItemBarcode', max_length=20, blank=True, null=True)
+    isfoc = models.BooleanField(db_column='isFOC', blank=True, null=True)
+    # Trmt_Room_Codeid  = models.ForeignKey('custom.Room', on_delete=models.PROTECT,null=True)
+    trmt_room_code = models.CharField(db_column='Trmt_Room_Code', max_length=20, blank=True, null=True)
+    trmt_is_auto_proportion = models.BooleanField(db_column='Trmt_Is_Auto_Proportion')
+    smsout = models.IntegerField(db_column='smsOut', blank=True, null=True)
+    emailout = models.BooleanField(db_column='emailOut', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'Treatment'
+        unique_together = (('treatment_code', 'site_code'),)

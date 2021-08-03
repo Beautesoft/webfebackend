@@ -2136,3 +2136,8 @@ class DailysalesdataSummarySerializer(serializers.ModelSerializer):
     #     data['total'] = data.get("masked_nric")
     #
     #     return data
+
+class DepartmentReport(serializers.Serializer):
+    # 'sa_date', 'itemsite_code', 'sa_transacno_ref', 'deposit', 'discount',
+    # 'item_code', 'itemDesc', 'Qty', 'record_detail_type', 'GT1_actamt', 'GT2_actamt', 'Ttl_actamt', 'Pay_OldBill'
+    sa_date = serializers.DateTimeField()
