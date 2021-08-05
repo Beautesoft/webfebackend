@@ -927,7 +927,7 @@ class TreatmentDone(APIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
-class CustomerBrithday(APIView):
+class CustomerBirthday(APIView):
     def get(self,request):
         """
         filter: Dept, Site, Show old bill, show non sales
@@ -973,9 +973,19 @@ class CustomerBrithday(APIView):
             site_code_list = site_code_list.filter(site_group=_siteGroup)
 
         qs = Customer_Reporting.objects.filter(dob_status=True,cust_isactive=True)
-        qs = model_joiner(qs,Treatment_Reporting,(('cust_code','cust_code')),select=['treatment_code','treatment_date'])
+        qs = model_joiner(qs,Treatment_Reporting,(('cust_code','cust_code'),),
+                          select=['treatment_code','treatment_date','sa_status','status']
+                          )
+        qs = qs.filter(Treatment_Reporting__treatment_date__range=[start,end],Treatment_Reporting__sa_status='SA',Treatment_Reporting__status="Done")
+        qs = qs.values('cust_code','cust_name','cust_dob','dob_status','cust_isactive').annotate(t_count=Count('Treatment_Reporting__treatment_code'))
 
-
+        print(qs)
+        print(qs.query)
         responseData=qs
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
+
+
+
+class ReportSettingsView(APIView):
+    pass

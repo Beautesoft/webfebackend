@@ -82,6 +82,7 @@ urlpatterns = [
     path('api/SalesByDepartment/', views.SalesByDepartment.as_view(), name='SalesByDepartment'),
     path('api/DailyInvoiceReport/', views.DailyInvoiceReport.as_view(), name='DailyInvoiceReport'),
     path('api/TreatmentDone/', views.TreatmentDone.as_view(), name='TreatmentDone'),
+    path('api/CustomerBirthday/', views.CustomerBirthday.as_view(), name='CustomerBirthday'),
 
                   # DO NOT DEPLOY BELOW ----> #
     path('api/temp_login', views.temp_login, name='temp_login'),
