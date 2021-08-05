@@ -1024,6 +1024,6 @@ class Treatment_Reporting(models.Model):
         unique_together = (('treatment_code', 'site_code'),)
 
 
-class ReportSettings(models.Model):
-    report = models.CharField(max_length=100,unique=True)
-    settingsData = models.CharField(max_length=8000,default='{}')
+# class ReportSettings(models.Model):
+#     report = models.CharField(max_length=100,unique=True)
+#     settingsData = models.FileField()

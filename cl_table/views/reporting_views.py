@@ -1,4 +1,5 @@
 import datetime
+import json
 from copy import copy
 
 from dateutil import relativedelta
@@ -11,6 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from Cl_beautesoft.settings import BASE_DIR, REPORT_SETTINGS_PATH
 from cl_app.models import ItemSitelist
 from cl_table.models import ItemSitelist_Reporting, PosHaud_Reporting, PosTaud_Reporting, PosDaud_Reporting, \
     Multistaff_Reporting, Treatment_Reporting, Stock_Reporting, Customer_Reporting
@@ -988,4 +990,20 @@ class CustomerBirthday(APIView):
 
 
 class ReportSettingsView(APIView):
-    pass
+    def get(self,request):
+        with open(REPORT_SETTINGS_PATH,"r") as f:
+            obj = json.load(f)
+
+            responseData = obj
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+            return Response(result, status=status.HTTP_200_OK)
+
+    def post(self,request):
+        req_obj = request.data
+
+        with open(REPORT_SETTINGS_PATH,"w") as f:
+            str_data = json.dumps(req_obj)
+            f.write(str_data)
+            responseData = req_obj
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+            return Response(result, status=status.HTTP_200_OK)
