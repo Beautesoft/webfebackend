@@ -73,6 +73,7 @@ urlpatterns = [
     path('api/ServicesByConsultant/', views.ServicesByConsultantView.as_view(), name='ServicesByConsultantView'),
     path('api/SalesByConsultant/', views.SalesByConsultantView.as_view(), name='SalesByConsultantView'),
     path('api/site_group_list/', views.site_group_list, name='site_group_list'),
+    path('api/pay_group_list/', views.pay_group_list, name='pay_group_list'),
 
     # reporting apis
     path('api/SalesDailyReporting/', views.SalesDailyReporting.as_view(), name='SalesDailyReporting'),
@@ -83,6 +84,8 @@ urlpatterns = [
     path('api/DailyInvoiceReport/', views.DailyInvoiceReport.as_view(), name='DailyInvoiceReport'),
     path('api/TreatmentDone/', views.TreatmentDone.as_view(), name='TreatmentDone'),
     path('api/CustomerBirthday/', views.CustomerBirthday.as_view(), name='CustomerBirthday'),
+
+
     path('api/ReportSettings/', views.ReportSettingsView.as_view(), name='ReportSettingsView'),
 
                   # DO NOT DEPLOY BELOW ----> #

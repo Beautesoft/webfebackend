@@ -9,13 +9,14 @@ from django.db.models.expressions import Col
 from django.db.models.sql.constants import LOUTER
 from django.db.models.sql.datastructures import Join
 from rest_framework import status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Cl_beautesoft.settings import BASE_DIR, REPORT_SETTINGS_PATH
 from cl_app.models import ItemSitelist
 from cl_table.models import ItemSitelist_Reporting, PosHaud_Reporting, PosTaud_Reporting, PosDaud_Reporting, \
-    Multistaff_Reporting, Treatment_Reporting, Stock_Reporting, Customer_Reporting
+    Multistaff_Reporting, Treatment_Reporting, Stock_Reporting, Customer_Reporting, PayGroup_Reporting
 from cl_table.serializers import DepartmentReport
 from cl_table.utils import model_joiner, SUBSTR, LENGTH
 
@@ -1007,3 +1008,12 @@ class ReportSettingsView(APIView):
             responseData = req_obj
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
             return Response(result, status=status.HTTP_200_OK)
+
+
+
+@api_view(['GET', ])
+def pay_group_list(request):
+    qs = PayGroup_Reporting.objects.all().values_list('pay_group_code',flat=True)
+    response_data = list(qs)
+    result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': response_data}
+    return Response(result, status=status.HTTP_200_OK)
