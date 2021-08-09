@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 from copy import copy
 
 from dateutil import relativedelta
@@ -991,18 +992,24 @@ class CustomerBirthday(APIView):
 
 
 class ReportSettingsView(APIView):
-    def get(self,request):
-        with open(REPORT_SETTINGS_PATH,"r") as f:
-            obj = json.load(f)
+    def get(self,request,path):
+        file_path = os.path.join(REPORT_SETTINGS_PATH, path + ".json")
 
+        if not os.path.exists(file_path):
+            with open(file_path, "w") as f:
+                f.write("{}")
+
+        with open(file_path,"r") as f:
+            obj = json.load(f)
             responseData = obj
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
             return Response(result, status=status.HTTP_200_OK)
 
-    def post(self,request):
+    def post(self,request,path):
+        file_path = os.path.join(REPORT_SETTINGS_PATH, path + ".json")
         req_obj = request.data
 
-        with open(REPORT_SETTINGS_PATH,"w") as f:
+        with open(file_path,"w") as f:
             str_data = json.dumps(req_obj)
             f.write(str_data)
             responseData = req_obj

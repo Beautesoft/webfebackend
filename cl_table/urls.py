@@ -86,7 +86,7 @@ urlpatterns = [
     path('api/CustomerBirthday/', views.CustomerBirthday.as_view(), name='CustomerBirthday'),
 
 
-    path('api/ReportSettings/', views.ReportSettingsView.as_view(), name='ReportSettingsView'),
+    path('api/ReportSettings/<str:path>', views.ReportSettingsView.as_view(), name='ReportSettingsView'),
 
                   # DO NOT DEPLOY BELOW ----> #
     path('api/temp_login', views.temp_login, name='temp_login'),

@@ -267,4 +267,4 @@ SMS_AUTH_TOKEN = '55774b4bfa51688df9380670a364423a'
 SMS_SENDER = "+12097193857"
 
 
-REPORT_SETTINGS_PATH = os.path.join(BASE_DIR, 'media/report_settings.json')
+REPORT_SETTINGS_PATH = os.path.join(BASE_DIR, 'media/report_settings/')
