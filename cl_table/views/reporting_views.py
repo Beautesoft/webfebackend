@@ -43,23 +43,22 @@ class SalesDailyReporting(APIView):
         #               "data": None}
         #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-        _in = request.GET.get('in', '')
-        if _in.lower() == 'day':
-            _delta = datetime.timedelta(days=1)
-        elif _in.lower() == 'week':
-            _delta = datetime.timedelta(days=14)
-        elif _in.lower() == 'month':
-            _delta = relativedelta.relativedelta(months=1)
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "in query parameters are mandatory. (day,week,month)",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
-        _pre_start = start - _delta
-        end = start + _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
         # filters
         _siteCodes = request.GET.get("siteCodes")
         _siteGroup = request.GET.get("siteGroup")
@@ -280,6 +279,8 @@ class CollectionByOutletView(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
 
+
+
 class DailyCollectionReportAPI(APIView):
     def get(self, request):
         """
@@ -298,23 +299,22 @@ class DailyCollectionReportAPI(APIView):
         #               "data": None}
         #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-        _in = request.GET.get('in', '')
-        if _in.lower() == 'day':
-            _delta = datetime.timedelta(days=1)
-        elif _in.lower() == 'week':
-            _delta = datetime.timedelta(days=14)
-        elif _in.lower() == 'month':
-            _delta = relativedelta.relativedelta(months=1)
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "in query parameters are mandatory. (day,week,month)",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
-        _pre_start = start - _delta
-        end = start + _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
         # filters
         # site
         _siteCodes = request.GET.get("siteCodes")
@@ -410,23 +410,22 @@ class StaffPerformanceAPI(APIView):
         :param request:
         :return:
         """
-        _in = request.GET.get('in', '')
-        if _in.lower() == 'day':
-            _delta = datetime.timedelta(days=1)
-        elif _in.lower() == 'week':
-            _delta = datetime.timedelta(days=14)
-        elif _in.lower() == 'month':
-            _delta = relativedelta.relativedelta(months=1)
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "in query parameters are mandatory. (day,week,month)",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
-        _pre_start = start - _delta
-        end = start + _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
         # filters
         # site
         _siteCodes = request.GET.get("siteCodes")
@@ -494,23 +493,23 @@ class SalesByDepartment(APIView):
                 :param request:
                 :return:
                 """
-        _in = request.GET.get('in', '')
-        if _in.lower() == 'day':
-            _delta = datetime.timedelta(days=1)
-        elif _in.lower() == 'week':
-            _delta = datetime.timedelta(days=14)
-        elif _in.lower() == 'month':
-            _delta = relativedelta.relativedelta(months=1)
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "in query parameters are mandatory. (day,week,month)",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
-        _pre_start = start - _delta
-        end = start + _delta
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
         # filters
         # site
         _siteCodes = request.GET.get("siteCodes")
@@ -659,23 +658,23 @@ class DailyInvoiceReport(APIView):
         #               "data": None}
         #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-        _in = request.GET.get('in', '')
-        if _in.lower() == 'day':
-            _delta = datetime.timedelta(days=1)
-        elif _in.lower() == 'week':
-            _delta = datetime.timedelta(days=14)
-        elif _in.lower() == 'month':
-            _delta = relativedelta.relativedelta(months=1)
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "in query parameters are mandatory. (day,week,month)",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
-        _pre_start = start - _delta
-        end = start + _delta
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
         # filters
         _siteCodes = request.GET.get("siteCodes")
         _siteGroup = request.GET.get("siteGroup")
@@ -821,23 +820,23 @@ class TreatmentDone(APIView):
         #               "data": None}
         #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
-        _in = request.GET.get('in', '')
-        if _in.lower() == 'day':
-            _delta = datetime.timedelta(days=1)
-        elif _in.lower() == 'week':
-            _delta = datetime.timedelta(days=14)
-        elif _in.lower() == 'month':
-            _delta = relativedelta.relativedelta(months=1)
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "in query parameters are mandatory. (day,week,month)",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
-        _pre_start = start - _delta
-        end = start + _delta
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
         # filters
         _siteCodes = request.GET.get("siteCodes")
         _siteGroup = request.GET.get("siteGroup")
@@ -940,23 +939,23 @@ class CustomerBirthday(APIView):
                 :param request:
                 :return:
                 """
-        _in = request.GET.get('in', '')
-        if _in.lower() == 'day':
-            _delta = datetime.timedelta(days=1)
-        elif _in.lower() == 'week':
-            _delta = datetime.timedelta(days=14)
-        elif _in.lower() == 'month':
-            _delta = relativedelta.relativedelta(months=1)
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST,
-                      'message': "in query parameters are mandatory. (day,week,month)",
-                      'error': True,
-                      "data": None}
-            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
-        _pre_start = start - _delta
-        end = start + _delta
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
         # filters
         # site
         _siteCodes = request.GET.get("siteCodes")
