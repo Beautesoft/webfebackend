@@ -929,6 +929,138 @@ class TreatmentDone(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
 
+class ProductSaleAPI(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        """
+            query parm: start: datetime string(2021-01-01T00:00:00)
+        """
+
+        # try:
+        #     start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
+        #     end_date = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d").date()
+        #     date_range = [start_date + datetime.timedelta(days=i) for i in range(0, (end_date - start_date).days + 1)]
+        # except:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "start and end query parameters are mandatory. format is YYYY-MM-DD",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        # _in = request.GET.get('in', '')
+        # if _in.lower() == 'day':
+        #     _delta = datetime.timedelta(days=1)
+        # elif _in.lower() == 'week':
+        #     _delta = datetime.timedelta(days=14)
+        # elif _in.lower() == 'month':
+        #     _delta = relativedelta.relativedelta(months=1)
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "in query parameters are mandatory. (day,week,month)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        elif _siteGroup or _siteCodes:
+            if _siteCodes:
+                site_code_list = _siteCodes.split(",")
+            elif _siteGroup:
+                site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True, site_group=_siteGroup). \
+                    exclude(itemsite_code__icontains="HQ"). \
+                    values_list('itemsite_code', flat=True)
+            _s = ', '.join(['\'' + str(code) + '\'' for code in site_code_list])
+            site_code_q = f"AND pos_haud.ItemSite_Code IN ({_s})"
+        else:
+            site_code_q = ""
+
+        pay_group_q = ""
+
+        # _type = request.GET.get('type','').lower()
+        # if _type == "sales":
+        #     amount = Sum("sales_gt1_gst")
+        # elif _type == "service":
+        #     amount = Sum("servicesales_gt1")
+        # elif _type == "product":
+        #     amount = Sum("productsales_gt1")
+        # elif _type == "prepaid":
+        #     amount = Sum("prepaidsales_gt1")
+        # else:
+        #     result = {'status': status.HTTP_400_BAD_REQUEST,
+        #               'message': "type query parameters are mandatory. (sales,service,product,prepaid)",
+        #               'error': True,
+        #               "data": None}
+        #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        raw_q = """
+                Select   
+                    X.item,  
+                    X.itemDescription,  
+                    X.itemSite_code [siteCode],   
+                    X.ItemSite_Desc [siteName],  
+                    Sum(X.[numItem]) [numItem],  
+                    Sum(X.[numPaid]) [numPaid],  
+                    Sum(X.[numFOC]) [numFOC],  
+                    Sum(X.[totValue]) [totValue],  
+                    Sum(X.[totDisc]) [totDisc],  
+                    Sum(X.[potentialReceivable]) [potentialReceivable],  
+                    Sum(X.[totReceivable]) [totReceivable]  
+                from (  
+                    SELECT   
+                    pos_daud.dt_itemno [item],   
+                    pos_daud.dt_itemdesc [itemDescription],  
+                    Item_SiteList.itemSite_code,  
+                    Item_SiteList.ItemSite_Desc,  
+                    pos_daud.dt_qty [numItem],   
+                    Case When dt_itemdesc Not Like '%FOC%' Then  pos_daud.dt_qty Else 0 End [numPaid],   
+                    Case When dt_itemdesc  Like '%FOC%' Then  pos_daud.dt_qty Else 0 End  [numFOC],   
+                    Case When dt_itemdesc Not Like '%FOC%' Then  pos_daud.dt_price * pos_daud.dt_qty Else 0 End [totValue],  
+                    Case When dt_itemdesc Not Like '%FOC%' Then  pos_daud.dt_discAmt * pos_daud.dt_qty  Else 0 End [totDisc],  
+                    pos_daud.dt_TransacAmt AS [potentialReceivable],   
+                    pos_daud.dt_deposit+ISNULL(T0.Deposit,0) AS [totReceivable]  
+                    FROM pos_haud 
+                    INNER JOIN  Customer ON pos_haud.sa_custno = Customer.Cust_code   
+                    INNER JOIN pos_daud ON pos_haud.sa_transacno = pos_daud.sa_transacno  
+                    INNER JOIN Item_SiteList on pos_haud.ItemSite_Code=Item_SiteList.ItemSite_Code  
+                    LEFT JOIN (SELECT Deposit_Account.sa_Transacno,Deposit_Account.dt_LineNo,Sum(Deposit) [Deposit]  
+                                FROM pos_daud 
+                                INNER JOIN Deposit_Account ON pos_daud.TopUp_Product_Treat_Code = Deposit_Account.Treat_Code 
+                                            AND pos_daud.sa_transacno = Deposit_Account.Ref_Code  
+                                WHERE     (pos_daud.Record_Detail_Type = 'TP PRODUCT')   
+                                Group BY Deposit_Account.sa_Transacno,Deposit_Account.dt_LineNo) T0 ON T0.sa_Transacno=pos_daud.sa_transacno 
+                                                                                                    And T0.dt_LineNo=pos_daud.dt_LineNo  
+                    Where pos_daud.Record_Detail_Type='PRODUCT'  
+                    And pos_haud.sa_date BETWEEN '{0}' AND '{1}' 
+                    --And pos_haud.ItemSite_Code=@Site  
+                    {2}
+                    )X  
+                Group By X.item,X.itemDescription,X.itemSite_code,X.ItemSite_Desc 
+        """
+
+        raw_q = raw_q.format(start, end, site_code_q)
+        print(raw_q)
+
+        with connection.cursor() as cursor:
+            cursor.execute(raw_q)
+            raw_qs = cursor.fetchall()
+            desc = cursor.description
+            responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
 
 class CustomerBirthday(APIView):
     def get(self,request):
