@@ -1205,6 +1205,127 @@ class ProductsAndServicesCollectionAPI(APIView):
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
         return Response(result, status=status.HTTP_200_OK)
 
+class SalesCollectionByPyamentTypesAPI(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        """
+            query parm: start: datetime string(2021-01-01T00:00:00)
+        """
+
+        start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
+
+        # trans_qs = PosDaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start,end], record_detail_type__contains="TP")
+
+
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        elif _siteGroup or _siteCodes:
+            if _siteCodes:
+                site_code_list = _siteCodes.split(",")
+            elif _siteGroup:
+                site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True, site_group=_siteGroup). \
+                    exclude(itemsite_code__icontains="HQ"). \
+                    values_list('itemsite_code', flat=True)
+            _s = ', '.join(['\'' + str(code) + '\'' for code in site_code_list])
+            site_code_q = f"AND pos_haud.ItemSite_Code IN ({_s})"
+            # trans_qs = trans_qs.filter(sa_transacno__itemsite_code__in=site_code_list)
+        else:
+            site_code_q = ""
+
+        # trans_qs = PosDaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start,end], record_detail_type__contains="TP").\
+        #     values('dt_staffname','sa_transacno__sa_transacno_ref').annotate(Tpcount=Count('dt_deposit'),Tpdeposit=Sum('dt_deposit'))
+
+
+        raw_q = """
+                Select X.payDate,X.customer,X.invoiceRef,[payRef],[CustRef],  
+                X.payTypes [payTypes],  
+                (case when X.[Group]='GT1' then 'Sales' else 'Non-Sales' end) as SalesGroup,  
+                X.ItemSite_Code [siteCode],  
+                X.ItemSite_Desc [siteName],  
+                X.RcvedBy [RcvedBy],  
+                --X.servedBy [servedBy],  
+                --isnull(X.Tpcount,0) [Tpcount],  
+                --isnull(X.Tpdeposit,0) [Tpdeposit],  
+                isnull(SUM(X.amt),0) [amt],  
+                isnull(SUM(X.payCN),0) [payCN],  
+                isnull(SUM(X.payContra),0) [payContra],  
+                isnull(SUM(X.grossAmt),0) [grossAmt],  
+                isnull(MAX(X.taxes),0) [taxes],  
+                isnull(SUM(X.gstRate),0) [gstRate],  
+                isnull(SUM(X.netAmt),0) [netAmt],  
+                isnull(SUM(X.BankCharges),0) [BankCharges],  
+                isnull(SUM(X.comm),0) [comm],  
+                isnull(SUM(X.total),0) total    
+                from (  
+                SELECT   
+                --pos_haud.sa_date [payDate],    
+                --CAST (pos_haud.sa_date AS DATE) [payDate],   
+                convert (varchar,pos_haud.sa_date,103)[payDate],   
+                Customer.Cust_name [customer],    
+                pos_haud.SA_TransacNo_Ref [invoiceRef],   
+                pos_haud.sa_transacno [payRef],  
+                Customer.Cust_Refer [CustRef],  
+                pos_taud.pay_Desc [payTypes],   
+                pos_haud.cas_name [RcvedBy],  
+                --#a10.dt_StaffName as [servedBy],  
+                --#a30.Tpcount as [Tpcount],  
+                --#a30.Tpdeposit as [Tpdeposit],  
+                pos_taud.pay_actamt  [amt] ,   
+                0 [payContra],  
+                paytable.GT_Group [Group],  
+                Case When pos_taud.pay_type='CN' Then (pos_taud.pay_actamt) Else 0 End  [payCN],  
+                pos_taud.pay_actamt-(Case When pos_taud.pay_type='CN' Then (pos_taud.pay_actamt) Else 0 End )   [grossAmt],  
+                pos_taud.PAY_GST [taxes],  
+                Convert(Decimal(19,0),CASE When (pos_taud.pay_actamt-pos_taud.PAY_GST)=0 Then 0 
+                Else (pos_taud.PAY_GST/(pos_taud.pay_actamt-pos_taud.PAY_GST))*100 End) [gstRate],  
+                pos_taud.pay_actamt-(Case When pos_taud.pay_type='CN' Then (pos_taud.pay_actamt) Else 0 End )-pos_taud.PAY_GST [netAmt],  
+                0 [comm],  
+                --isnull(bank_charges,0) [BankCharges],  
+                round((isnull(bank_charges,0) * pos_taud.pay_actamt)/100 ,2) as [BankCharges],  
+                --pos_taud.pay_actamt-(Case When pos_taud.pay_type='CN' Then (pos_taud.pay_actamt) Else 0 End )-pos_taud.PAY_GST - isnull(bank_charges,0)+0 [total],  
+                pos_taud.pay_actamt-(Case When pos_taud.pay_type='CN' Then 
+                (pos_taud.pay_actamt) Else 0 End )-pos_taud.PAY_GST - round((isnull(bank_charges,0) * pos_taud.pay_actamt)/100 ,2) +0 [total],  
+                pos_haud.ItemSite_Code,Item_SiteList.ItemSite_Desc  
+                FROM pos_haud   
+                INNER JOIN pos_taud ON pos_haud.sa_transacno = pos_taud.sa_transacno     
+                INNER JOIN Customer ON pos_haud.sa_custno = Customer.Cust_code   
+                INNER JOIN Item_SiteList ON pos_haud.ItemSite_Code = Item_SiteList.ItemSite_Code   
+                INNER JOIN paytable ON pos_taud.PAY_TYPE=paytable.PAY_CODE  
+                --LEFT JOIN #a10 on pos_haud.SA_TransacNo_Ref=#a10.SA_TransacNo_Ref  
+                --LEFT JOIN #a30 on pos_haud.SA_TransacNo_Ref=#a30.SA_TransacNo_Ref  
+                Where pos_haud.sa_date BETWEEN '{start}' AND '{end}'--And pos_haud.ItemSite_Code=@Site  
+                {site}
+                --and pos_haud.SA_TransacNo_Type='Receipt'  
+                --and paytable.pay_code in (select pay_code from paytable where GT_Group='GT1' )   
+                --And ((@Site='') OR ((@Site<>'') And pos_haud.ItemSite_Code In (Select Item From dbo.LISTTABLE(@Site,',')))) --Site  
+                --And ((@PayMode='') OR ((@PayMode<>'') And pos_taud.pay_Type In (Select Item From dbo.LISTTABLE(@PayMode,',')))) --pay  
+                )X  
+                Group By X.payDate,X.customer,X.invoiceRef,X.payTypes,X.ItemSite_Code,X.ItemSite_Desc,[payRef],[CustRef],X.[Group],  
+                X.[RcvedBy] --,X.[servedBy],X.[Tpcount],X.[Tpdeposit]  
+        """
+
+        raw_q = raw_q.format(start=start, end=end, site= site_code_q)
+        print(raw_q)
+
+        with connection.cursor() as cursor:
+            cursor.execute(raw_q)
+            raw_qs = cursor.fetchall()
+            desc = cursor.description
+            responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
 
 
 

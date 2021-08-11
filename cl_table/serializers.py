@@ -1733,7 +1733,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
     # fmspw fields
     flgsales =  serializers.SerializerMethodField()
     flgappt =  serializers.SerializerMethodField()
-
+    site_list = serializers.SerializerMethodField()
 
     def get_shift_name(self, obj):
         if obj.shift:
@@ -1755,17 +1755,25 @@ class StaffPlusSerializer(serializers.ModelSerializer):
             return None
 
     def get_flgsales(self,obj):
-        fmspw = Fmspw.objects.filter(Emp_Codeid=obj).first()
-        return fmspw.flgsales
+        try:
+            fmspw = Fmspw.objects.filter(Emp_Codeid=obj).first()
+            return fmspw.flgsales
+        except:
+            return False
 
     def get_flgappt(self,obj):
-        fmspw = Fmspw.objects.filter(Emp_Codeid=obj).first()
-        return fmspw.flgappt
+        try:
+            fmspw = Fmspw.objects.filter(Emp_Codeid=obj).first()
+            return fmspw.flgappt
+        except:
+            return False
 
+    def get_site_list(self,obj):
+        return EmpSitelist.objects.filter(Emp_Codeid=obj,isactive=True).values('Site_Codeid','site_code')
 
     class Meta:
         model = Employee
-        fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services','flgsales','flgappt',
+        fields = ['id','skills_list','emp_name','display_name','emp_phone1','emp_code','skills','services','flgsales','flgappt','site_list',
                   'emp_address', 'Emp_sexesid','gender','defaultSiteCodeid','defaultsitecode','site_name',
                   'Site_Codeid','site_code', 'emp_dob','emp_joindate','shift','shift_name','emp_email','emp_pic',
                   'EMP_TYPEid','jobtitle_name', 'is_login','pw_password','LEVEL_ItmIDid','level_desc','emp_isactive',
