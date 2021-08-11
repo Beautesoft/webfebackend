@@ -1986,6 +1986,13 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
     def to_representation(self, data):
         data = super(CustomerPlusSerializer,self).to_representation(data)
         data['cust_nric'] = data.get("masked_nric")
+        print(data.get("cust_joindate"),type(data.get("cust_joindate")))
+
+        try:
+            join_date = data.get("cust_joindate")
+            data['cust_joindate'] = join_date.split("T")[0]
+        except:
+            pass
 
         return data
 
@@ -1994,7 +2001,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit',
                   'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
                   'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
-                  'gender',
+                  'gender', 'cust_postcode','sgn_unitno','sgn_block','sgn_street',
                   'masked_nric',
                   'cust_email',
                   'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',

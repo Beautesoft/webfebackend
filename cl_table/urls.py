@@ -77,6 +77,7 @@ urlpatterns = [
 
     # reporting apis
     path('api/SalesDailyReporting/', views.SalesDailyReporting.as_view(), name='SalesDailyReporting'),
+    path('api/ProductsAndServicesCollection/', views.ProductsAndServicesCollectionAPI.as_view(), name='ProductsAndServicesCollection'),
     path('api/DailyCollectionReport/', views.DailyCollectionReportAPI.as_view(), name='DailyCollectionReport'),
     path('api/CollectionByOutlet/', views.CollectionByOutletView.as_view(), name='CollectionByOutletView'),
     path('api/StaffPerformance/', views.StaffPerformanceAPI.as_view(), name='StaffPerformanceAPI'),

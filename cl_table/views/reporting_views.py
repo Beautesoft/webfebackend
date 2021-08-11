@@ -1121,6 +1121,92 @@ class CustomerBirthday(APIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
+class ProductsAndServicesCollectionAPI(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        """
+            query parm: start: datetime string(2021-01-01T00:00:00)
+        """
+
+        start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        elif _siteGroup or _siteCodes:
+            if _siteCodes:
+                site_code_list = _siteCodes.split(",")
+            elif _siteGroup:
+                site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True, site_group=_siteGroup). \
+                    exclude(itemsite_code__icontains="HQ"). \
+                    values_list('itemsite_code', flat=True)
+            _s = ', '.join(['\'' + str(code) + '\'' for code in site_code_list])
+            site_code_q = f"AND itemsite_code IN ({_s})"
+        else:
+            site_code_q = ""
+
+
+        raw_q = """
+                select  CONVERT(date,sa_date,103) as [sa_date],  
+                (case when sum(Pay_actamt)=0 then isnull(sum(SrvSales_Deposit),0) else (isnull(sum(SrvSales_Deposit),0) * (isnull(sum(GT1_ActAmt),0)/isnull(sum(Pay_actamt),1))) end) as [svcsales],    
+                 (case when sum(Pay_actamt)=0 then 0 else (isnull(sum(SrvSales_Deposit),0) * (isnull(sum(GT2_ActAmt),0)/isnull(sum(Pay_actamt),1))) end) as [svcnonsales],    
+                 (case when sum(Pay_actamt)=0 then isnull(sum(ProSales_Deposita),0) else (isnull(sum(ProSales_Deposita),0) * (isnull(sum(GT1_ActAmt),0)/isnull(sum(Pay_actamt),1))) end) as [prdsales],    
+                 (case when sum(Pay_actamt)=0 then 0 else (isnull(sum(ProSales_Deposita),0) * (isnull(sum(GT2_ActAmt),0)/isnull(sum(Pay_actamt),1))) end) as [prdnonsales]
+                 from  
+                (SELECT pos_haud.itemsite_code,  pos_haud.sa_date,  pos_haud.sa_transacno, SrvSales.SrvSales_Deposit, ProSales.ProSales_Deposita, 
+                GT1_actamt.GT1_actamt, GT2_actamt.GT2_actamt, Pay_actamt.Pay_actamt  
+                FROM         pos_haud LEFT OUTER JOIN  
+                  
+                (SELECT     pos_taud_1.sa_transacno, SUM(pos_taud_1.pay_actamt) AS GT2_actamt  
+                FROM          pos_taud AS pos_taud_1 INNER JOIN  
+                PAYTABLE AS PAYTABLE_1 ON pos_taud_1.pay_type = PAYTABLE_1.pay_code  
+                WHERE      (PAYTABLE_1.GT_Group = 'GT2')  
+                GROUP BY pos_taud_1.sa_transacno) AS GT2_actamt ON pos_haud.sa_transacno = GT2_actamt.sa_transacno LEFT OUTER JOIN  
+                (SELECT     pos_taud.sa_transacno, SUM(pos_taud.pay_actamt) AS GT1_actamt  
+                FROM          pos_taud INNER JOIN  
+                PAYTABLE ON pos_taud.pay_type = PAYTABLE.pay_code  
+                WHERE      (PAYTABLE.GT_Group = 'GT1')  
+                GROUP BY pos_taud.sa_transacno) AS GT1_actamt ON pos_haud.sa_transacno = GT1_actamt.sa_transacno LEFT OUTER JOIN  
+                (SELECT     sa_transacno, SUM(pay_actamt) AS Pay_actamt  
+                FROM          pos_taud AS pos_taud_2  
+                GROUP BY sa_transacno) AS Pay_actamt ON pos_haud.sa_transacno = Pay_actamt.sa_transacno LEFT OUTER JOIN  
+                (SELECT     sa_transacno, SUM(dt_deposit) AS SrvSales_Deposit  
+                FROM          pos_daud  
+                WHERE      (Record_Detail_Type IN ('SERVICE', 'TP SERVICE', 'PACKAGE', 'TP PACKAGE'))  
+                GROUP BY sa_transacno) AS SrvSales ON pos_haud.sa_transacno = SrvSales.sa_transacno LEFT OUTER JOIN  
+                (SELECT     sa_transacno, SUM(dt_deposit) AS ProSales_Deposita  
+                FROM          pos_daud AS pos_daud_1  
+                WHERE      (Record_Detail_Type IN ('PRODUCT', 'TP PRODUCT'))  
+                GROUP BY sa_transacno) AS ProSales ON pos_haud.sa_transacno = ProSales.sa_transacno  
+                where pos_haud.isvoid = 0) as Sales_Record  
+                WHERE  sa_date BETWEEN '{0}' and '{1}'
+                {2}
+                -- and Pay_actamt <> 0  
+                group by sa_date order by sa_date  
+        """
+
+        raw_q = raw_q.format(start, end, site_code_q)
+        print(raw_q)
+
+        with connection.cursor() as cursor:
+            cursor.execute(raw_q)
+            raw_qs = cursor.fetchall()
+            desc = cursor.description
+            responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+
+
 
 class ReportSettingsView(APIView):
     def get(self,request,path):
