@@ -2672,6 +2672,14 @@ class EmpSitelist(models.Model):
         db_table = 'Emp_SiteList'
         unique_together = (('emp_code', 'site_code'),)
 
+    def save(self, *args,**kwargs):
+        if self.Emp_Codeid:
+            self.emp_code = self.Emp_Codeid.emp_code
+        if self.Site_Codeid:
+            self.site_code = self.Site_Codeid.itemsite_code
+
+        super(EmpSitelist,self).save(*args,**kwargs)
+
     def __str__(self):
         return str(self.emp_code)
 

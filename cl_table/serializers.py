@@ -1854,6 +1854,8 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
+        # request = self.context['request']
+        # site_list = request.data.get('site_list', "").split(",")
         fmspw = Fmspw.objects.filter(user=self.context['request'].user,pw_isactive=True).first()
         Site_Codeid = fmspw.loginsite
         site_code_str = str(Site_Codeid.itemsite_code)
@@ -1891,6 +1893,8 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         request = self.context['request']
+        site_list = request.data.get('site_list',"").split(",")
+
         instance.emp_name = validated_data.get("emp_name", instance.emp_name)
         instance.display_name = validated_data.get("display_name", instance.display_name)
         instance.emp_phone1 = validated_data.get("emp_phone1", instance.emp_phone1)
@@ -1918,8 +1922,20 @@ class StaffPlusSerializer(serializers.ModelSerializer):
             if validated_data['emp_email'] is not None:
                 instance.emp_email = validated_data.get("emp_email", instance.emp_email)
 
+        try:
+            if not instance.Site_Codeid:
+                instance.Site_Codeid_id = int(site_list[0])
+        except:
+            pass
 
         instance.save()
+
+        for s in site_list:
+            try:
+                _obj = EmpSitelist(Emp_Codeid=instance,Site_Codeid_id=int(s))
+                _obj.save()
+            except Exception as e:
+                pass
 
         # _Fmspw = Fmspw.objects.filter(Emp_Codeid=instance).first()
         # if _Fmspw:
@@ -2016,7 +2032,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
                   'custallowsendsms','cust_maillist','cust_title']
         read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
         'Site_Code','cust_code','ProneToComplain')
-        extra_kwargs = {'cust_name': {'required': True},'cust_address':{'required': True}}
+        extra_kwargs = {'cust_name': {'required': True}}
 
 
     def validate(self, data):
