@@ -1854,8 +1854,10 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        # request = self.context['request']
-        # site_list = request.data.get('site_list', "").split(",")
+        request = self.context['request']
+        site_list = request.data.get('site_list', "").split(",")
+
+
         fmspw = Fmspw.objects.filter(user=self.context['request'].user,pw_isactive=True).first()
         Site_Codeid = fmspw.loginsite
         site_code_str = str(Site_Codeid.itemsite_code)
@@ -1882,6 +1884,19 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                                            Site_Codeid=Site_Codeid,
                                            site_code=site_code_str)
 
+        for s in site_list:
+            try:
+                _obj = EmpSitelist(Emp_Codeid=employee,Site_Codeid_id=int(s))
+                _obj.save()
+            except Exception as e:
+                pass
+
+        try:
+            if not employee.Site_Codeid:
+                employee.Site_Codeid_id = int(site_list[0])
+                employee.save()
+        except:
+            pass
         # skills_data = validated_data.pop('skills_list')
         # if ',' in skills_data:
         #     res = skills_data.split(',')
