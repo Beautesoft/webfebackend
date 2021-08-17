@@ -2047,7 +2047,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
                   'custallowsendsms','cust_maillist','cust_title']
         read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
         'Site_Code','cust_code','ProneToComplain')
-        extra_kwargs = {'cust_name': {'required': True}}
+        extra_kwargs = {'cust_name': {'required': True},'cust_phone2': {'required': False},}
 
 
     def validate(self, data):
@@ -2074,14 +2074,12 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         elif action == 'create':
             allowed_fields = form_control_qs.filter(visible_in_registration=True).values_list("field_name",flat=True)
 
-
         for f in allowed_fields:
             if hasattr(Customer,f) and f in data:
                 validate_data[f] = data[f]
 
 
-        mandatory_fields = form_control_qs.filter(mandatory=True).values_list("field_name", flat=True)
-
+        mandatory_fields = form_control_qs.filter(visible_in_registration=True,mandatory=True).values_list("field_name", flat=True)
         for _field in mandatory_fields:
             # if request.data.get(_field) is None:
             if validate_data.get(_field) is None:

@@ -17,7 +17,8 @@ from rest_framework.views import APIView
 from Cl_beautesoft.settings import BASE_DIR, REPORT_SETTINGS_PATH
 from cl_app.models import ItemSitelist
 from cl_table.models import ItemSitelist_Reporting, PosHaud_Reporting, PosTaud_Reporting, PosDaud_Reporting, \
-    Multistaff_Reporting, Treatment_Reporting, Stock_Reporting, Customer_Reporting, PayGroup_Reporting
+    Multistaff_Reporting, Treatment_Reporting, Stock_Reporting, Customer_Reporting, PayGroup_Reporting, \
+    ItemDept_Reporting
 from cl_table.serializers import DepartmentReport
 from cl_table.utils import model_joiner, SUBSTR, LENGTH
 
@@ -1362,3 +1363,13 @@ def pay_group_list(request):
     response_data = list(qs)
     result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': response_data}
     return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(['GET', ])
+def department_list(request):
+    qs = ItemDept_Reporting.objects.all().values_list('itm_code','itm_desc')
+    response_data = list(qs)
+    result = {'status': status.HTTP_200_OK, "message": "Login Successful", 'error': False, 'data': response_data}
+    return Response(result, status=status.HTTP_200_OK)
+
+

@@ -1024,6 +1024,31 @@ class Treatment_Reporting(models.Model):
         unique_together = (('treatment_code', 'site_code'),)
 
 
-# class ReportSettings(models.Model):
-#     report = models.CharField(max_length=100,unique=True)
-#     settingsData = models.FileField()
+class ItemDept_Reporting(models.Model):
+    itm_id = models.AutoField(primary_key=True)
+    itm_code = models.CharField(max_length=10, blank=True, null=True)
+    itm_desc = models.CharField(max_length=40, blank=True, null=True)
+    itm_status = models.BooleanField()
+    itm_seq = models.IntegerField(db_column='ITM_SEQ', blank=True, null=True)  # Field name made lowercase.
+    allowcashsales = models.BooleanField(db_column='AllowCashSales')  # Field name made lowercase.
+    itm_showonsales = models.BooleanField(db_column='ITM_ShowOnSales')  # Field name made lowercase.
+    isfirsttrial = models.BooleanField(db_column='IsFirstTrial', blank=True, null=True)  # Field name made lowercase.
+    is_voucher = models.BooleanField(db_column='Is_Voucher')  # Field name made lowercase.
+    is_prepaid = models.BooleanField(db_column='Is_Prepaid')  # Field name made lowercase.
+    is_package = models.BooleanField(db_column='Is_Package')  # Field name made lowercase.
+    is_retailproduct = models.BooleanField(db_column='Is_RetailProduct')  # Field name made lowercase.
+    is_salonproduct = models.BooleanField(db_column='Is_SalonProduct')  # Field name made lowercase.
+    validity_period = models.IntegerField(db_column='Validity_Period', blank=True, null=True)  # Field name made lowercase.
+    is_service = models.BooleanField(db_column='Is_Service')  # Field name made lowercase.
+    dept_pic_b = models.BinaryField(db_column='Dept_PIC_B', blank=True, null=True)  # Field name made lowercase.
+    is_compound = models.BooleanField(db_column='Is_Compound')  # Field name made lowercase.
+    dept_pic = models.CharField(db_column='Dept_PIC', max_length=100, blank=True, null=True)  # Field name made lowercase.
+    sync_clientindexstring = models.TextField(db_column='Sync_ClientIndexString', blank=True, null=True)  # Field name made lowercase.
+    vilidity_from_date = models.DateTimeField(db_column='Vilidity_From_Date', blank=True, null=True)  # Field name made lowercase.
+    vilidity_to_date = models.DateTimeField(db_column='Vilidity_To_date', blank=True, null=True)  # Field name made lowercase.
+    vilidity_from_time = models.DateTimeField(db_column='Vilidity_From_Time', blank=True, null=True)  # Field name made lowercase.
+    vilidity_to_time = models.DateTimeField(db_column='Vilidity_To_Time', blank=True, null=True)  # Field name made lowercase.
+
+    class Meta:
+        managed = False
+        db_table = 'Item_Dept'

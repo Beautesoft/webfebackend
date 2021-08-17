@@ -74,6 +74,7 @@ urlpatterns = [
     path('api/SalesByConsultant/', views.SalesByConsultantView.as_view(), name='SalesByConsultantView'),
     path('api/site_group_list/', views.site_group_list, name='site_group_list'),
     path('api/pay_group_list/', views.pay_group_list, name='pay_group_list'),
+    path('api/department_list/', views.department_list, name='department_list'),
 
     # reporting apis
     path('api/SalesDailyReporting/', views.SalesDailyReporting.as_view(), name='SalesDailyReporting'),
