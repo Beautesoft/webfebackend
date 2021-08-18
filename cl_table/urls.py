@@ -88,6 +88,7 @@ urlpatterns = [
     path('api/ProductSale/', views.ProductSaleAPI.as_view(), name='ProductSaleAPI'),
     path('api/SalesCollectionByPyamentTypes/', views.SalesCollectionByPyamentTypesAPI.as_view(), name='SalesCollectionByPyamentTypesAPI'),
     path('api/CustomerBirthday/', views.CustomerBirthday.as_view(), name='CustomerBirthday'),
+    path('api/StockBalance/', views.StockBalanceAPI.as_view(), name='StockBalanceAPI'),
 
 
     path('api/ReportSettings/<str:path>', views.ReportSettingsView.as_view(), name='ReportSettingsView'),

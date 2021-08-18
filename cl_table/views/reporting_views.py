@@ -1328,6 +1328,103 @@ class SalesCollectionByPyamentTypesAPI(APIView):
         return Response(result, status=status.HTTP_200_OK)
 
 
+class StockBalanceAPI(APIView):
+    # authentication_classes = [TokenAuthentication]
+    # permission_classes = [IsAuthenticated & authenticated_only]
+
+    def get(self, request):
+        """
+            query parm: start: datetime string(2021-01-01T00:00:00)
+        """
+
+        start = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d")
+        # _pre_start = start - _delta
+        end = datetime.datetime.strptime(request.GET.get("end"), "%Y-%m-%d")
+
+        # trans_qs = PosDaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start,end], record_detail_type__contains="TP")
+
+
+        # filters
+        _siteCodes = request.GET.get("siteCodes")
+        _siteGroup = request.GET.get("siteGroup")
+        if _siteGroup and _siteCodes:
+            result = {'status': status.HTTP_400_BAD_REQUEST,
+                      'message': "siteCodes and siteGroup query parameters can't use in sametime", 'error': True,
+                      "data": None}
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+        elif _siteGroup or _siteCodes:
+            if _siteCodes:
+                site_code_list = _siteCodes.split(",")
+            elif _siteGroup:
+                site_code_list = ItemSitelist.objects.filter(itemsite_isactive=True, site_group=_siteGroup). \
+                    exclude(itemsite_code__icontains="HQ"). \
+                    values_list('itemsite_code', flat=True)
+            _s = ', '.join(['\'' + str(code) + '\'' for code in site_code_list])
+            site_code_q = f"AND Stktrn_2.store_no IN ({_s})"
+            # trans_qs = trans_qs.filter(sa_transacno__itemsite_code__in=site_code_list)
+        else:
+            site_code_q = ""
+
+        # trans_qs = PosDaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start,end], record_detail_type__contains="TP").\
+        #     values('dt_staffname','sa_transacno__sa_transacno_ref').annotate(Tpcount=Count('dt_deposit'),Tpdeposit=Sum('dt_deposit'))
+
+
+        raw_q = """
+                    Select * from                       
+                        (                                        
+                        SELECT  distinct Stock.Item_Name [ItemName],Stock.ITEM_CODE [ItemCode],item_div.itm_desc [itm_desc],item_brand.itm_desc [site],
+                    item_range.itm_desc [Product],Stktrn_2.STORE_NO [Outlet],ITEM_UOMPRICE.ITEM_UOM [UOM],ITEM_UOMPRICE.ITEM_PRICE [Cost],             
+                        --ITEM_BATCH.QTY [Qty],ITEM_UOMPRICE.ITEM_PRICE * ITEM_BATCH.QTY [TAmt],                                        
+                     Stktrn_2.trn_balqty [Qty],ITEM_UOMPRICE.ITEM_PRICE * ITEM_BATCH.QTY [TAmt],                                        
+                     ---DENSE_RANK () OVER(PARTITION BY Stktrn_2.STORE_NO,Stktrn_2.ITEMCODE,ITEM_UOMPRICE.ITEM_UOM ORDER BY Stktrn_2.ID DESC  ) AS RankRank                                        
+                     --DENSE_RANK () OVER(PARTITION BY Stktrn_2.STORE_NO,Stktrn_2.ITEMCODE,ITEM_UOMPRICE.ITEM_UOM ORDER BY Stktrn_2.ID DESC  ) AS RankRank                                        
+                     --DENSE_RANK () OVER(PARTITION BY Stktrn_2.STORE_NO,Stktrn_2.ITEMCODE,ITEM_UOMPRICE.ITEM_UOM ORDER BY Stktrn_2.trn_post desc,Stktrn_2.id desc ) AS RankRank                                        
+                        DENSE_RANK () OVER(PARTITION BY Stktrn_2.STORE_NO,Stktrn_2.ITEMCODE,ITEM_UOMPRICE.ITEM_UOM ORDER BY Stktrn_2.trn_post desc,Stktrn_2.post_time desc, Stktrn_2.Id desc) AS RankRank                                        
+                        FROM item_Class INNER JOIN                                         
+                        Stock INNER JOIN                                         
+                        Item_StockList ON Stock.item_code = Item_StockList.Item_Code  INNER JOIN                                         
+                        Item_Div ON Stock.Item_Div = Item_Div.itm_code INNER JOIN                                         
+                        Item_Dept ON Stock.Item_Dept = Item_Dept.itm_code ON item_Class.itm_code = Stock.Item_Class INNER JOIN                                         
+                        Item_Brand ON Stock.item_Brand = Item_Brand.itm_code LEFT OUTER JOIN                                         
+                        Item_Range ON Stock.Item_Range = Item_Range.itm_code RIGHT OUTER JOIN                                         
+                        ITEM_BATCH ON Item_StockList.ItemSite_Code = ITEM_BATCH.SITE_CODE AND Item_StockList.Item_Code = ITEM_BATCH.ITEM_CODE INNER JOIN                                         
+                        ITEM_UOMPRICE ON ITEM_BATCH.UOM = ITEM_UOMPRICE.ITEM_UOM AND ITEM_BATCH.ITEM_CODE = ITEM_UOMPRICE.ITEM_CODE INNER JOIN                                         
+                        Stktrn AS Stktrn_2 ON Stock.item_code + '0000' = Stktrn_2.ITEMCODE   RIGHT OUTER JOIN                                         
+                        Item_SiteList ON Stktrn_2.STORE_NO = Item_SiteList.ItemSite_Code AND ITEM_BATCH.SITE_CODE = Item_SiteList.ItemSite_Code                                          
+                     Where ISNULL(Stktrn_2.ITEMCODE,'')<>''                                          
+                     And  Stktrn_2.Trn_Post <= '{start}' --Date                   
+                     And     Stktrn_2.Post_time <> ''                                 
+                     --And ((@FItem='Select') OR Stock.item_desc >= @FItem) AND ((@TItem='Select') OR  Stock.item_desc <= @TItem) --Item                                        
+                     {site} --Site                                        
+                     --And ((@Dept='') OR ((@Dept<>'')  And  item_dept.itm_code In (Select Item From dbo.LISTTABLE(@Dept,',')))) --Dept                                    
+                     --And ((@Brand='') OR ((@Brand<>'')  And item_Brand.itm_code In (Select Item From dbo.LISTTABLE(@Brand,',')))) --Brand     
+                          
+                     --And ((@Range='') OR ((@Range<>'')  And item_Range.itm_code In (Select Item From dbo.LISTTABLE(@Range,',')))) --Range                        
+                                                              
+                     --And ((@ShowInactive='Y') OR Stock.Item_Isactive =1)               
+                                  
+                                 
+                     And Stock.Item_Div Between '1' And  '2'  And Item_SiteList.ItemSite_Isactive = 'True'                                        
+                     And ITEM_UOMPRICE.IsActive = 'True'                                      
+                     )X Where X.RankRank=1                                               
+                        
+                     --And ((@ShowZeroQty='Y') OR X.Qty<>0)                     
+                           order by  [Product],[ITEMNAME]  
+        """
+
+        raw_q = raw_q.format(start=start, site=site_code_q)
+        print(raw_q)
+
+        with connection.cursor() as cursor:
+            cursor.execute(raw_q)
+            raw_qs = cursor.fetchall()
+            desc = cursor.description
+            responseData = [dict(zip([col[0] for col in desc], row)) for row in raw_qs]
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": responseData}
+        return Response(result, status=status.HTTP_200_OK)
+
+
 
 
 class ReportSettingsView(APIView):
