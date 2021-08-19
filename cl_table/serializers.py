@@ -1636,7 +1636,7 @@ class EmpWorkScheduleSerializer(serializers.ModelSerializer):
 class CustomerFormControlSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerFormControl
-        fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory','order','col_width']
+        fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory','order','col_width','isStacked']
         read_only_fields = ('field_name','display_field_name')
 
 

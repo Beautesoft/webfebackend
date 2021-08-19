@@ -1367,6 +1367,25 @@ class StockBalanceAPI(APIView):
 
         # trans_qs = PosDaud_Reporting.objects.filter(sa_transacno__sa_date__range=[start,end], record_detail_type__contains="TP").\
         #     values('dt_staffname','sa_transacno__sa_transacno_ref').annotate(Tpcount=Count('dt_deposit'),Tpdeposit=Sum('dt_deposit'))
+        _dept = request.GET.get("dept")
+        if _dept:
+            dept_q = f"And  item_dept.itm_code In ({_dept}) "
+        else:
+            dept_q = " "
+
+        _brand = request.GET.get("brand")
+        if _brand:
+            brand_q = f"And  item_Brand.itm_code In ({_brand}) "
+        else:
+            brand_q = " "
+
+        _range = request.GET.get("range")
+        if _range:
+            range_q = f"And  item_Range.itm_code In ({_brand}) "
+        else:
+            range_q = " "
+
+
 
 
         raw_q = """
@@ -1396,10 +1415,10 @@ class StockBalanceAPI(APIView):
                      And     Stktrn_2.Post_time <> ''                                 
                      --And ((@FItem='Select') OR Stock.item_desc >= @FItem) AND ((@TItem='Select') OR  Stock.item_desc <= @TItem) --Item                                        
                      {site} --Site                                        
-                     --And ((@Dept='') OR ((@Dept<>'')  And  item_dept.itm_code In (Select Item From dbo.LISTTABLE(@Dept,',')))) --Dept                                    
-                     --And ((@Brand='') OR ((@Brand<>'')  And item_Brand.itm_code In (Select Item From dbo.LISTTABLE(@Brand,',')))) --Brand     
+                     {dept} --Dept                                    
+                     {brand} --Brand     
                           
-                     --And ((@Range='') OR ((@Range<>'')  And item_Range.itm_code In (Select Item From dbo.LISTTABLE(@Range,',')))) --Range                        
+                     {range} --Range                        
                                                               
                      --And ((@ShowInactive='Y') OR Stock.Item_Isactive =1)               
                                   

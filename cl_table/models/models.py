@@ -3261,6 +3261,7 @@ class CustomerFormControl(models.Model):
     order = models.IntegerField()
     col_width = models.IntegerField(default=6)
     isActive = models.BooleanField(db_column='isActive')  # Field name made lowercase.
+    isStacked = models.BooleanField(db_column='isStacked',default=False)  # Field name made lowercase.
     Site_Codeid = models.ForeignKey('cl_app.ItemSitelist',db_column='Site_Codeid_id',related_name='customer_form_control', on_delete=models.PROTECT, null=True)
 
 
