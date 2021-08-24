@@ -1,12 +1,19 @@
 from django.db import models, transaction
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import User, Group
+from django.db.models import F
 from django.utils import timezone
 # Create your models here.
 
 #intial
 
 #Final
+from jsonfield import JSONField
+
+# from cl_table.models import IsActiveObjects
+from cl_table.managers import IsActiveManager
+
+
 class City(models.Model):
     itm_id = models.AutoField(primary_key=True)
     itm_desc = models.CharField(max_length=40, blank=True, null=True)
@@ -60,6 +67,10 @@ class CustomerClass(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
+    objects = models.Manager()
+    active_objects = IsActiveManager(active_field="class_isactive",label="class_desc",value="id")
+
+
     class Meta:
         db_table = 'Customer_Class'
 
@@ -81,6 +92,9 @@ class CustomerTitle(models.Model):
     seq = models.FloatField(db_column='SEQ')  # Field name made lowercase.
     isactive = models.BooleanField(db_column='ISACTIVE')  # Field name made lowercase.
 
+    objects = models.Manager()
+    active_objects = IsActiveManager(active_field="isactive", label="itm_desc", value="id")
+
     class Meta:
         managed = False
         db_table = 'Customer_Title'
@@ -101,6 +115,10 @@ class Source(models.Model):
     source_isactive = models.BooleanField(db_column='Source_IsActive',default=True)  # Field name made lowercase.
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    objects = models.Manager()
+    active_objects = IsActiveManager(active_field="source_isactive",label="source_desc",value="id")
+
 
     class Meta:
         db_table = 'Source'
@@ -132,7 +150,8 @@ class ItemStatus(models.Model):
 
     def __str__(self):
         return str(self.status_short_desc)    
-    
+
+
 
 class Gender(models.Model):
     itm_id = models.AutoField(primary_key=True)
@@ -141,6 +160,9 @@ class Gender(models.Model):
     itm_code = models.CharField(db_column='ITM_CODE', max_length=50, blank=True, null=True)  # Field name made lowercase.
     updated_at = models.DateTimeField(auto_now=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+
+    objects = models.Manager()
+    active_objects = IsActiveManager(active_field="itm_isactive",label="itm_name",value="itm_id")
 
     class Meta:
         db_table = 'Gender'
@@ -569,6 +591,11 @@ class Employee(models.Model):
     LEVEL_ItmIDid = models.ForeignKey('cl_table.Securities', on_delete=models.PROTECT,null=True) #,null=True,blank=True
     emp_country = models.ForeignKey('cl_table.Country', on_delete=models.PROTECT,null=True) #,null=True,blank=True
     emp_remarks = models.CharField(db_column='Emp_remarks', max_length=250, blank=True, null=True)  # Field name made lowercase.
+
+    objects = models.Manager()
+    active_objects = IsActiveManager(active_field="emp_isactive",label="emp_name",value="emp_no")
+
+
 
     class Meta:
         db_table = 'Employee'
@@ -3250,6 +3277,12 @@ class ExchangeDtl(models.Model):
 
 
 class CustomerFormControl(models.Model):
+    _default_layout = {
+        "lg": {"w": 0, "h": 0, "x": 0, "y": 0},
+        "md": {"w": 0, "h": 0, "x": 0, "y": 0},
+        "sm": {"w": 0, "h": 0, "x": 0, "y": 0}
+    }
+
     id = models.AutoField(primary_key=True)
     field_name = models.CharField(db_column='fieldName', max_length=50, blank=True, null=True)  # Field name made lowercase.
     display_field_name = models.CharField(db_column='displayFieldName', max_length=50, blank=True, null=True)  # Field name made lowercase.
@@ -3263,7 +3296,7 @@ class CustomerFormControl(models.Model):
     isActive = models.BooleanField(db_column='isActive')  # Field name made lowercase.
     isStacked = models.BooleanField(db_column='isStacked',default=False)  # Field name made lowercase.
     Site_Codeid = models.ForeignKey('cl_app.ItemSitelist',db_column='Site_Codeid_id',related_name='customer_form_control', on_delete=models.PROTECT, null=True)
-
+    layout = JSONField(default=_default_layout)
 
     class Meta:
         db_table = 'customerFormControl'

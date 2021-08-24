@@ -1,4 +1,6 @@
 from django.db import models
+
+from cl_table.managers import IsActiveManager
 from cl_table.models import City, State, Country, Fmspw, ItemUom, Customer
 from django.conf import settings
 
@@ -72,7 +74,10 @@ class ItemSitelist(models.Model):
     service_text = models.BooleanField(db_column='Service Text', default=False) 
     is_nric = models.BooleanField(db_column='is_nric', default=False) 
     is_automember = models.BooleanField(db_column='is_automember', default=False) 
-  
+
+    objects = models.Manager()
+    active_objects = IsActiveManager(active_field="itemsite_isactive",label="itemsite_code",value="itemsite_id")
+
     class Meta:
         db_table = 'Item_SiteList'
         unique_together = [['itemsite_desc','itemsite_phone1','itemsite_email']]

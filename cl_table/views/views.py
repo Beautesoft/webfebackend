@@ -12463,23 +12463,29 @@ def CustomerFormSettings(request):
             # Site_Codeid, Cust_sexesid(Gender), Cust_Classid(CustomerClass), Cust_Sourceid(Source) current (03/06/2020) fks.
 
             _related_model_class = _attr.field.related_model
-            _qs = _related_model_class.objects.all()
-            _isactive_fileds = [x.name for x in _related_model_class._meta.get_fields() if "isactive" in x.name]
-            if len(_isactive_fileds) == 1:
-                _qs = _qs.filter(**{_isactive_fileds[0]: True})
-            elif len(_isactive_fileds) > 1:
-                _qs = _qs.filter(**{_isactive_fileds[0]: True})
-                # todo: if related model have more than one fields that contain 'isactive', filter statement should
-                #       choose needed one. and should be implement logger instead print
-                print(f"Warning: CustomerFormSettings, {_setting['field_name']}: {_related_model_class} "
-                      f"have more than one isactive fields")
-            try:
-                _choices = [obj.choice_dict for obj in _qs]
-            except:
-                result = {'status': status.HTTP_400_BAD_REQUEST, 'message': f"{_related_model_class} has not 'choice_dict' called property", 'error': True,
-                          "data": None}
-                return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+            # _qs = _related_model_class.objects.all()
+            # _isactive_fileds = [x.name for x in _related_model_class._meta.get_fields() if "isactive" in x.name]
+            # if len(_isactive_fileds) == 1:
+            #     _qs = _qs.filter(**{_isactive_fileds[0]: True})
+            # elif len(_isactive_fileds) > 1:
+            #     _qs = _qs.filter(**{_isactive_fileds[0]: True})
+            #     # todo: if related model have more than one fields that contain 'isactive', filter statement should
+            #     #       choose needed one. and should be implement logger instead print
+            #     print(f"Warning: CustomerFormSettings, {_setting['field_name']}: {_related_model_class} "
+            #           f"have more than one isactive fields")
+            # try:
+            #     _choices = [obj.choice_dict for obj in _qs]
+            # except:
+            #     result = {'status': status.HTTP_400_BAD_REQUEST, 'message': f"{_related_model_class} has not 'choice_dict' called property", 'error': True,
+            #               "data": None}
+            #     return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                _choices = list(_related_model_class.active_objects.all())
+            except:
+                _choices = []
+                print(f"WARNING: {_related_model_class} hasn't active_objects custom manager")
 
         # elif _data_type == "ManyToManyField":
         #     # currently there aren't any ManyToManyFields in Customer model
