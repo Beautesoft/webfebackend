@@ -1670,6 +1670,17 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
 
 
 class DiagnosisSerializer(serializers.ModelSerializer):
+    pic_path = serializers.SerializerMethodField()
+
+    def get_pic_path(self, obj):
+        request = self.context.get('request')
+        print(obj.sys_code,print(obj.pic_path))
+        try:
+            photo_url = obj.pic_path.url
+            return request.build_absolute_uri(photo_url)
+        except:
+            return None
+
     class Meta:
         model = Diagnosis
         fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no']
@@ -1689,6 +1700,17 @@ class DiagnosisCompareSerializer(serializers.ModelSerializer):
     # diagnosis1 = DiagnosisSerializer(source='diagnosis1_id')
     # diagnosis2 = DiagnosisSerializer(source='diagnosis2_id')
     diagnosis_list = DiagnosisSerializer(source='diagnosis',many=True,read_only=True)
+
+    # def get_diagnosis_list(self,obj):
+    #     print(self.context)
+    #     diag_serializer = DiagnosisSerializer(obj.diagnosis.all(),many=True,read_only=True,context=self.context)
+    #     return diag_serializer.data
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # We pass the "upper serializer" context to the "nested one"
+        self.fields['diagnosis_list'].context.update(self.context)
+
     class Meta:
         model = DiagnosisCompare
         # fields = '__all__'

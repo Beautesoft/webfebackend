@@ -13167,7 +13167,7 @@ class DiagnosisCompareView(APIView):
         except (EmptyPage, InvalidPage):
             compare_qs = paginator.page(total_page)  # last page
 
-        serializer = DiagnosisCompareSerializer(compare_qs,many=True)
+        serializer = DiagnosisCompareSerializer(compare_qs,many=True,context={"request":request})
         resData = {
             'diagnosisList': serializer.data,
             'pagination': {
@@ -13186,7 +13186,7 @@ class DiagnosisCompareView(APIView):
         fmspw = Fmspw.objects.filter(user=request.user).first()
         compare_user = fmspw.emp_code
         requestData['compare_user'] = compare_user
-        serializer = DiagnosisCompareSerializer(data=requestData)
+        serializer = DiagnosisCompareSerializer(data=requestData,context={"request":request})
         if serializer.is_valid():
             serializer.save()
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
