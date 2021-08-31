@@ -10,7 +10,6 @@ from django.utils import timezone
 #Final
 from jsonfield import JSONField
 
-# from cl_table.models import IsActiveObjects
 from cl_table.managers import IsActiveManager
 
 
@@ -3402,8 +3401,9 @@ class DiagnosisCompare(models.Model):
     compare_isactive = models.BooleanField(db_column='Compare_IsActive',default=True)  # Field name made lowercase.
     compare_user = models.CharField(db_column='Compare_User', max_length=20, blank=True, null=True)  # Field name made lowercase.
     cust_code = models.CharField(db_column='Cust_Code', max_length=50, blank=True, null=True)  # Field name made lowercase.
-    diagnosis1_id = models.ForeignKey(Diagnosis, on_delete=models.PROTECT, null=True, related_name="diagnosis_compare_1")
-    diagnosis2_id = models.ForeignKey(Diagnosis, on_delete=models.PROTECT, null=True, related_name="diagnosis_compare_2")
+    diagnosis1_id = models.ForeignKey(Diagnosis, on_delete=models.PROTECT, null=True, related_name="diagnosis_compare_1",blank=True)
+    diagnosis2_id = models.ForeignKey(Diagnosis, on_delete=models.PROTECT, null=True, related_name="diagnosis_compare_2",blank=True)
+    diagnosis = models.ManyToManyField(Diagnosis)
 
     class Meta:
         db_table = 'Diagnosis_Compare'
