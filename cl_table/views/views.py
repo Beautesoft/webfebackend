@@ -13146,9 +13146,10 @@ class DiagnosisCompareView(APIView):
         if customer_list:
             diag_qs = diag_qs.filter(cust_no_id__in=customer_list)
 
-        # diag_list = diag_qs.values('sys_code')
+        diag_list = diag_qs.values_list('sys_code',flat=True)
 
-        compare_qs = DiagnosisCompare.objects.filter(Q(diagnosis1_id__in=diag_qs) | Q(diagnosis2_id__in=diag_qs))
+        # compare_qs = DiagnosisCompare.objects.filter(Q(diagnosis1_id__in=diag_qs) | Q(diagnosis2_id__in=diag_qs))
+        compare_qs = DiagnosisCompare.objects.filter(diagnosis__sys_code__in=diag_list).distinct()
         full_tot = compare_qs.count()
         try:
             limit = int(request.GET.get("limit", 8))
@@ -13195,7 +13196,27 @@ class DiagnosisCompareView(APIView):
                   "error": serializer.errors}
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+    def put(self,request,id):
+        requestData = request.data
+        fmspw = Fmspw.objects.filter(user=request.user).first()
+        compare_user = fmspw.emp_code
+        requestData['compare_user'] = compare_user
 
+        try:
+            diag_compare_obj = DiagnosisCompare.objects.get(id=id)
+        except DiagnosisCompare.DoesNotExist:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid id", 'error': True, "data": None,
+                      }
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DiagnosisCompareSerializer(diag_compare_obj,data=requestData, context={"request": request},partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True, "data": None,
+                  "error": serializer.errors}
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
 class EmployeeSecuritySettings(APIView):
     authentication_classes = [TokenAuthentication]

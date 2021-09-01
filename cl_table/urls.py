@@ -52,6 +52,7 @@ urlpatterns = [
     path('api/SkillsView/', views.SkillsView.as_view(), name='SkillsView'),
     path('api/PhotoDiagnosis/', views.PhotoDiagnosis.as_view(), name='PhotoDiagnosis'),
     path('api/DiagnosisCompare/', views.DiagnosisCompareView.as_view(), name='DiagnosisCompare'),
+    path('api/DiagnosisCompare/<int:id>', views.DiagnosisCompareView.as_view(), name='DiagnosisCompare'),
 
 
     path('api/EmployeeSkills/', views.EmployeeSkillView.as_view(), name='EmployeeSkillView'),
