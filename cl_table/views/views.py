@@ -12861,6 +12861,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                       "error": serializer.errors}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+
+
 class RewardPolicyViewSet(viewsets.ModelViewSet):
     # authentication_classes = [TokenAuthentication]
     authentication_classes = [TokenAuthentication]
@@ -13111,10 +13113,11 @@ class PhotoDiagnosis(APIView):
         return Response(result, status=status.HTTP_200_OK)
 
     def post(self,request):
-        requestData = request.POST
+        requestData = request.data
         # print(requestData,request.FILES)
-        requestData._mutable = True
-        requestData['pic_path'] = request.FILES.get("pic_path")
+        # requestData._mutable = True
+        # requestData['pic_path'] = request.FILES.get("pic_path")
+        print(request.data)
 
         serializer = DiagnosisSerializer(data=requestData)
         if serializer.is_valid():

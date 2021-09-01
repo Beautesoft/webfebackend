@@ -1670,9 +1670,9 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
 
 
 class DiagnosisSerializer(serializers.ModelSerializer):
-    pic_path = serializers.SerializerMethodField()
+    pic_abs_path = serializers.SerializerMethodField()
 
-    def get_pic_path(self, obj):
+    def get_pic_abs_path(self, obj):
         request = self.context.get('request')
         print(obj.sys_code,print(obj.pic_path))
         try:
@@ -1683,14 +1683,13 @@ class DiagnosisSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Diagnosis
-        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no']
+        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no','pic_data','pic_abs_path']
         read_only_fields = ("diagnosis_code","cust_code",)
         extra_kwargs = {'diagnosis_code': {'required': False},
                         'cust_code': {'required': False},
                         'pic_path': {'required': True},
+                        'pic_data': {'required': False},
                         'remark1': {'required': True},
-                        'diagnosis1_id': {'required': True},
-                        'diagnosis2_id': {'required': True},
                         }
 
     # def validate(self, attrs):
