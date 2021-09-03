@@ -12185,7 +12185,7 @@ class MonthlyAllSchedule(APIView):
     def get(self, request):
         # result = {'status': state, "message": message, 'error': error, 'data': data}
         try:
-            site = ItemSitelist.objects.get(itemsite_id=request.GET.get("site_id"))
+            site = ItemSitelist.objects.get(itemsite_code=request.GET.get("siteCode"))
         except Exception as e:
             print(e)
             return general_error_response("Invalid site_id format")
