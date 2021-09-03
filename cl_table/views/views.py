@@ -12776,7 +12776,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             except (EmptyPage, InvalidPage):
                 diag_qs = paginator.page(total_page)  # last page
 
-            serializer = DiagnosisSerializer(diag_qs, many=True)
+            serializer = DiagnosisSerializer(diag_qs, many=True,context={'request':request})
 
             resData = {
                 'diagnosisList': serializer.data,
@@ -12795,7 +12795,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             requestData['pic_path'] = request.FILES.get("pic_path")
             requestData['cust_no'] = pk
             requestData['site_code'] = site
-            serializer = DiagnosisSerializer(data=requestData)
+            serializer = DiagnosisSerializer(data=requestData,context={'request':request})
             if serializer.is_valid():
                 serializer.save()
                 result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
@@ -12834,7 +12834,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             except (EmptyPage, InvalidPage):
                 compare_qs = paginator.page(total_page)  # last page
 
-            serializer = DiagnosisCompareSerializer(compare_qs, many=True)
+            serializer = DiagnosisCompareSerializer(compare_qs, many=True,context={'request':request})
             resData = {
                 'diagnosisList': serializer.data,
                 'pagination': {
@@ -12852,7 +12852,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             requestData = request.data
             compare_user = fmspw.emp_code
             requestData['compare_user'] = compare_user
-            serializer = DiagnosisCompareSerializer(data=requestData)
+            serializer = DiagnosisCompareSerializer(data=requestData,context={'request':request})
             if serializer.is_valid():
                 serializer.save()
                 result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
@@ -13093,12 +13093,12 @@ class PhotoDiagnosis(APIView):
         paginator = Paginator(diag_qs, limit)
         total_page = paginator.num_pages
 
-        try:
-            diag_qs = paginator.page(page)
-        except (EmptyPage, InvalidPage):
-            diag_qs = paginator.page(total_page)  # last page
+        # try:
+        #     diag_qs = paginator.page(page)
+        # except (EmptyPage, InvalidPage):
+        #     diag_qs = paginator.page(total_page)  # last page
 
-        serializer = DiagnosisSerializer(diag_qs, many=True)
+        serializer = DiagnosisSerializer(diag_qs, many=True,context={'request':request})
 
         resData = {
             'diagnosisList': serializer.data,
@@ -13119,7 +13119,7 @@ class PhotoDiagnosis(APIView):
         # requestData['pic_path'] = request.FILES.get("pic_path")
         print(request.data)
 
-        serializer = DiagnosisSerializer(data=requestData)
+        serializer = DiagnosisSerializer(data=requestData,context={'request':request})
         if serializer.is_valid():
             serializer.save()
             result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}

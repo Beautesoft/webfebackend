@@ -3363,6 +3363,7 @@ class Diagnosis(models.Model):
     pic_path5 = models.ImageField(db_column='PIC_Path5', max_length=255, blank=True, null=True,upload_to='img')
     pic_path6 = models.ImageField(db_column='PIC_Path6', max_length=255, blank=True, null=True,upload_to='img')
     pic_data = models.FileField(blank=True, null=True)
+    pic_data1 = models.TextField(blank=True, null=True)
     pic1 = models.BinaryField(db_column='PIC1', blank=True, null=True)  # Field name made lowercase.
     pic2 = models.BinaryField(db_column='PIC2', blank=True, null=True)  # Field name made lowercase.
     pic3 = models.BinaryField(db_column='PIC3', blank=True, null=True)  # Field name made lowercase.

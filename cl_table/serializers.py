@@ -1,3 +1,5 @@
+import json
+
 from rest_framework import serializers
 from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Treatment, Stock,
                      EmpSitelist, ItemClass, ItemRange, PackageDtl, Appointment, ItemDept, Treatment_Master, PayGroup,
@@ -1684,12 +1686,24 @@ class DiagnosisSerializer(serializers.ModelSerializer):
     def to_representation(self, data):
         data = super(DiagnosisSerializer,self).to_representation(data)
         # data['cust_nric'] = data.get("masked_nric")
+        request = self.context.get('request')
+        try:
+            photo_url = data.get('pic_path')
+            data['pic_path'] = request.build_absolute_uri(photo_url)
+        except Exception as e:
+            print("url ",e)
+
+        try:
+            pic_data = data.get('pic_data1')
+            data['pic_data1'] = json.loads(pic_data)
+        except Exception as e:
+            print("json err: ",e)
 
         return data
 
     class Meta:
         model = Diagnosis
-        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no','pic_data']
+        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no','pic_data','pic_data1']
         read_only_fields = ("diagnosis_code","cust_code",)
         extra_kwargs = {'diagnosis_code': {'required': False},
                         'cust_code': {'required': False},
