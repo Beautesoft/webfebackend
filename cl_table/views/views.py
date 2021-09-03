@@ -13127,6 +13127,28 @@ class PhotoDiagnosis(APIView):
         result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True, "data": None, "error": serializer.errors}
         return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+    def put(self,request,id):
+        requestData = request.data
+        # print(requestData,request.FILES)
+        # requestData._mutable = True
+        # requestData['pic_path'] = request.FILES.get("pic_path")
+        print(request.data)
+        try:
+            diag_obj = Diagnosis.objects.get(sys_code=id)
+        except:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid sys_code", 'error': True, "data": None,
+                      }
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = DiagnosisSerializer(diag_obj,data=requestData,context={'request':request},partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+            return Response(result, status=status.HTTP_200_OK)
+        result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True, "data": None, "error": serializer.errors}
+        return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class DiagnosisCompareView(APIView):
