@@ -1703,7 +1703,7 @@ class DiagnosisSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Diagnosis
-        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no','pic_data','pic_data1','site_code']
+        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no','pic_data','pic_data1']
         read_only_fields = ("diagnosis_code","cust_code",)
         extra_kwargs = {'diagnosis_code': {'required': False},
                         'cust_code': {'required': False},

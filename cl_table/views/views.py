@@ -13075,7 +13075,8 @@ class PhotoDiagnosis(APIView):
             fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
             site = fmspw[0].loginsite.itemsite_code
 
-        diag_qs = Diagnosis.objects.filter(site_code=site)
+        # diag_qs = Diagnosis.objects.filter(site_code=site)
+        diag_qs = Diagnosis.objects.filter()
 
         if customer_list:
             diag_qs = diag_qs.filter(cust_no_id__in=customer_list)
@@ -13167,7 +13168,8 @@ class DiagnosisCompareView(APIView):
             fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
             site = fmspw[0].loginsite.itemsite_code
 
-        diag_qs = Diagnosis.objects.filter(site_code=site)
+        # diag_qs = Diagnosis.objects.filter(site_code=site)
+        diag_qs = Diagnosis.objects.filter()
         if customer_list:
             diag_qs = diag_qs.filter(cust_no_id__in=customer_list)
 
