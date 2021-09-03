@@ -1670,20 +1670,26 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
 
 
 class DiagnosisSerializer(serializers.ModelSerializer):
-    pic_abs_path = serializers.SerializerMethodField()
+    # pic_abs_path = serializers.SerializerMethodField()
 
-    def get_pic_abs_path(self, obj):
-        request = self.context.get('request')
-        print(obj.sys_code,print(obj.pic_path))
-        try:
-            photo_url = obj.pic_path.url
-            return request.build_absolute_uri(photo_url)
-        except:
-            return None
+    # def get_pic_abs_path(self, obj):
+    #     request = self.context.get('request')
+    #     print(obj.sys_code,print(obj.pic_path))
+    #     try:
+    #         photo_url = obj.pic_path.url
+    #         return request.build_absolute_uri(photo_url)
+    #     except:
+    #         return None
+
+    def to_representation(self, data):
+        data = super(DiagnosisSerializer,self).to_representation(data)
+        # data['cust_nric'] = data.get("masked_nric")
+
+        return data
 
     class Meta:
         model = Diagnosis
-        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no','pic_data','pic_abs_path']
+        fields = ['sys_code','diagnosis_date','remarks','date_pic_take','cust_name','cust_code','diagnosis_code','pic_path','cust_no','pic_data']
         read_only_fields = ("diagnosis_code","cust_code",)
         extra_kwargs = {'diagnosis_code': {'required': False},
                         'cust_code': {'required': False},
