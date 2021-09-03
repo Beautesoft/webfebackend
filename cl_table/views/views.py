@@ -12756,7 +12756,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True)
             site = fmspw[0].loginsite.itemsite_code
         if request.method == "GET":
-            diag_qs = Diagnosis.objects.filter(site_code=site,cust_no=customer_obj)
+            # diag_qs = Diagnosis.objects.filter(site_code=site,cust_no=customer_obj)
+            diag_qs = Diagnosis.objects.filter(cust_no=customer_obj)
 
             full_tot = diag_qs.count()
             try:
@@ -12813,7 +12814,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         if not site:
             site = fmspw.loginsite.itemsite_code
         if request.method == "GET":
-            diag_qs = Diagnosis.objects.filter(site_code=site,cust_no=customer_obj).values_list('sys_code',flat=True)
+            # diag_qs = Diagnosis.objects.filter(site_code=site,cust_no=customer_obj).values_list('sys_code',flat=True)
+            diag_qs = Diagnosis.objects.filter(cust_no=customer_obj).values_list('sys_code',flat=True)
 
             compare_qs = DiagnosisCompare.objects.filter(diagnosis__sys_code__in=diag_qs).distinct()
             full_tot = compare_qs.count()
