@@ -12757,7 +12757,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             site = fmspw[0].loginsite.itemsite_code
         if request.method == "GET":
             # diag_qs = Diagnosis.objects.filter(site_code=site,cust_no=customer_obj)
-            diag_qs = Diagnosis.objects.filter(cust_no=customer_obj)
+            diag_qs = Diagnosis.objects.filter(cust_no=customer_obj).order_by('-diagnosis_date')
 
             full_tot = diag_qs.count()
             try:
@@ -12817,7 +12817,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             # diag_qs = Diagnosis.objects.filter(site_code=site,cust_no=customer_obj).values_list('sys_code',flat=True)
             diag_qs = Diagnosis.objects.filter(cust_no=customer_obj).values_list('sys_code',flat=True)
 
-            compare_qs = DiagnosisCompare.objects.filter(diagnosis__sys_code__in=diag_qs).distinct()
+            compare_qs = DiagnosisCompare.objects.filter(diagnosis__sys_code__in=diag_qs).distinct().order_by('-compare_datetime')
             full_tot = compare_qs.count()
             try:
                 limit = int(request.GET.get("limit", 8))
@@ -13078,7 +13078,7 @@ class PhotoDiagnosis(APIView):
             site = fmspw[0].loginsite.itemsite_code
 
         # diag_qs = Diagnosis.objects.filter(site_code=site)
-        diag_qs = Diagnosis.objects.filter()
+        diag_qs = Diagnosis.objects.filter().order_by('-diagnosis_date')
 
         if customer_list:
             diag_qs = diag_qs.filter(cust_no_id__in=customer_list)
@@ -13096,10 +13096,10 @@ class PhotoDiagnosis(APIView):
         paginator = Paginator(diag_qs, limit)
         total_page = paginator.num_pages
 
-        # try:
-        #     diag_qs = paginator.page(page)
-        # except (EmptyPage, InvalidPage):
-        #     diag_qs = paginator.page(total_page)  # last page
+        try:
+            diag_qs = paginator.page(page)
+        except (EmptyPage, InvalidPage):
+            diag_qs = paginator.page(total_page)  # last page
 
         serializer = DiagnosisSerializer(diag_qs, many=True,context={'request':request})
 
@@ -13178,7 +13178,7 @@ class DiagnosisCompareView(APIView):
         diag_list = diag_qs.values_list('sys_code',flat=True)
 
         # compare_qs = DiagnosisCompare.objects.filter(Q(diagnosis1_id__in=diag_qs) | Q(diagnosis2_id__in=diag_qs))
-        compare_qs = DiagnosisCompare.objects.filter(diagnosis__sys_code__in=diag_list).distinct()
+        compare_qs = DiagnosisCompare.objects.filter(diagnosis__sys_code__in=diag_list).distinct().order_by('-compare_datetime')
         full_tot = compare_qs.count()
         try:
             limit = int(request.GET.get("limit", 8))
