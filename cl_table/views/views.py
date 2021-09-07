@@ -12881,10 +12881,41 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
     def Rewards(self,request,pk=None):
         site = request.GET.get("site")
         customer_obj = self.get_object(pk)
+
+
+        resData = {
+            "cust_name": customer_obj.cust_name,
+            "cust_bal_point": customer_obj.cust_bal_point,
+            "reference": "dummy"
+        }
+
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[TokenAuthentication], url_path='CustomerPoints',
+            url_name='CustomerPoints')
+    def CustomerPoints(self,request,pk=None):
+        site = request.GET.get("site")
+        customer_obj = self.get_object(pk)
         fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True).first()
         if not site:
             site = fmspw.loginsite.itemsite_code
+
+        type= request.GET.get('type')
+
         qs = CustomerPoint.objects.filter(cust_code=customer_obj.cust_code)
+
+        if not type:
+            pass
+        elif type.lower() == "reward":
+            qs = qs.filter(type="Reward")
+        elif type.lower() == "redeem":
+            qs = qs.filter(type="Void Reward")
+        else:
+            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid type ", 'error': True,}
+            return Response(result, status=status.HTTP_200_OK)
 
         full_tot = qs.count()
         try:
@@ -12906,14 +12937,9 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
 
         serializer = CustomerPointSerializer(qs, many=True,context={'request':request})
 
-        custDetails = {
-            "cust_name": customer_obj.cust_name,
-            "cust_bal_point": customer_obj.cust_bal_point,
-            "reference": "dummy"
-        }
+
         resData = {
-            "custDatails": custDetails,
-            'RewardlistList': serializer.data,
+            'PointList': serializer.data,
             'pagination': {
                 "per_page": limit,
                 "current_page": page,
