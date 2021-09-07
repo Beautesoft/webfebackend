@@ -14131,7 +14131,7 @@ def RewardItemList(request):
         qs = MrRewardItemType.objects.filter(isactive=True).values('itemtype_code', 'itemtype_desc')
 
         response_data = {
-            "skillsTypes": list(qs),
+            "RewardItems": list(qs),
             "message": "Listed successfuly"
         }
         return JsonResponse(response_data, status=status.HTTP_200_OK)
@@ -14141,3 +14141,21 @@ def RewardItemList(request):
             "message": "error",
         }
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', ])
+def CustomerClassList(request):
+    try:
+        qs = CustomerClass.objects.filter(class_isactive=True).values('id', 'class_code','class_desc')
+
+        response_data = {
+            "CustomerClasses": list(qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        response_data = {
+            "message": "error",
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
