@@ -12905,7 +12905,14 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             qs = paginator.page(total_page)  # last page
 
         serializer = CustomerPointSerializer(qs, many=True,context={'request':request})
+
+        custDetails = {
+            "cust_name": customer_obj.cust_name,
+            "cust_bal_point": customer_obj.cust_bal_point,
+            "reference": "dummy"
+        }
         resData = {
+            "custDatails": custDetails,
             'RewardlistList': serializer.data,
             'pagination': {
                 "per_page": limit,
