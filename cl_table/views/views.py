@@ -12661,7 +12661,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             return general_error_response(invalid_message)
 
     def update(self, request, pk=None):
-        try:
+        # print('hh')
+        # try:
             queryset = None
             total = None
             serializer_class = None
@@ -12682,17 +12683,18 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 return Response(result, status=status.HTTP_200_OK)
 
             data = serializer.errors
-            message = data['non_field_errors'][0]
+            # message = data['non_field_errors'][0]
             state = status.HTTP_204_NO_CONTENT
             error = True
-            result = response(self, request, queryset, total, state, message, error, serializer_class, data,
+            result = response(self, request, queryset, total, state, data, error, serializer_class, data,
                               action=self.action)
             return Response(result, status=status.HTTP_200_OK)
-        except Exception as e:
-            invalid_message = str(e)
-            return general_error_response(invalid_message)
+        # except Exception as e:
+        #     invalid_message = str(e)
+        #     return general_error_response(invalid_message)
 
     def partial_update(self, request, pk=None):
+        print("h")
         try:
             queryset = None
             total = None
