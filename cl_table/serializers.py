@@ -8,7 +8,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      FocReason, Country, State, Language,
                      BlockReason, AppointmentLog, Title, Workschedule, CustomerFormControl,
                      CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist,
-                     DailysalesdataDetail, DailysalesdataSummary
+                     DailysalesdataDetail, DailysalesdataSummary, CustomerPoint
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel,Room
@@ -2212,6 +2212,11 @@ class DailysalesdataDetailSerializer(serializers.ModelSerializer):
 class DailysalesdataSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = DailysalesdataSummary
+        fields = '__all__'
+
+class CustomerPointSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerPoint
         fields = '__all__'
 
     # def to_representation(self, data):

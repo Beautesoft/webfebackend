@@ -26,7 +26,8 @@ from cl_table.models import (Gender, Employee, Fmspw, Attendance2, Customer, Ima
                              DiagnosisCompare,
                              Securitylevellist, DailysalesdataSummary, DailysalesdataDetail, Multilanguage,
                              Workschedule,
-                             Religious, Nationality, Races, DailysalestdSummary, MultiLanguageWord, MrRewardItemType)
+                             Religious, Nationality, Races, DailysalestdSummary, MultiLanguageWord, MrRewardItemType,
+                             CustomerPoint)
 from cl_app.models import ItemSitelist, SiteGroup, LoggedInUser
 from custom.models import Room,ItemCart,VoucherRecord,EmpLevel
 from cl_table.serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -44,9 +45,11 @@ from cl_table.serializers import (EmployeeSerializer, FMSPWSerializer, UserLogin
                                   EmpTransferTempSerializer,
                                   EmpSitelistSerializer, ScheduleHourSerializer, CustApptSerializer, ApptTypeSerializer,
                                   CountrySerializer,
-                                  TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer, LanguageSerializer,
+                                  TmpItemHelperSerializer, FocReasonSerializer, CustomerUpdateSerializer,
+                                  LanguageSerializer,
                                   TreatmentApptSerializer,
-                                  AppointmentResourcesSerializer, AppointmentSortSerializer, ApptTreatmentDoneHistorySerializer,
+                                  AppointmentResourcesSerializer, AppointmentSortSerializer,
+                                  ApptTreatmentDoneHistorySerializer,
                                   UpcomingAppointmentSerializer, AppointmentBlockSerializer, BlockReasonSerializer,
                                   EmployeeBranchSerializer,
                                   AppointmentLogSerializer, AppointmentRecurrSerializer, RoomAppointmentSerializer,
@@ -54,9 +57,11 @@ from cl_table.serializers import (EmployeeSerializer, FMSPWSerializer, UserLogin
                                   TitleSerializer, CustApptUpcomingSerializer, AttendanceStaffsSerializer,
                                   CustomerFormControlSerializer,
                                   StaffPlusSerializer, EmpInfoSerializer, EmpWorkScheduleSerializer,
-                                  CustomerPlusSerializer, RewardPolicySerializer, RedeemPolicySerializer, SkillSerializer,
+                                  CustomerPlusSerializer, RewardPolicySerializer, RedeemPolicySerializer,
+                                  SkillSerializer,
                                   DiagnosisSerializer, DiagnosisCompareSerializer, SecuritylevellistSerializer,
-                                  AppointmentEditSerializer, DailysalesdataSummarySerializer, DailysalesdataDetailSerializer)
+                                  AppointmentEditSerializer, DailysalesdataSummarySerializer,
+                                  DailysalesdataDetailSerializer, CustomerPointSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -12868,7 +12873,48 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                       "error": serializer.errors}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[TokenAuthentication], url_path='Rewards',
+            url_name='Rewards')
+    def Rewards(self,request,pk=None):
+        site = request.GET.get("site")
+        customer_obj = self.get_object(pk)
+        fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True).first()
+        if not site:
+            site = fmspw.loginsite.itemsite_code
+        qs = CustomerPoint.objects.filter(cust_code=customer_obj.cust_code)
 
+        full_tot = qs.count()
+        try:
+            limit = int(request.GET.get("limit", 8))
+        except:
+            limit = 8
+        try:
+            page = int(request.GET.get("page", 1))
+        except:
+            page = 1
+
+        paginator = Paginator(qs, limit)
+        total_page = paginator.num_pages
+
+        try:
+            qs = paginator.page(page)
+        except (EmptyPage, InvalidPage):
+            qs = paginator.page(total_page)  # last page
+
+        serializer = CustomerPointSerializer(qs, many=True,context={'request':request})
+        resData = {
+            'RewardlistList': serializer.data,
+            'pagination': {
+                "per_page": limit,
+                "current_page": page,
+                "total": full_tot,
+                "total_pages": total_page
+            }
+        }
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+        return Response(result, status=status.HTTP_200_OK)
 
 class RewardPolicyViewSet(viewsets.ModelViewSet):
     # authentication_classes = [TokenAuthentication]
