@@ -113,6 +113,7 @@ def model_joiner(queryset: QuerySet, to_model: Model, relations: tuple, from_mod
 # FROM your_table;"""
 
 
+
 class SUBSTR(Func):
     function = 'SUBSTR'
 

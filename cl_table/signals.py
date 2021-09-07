@@ -40,6 +40,7 @@ from cl_table.models import Diagnosis, DiagnosisCompare, Employee, Fmspw, Reward
 
 @receiver(post_save,sender=Diagnosis)
 def diagnosis_code_gen(sender, instance, created, **kwargs):
+    print("HHHH")
     if created:
         instance.diagnosis_code = "%06d" % instance.sys_code
         instance.save()

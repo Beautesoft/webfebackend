@@ -594,7 +594,10 @@ class Employee(models.Model):
     objects = models.Manager()
     active_objects = IsActiveManager(active_field="emp_isactive",label="emp_name",value="emp_no")
 
-
+    def save(self, *args,**kwargs):
+        if self.Site_Codeid:
+            self.site_code = self.Site_Codeid.itemsite_code
+        super(Employee,self).save(*args,**kwargs)
 
     class Meta:
         db_table = 'Employee'
@@ -939,12 +942,15 @@ class Customer(models.Model):
     cardno4 = models.CharField(max_length=20, blank=True, null=True)
     cardno5 = models.CharField(max_length=20, blank=True, null=True)
 
+    def save(self, *args,**kwargs):
+        if self.Cust_Classid:
+            self.cust_class = self.Cust_Classid.class_code
+        super(Customer,self).save(*args,**kwargs)
 
     class Meta:
         db_table = 'Customer'
         unique_together = (('cust_code','cust_email','cust_phone1','cust_phone2'),)
         # unique_together = (('cust_code'),)
-
 
     def __str__(self):
         return str(self.cust_name) 
@@ -3303,6 +3309,14 @@ class CustomerFormControl(models.Model):
     def __str__(self):
         return str(self.field_name)
 
+class MrRewardItemType(models.Model):
+    id = models.AutoField(db_column='ID',primary_key=True)  # Field name made lowercase.
+    itemtype_code = models.CharField(db_column='ITEMTYPE_CODE', max_length=20)  # Field name made lowercase.
+    itemtype_desc = models.CharField(db_column='ITEMTYPE_DESC', max_length=50, blank=True, null=True)  # Field name made lowercase.
+    isactive = models.BooleanField(db_column='ISACTIVE')  # Field name made lowercase.
+
+    class Meta:
+        db_table = 'MR_Reward_Item_Type'
 
 
 class RewardPolicy(models.Model):

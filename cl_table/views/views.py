@@ -10,18 +10,23 @@ from rest_framework.response import Response
 
 from cl_table.configuration import DYNAMIC_FIELD_CHOICES
 from cl_table.models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Treatment, Stock, Systemloginlog,
-                             EmpSitelist, Appointment, ItemDept, ControlNo, Treatment_Master, ItemClass, Paytable, PosTaud,
+                             EmpSitelist, Appointment, ItemDept, ControlNo, Treatment_Master, ItemClass, Paytable,
+                             PosTaud,
                              PayGroup,
                              PosDaud, PosHaud, GstSetting, PayGroup, TreatmentAccount, ItemStatus, Source, Securities,
                              Systemlog, ScheduleHour, ScheduleMonth,
-                             ApptType, ItemHelper, Multistaff, DepositType, TmpItemHelper, PosDisc, FocReason, Holditemdetail,
+                             ApptType, ItemHelper, Multistaff, DepositType, TmpItemHelper, PosDisc, FocReason,
+                             Holditemdetail,
                              DepositAccount, PrepaidAccount, PrepaidAccountCondition, VoucherCondition, ItemUom, Title,
                              CreditNote, Systemsetup,
-                             PackageDtl, Language, Country, State, PackageHdr, BlockReason, AppointmentLog, AppointmentStatus,
+                             PackageDtl, Language, Country, State, PackageHdr, BlockReason, AppointmentLog,
+                             AppointmentStatus,
                              CustomerClass, Tmpmultistaff,
-                             Skillstaff, ItemType, CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare,
-                             Securitylevellist, DailysalesdataSummary, DailysalesdataDetail, Multilanguage, Workschedule,
-                             Religious, Nationality, Races, DailysalestdSummary, MultiLanguageWord)
+                             Skillstaff, ItemType, CustomerFormControl, RewardPolicy, RedeemPolicy, Diagnosis,
+                             DiagnosisCompare,
+                             Securitylevellist, DailysalesdataSummary, DailysalesdataDetail, Multilanguage,
+                             Workschedule,
+                             Religious, Nationality, Races, DailysalestdSummary, MultiLanguageWord, MrRewardItemType)
 from cl_app.models import ItemSitelist, SiteGroup, LoggedInUser
 from custom.models import Room,ItemCart,VoucherRecord,EmpLevel
 from cl_table.serializers import (EmployeeSerializer, FMSPWSerializer, UserLoginSerializer, Attendance2Serializer,
@@ -14072,3 +14077,19 @@ def temp_user(request):
 
 
 
+@api_view(['GET', ])
+def RewardItemList(request):
+    try:
+        qs = MrRewardItemType.objects.filter(isactive=True).values('itemtype_code', 'itemtype_desc')
+
+        response_data = {
+            "skillsTypes": list(qs),
+            "message": "Listed successfuly"
+        }
+        return JsonResponse(response_data, status=status.HTTP_200_OK)
+    except Exception as e:
+        print(e)
+        response_data = {
+            "message": "error",
+        }
+        return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
