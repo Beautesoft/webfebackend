@@ -12423,10 +12423,10 @@ class CustomerFormSettingsView(APIView):
         except:
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user has no site", 'error': True, "data": None}
             return Response(result, status=status.HTTP_200_OK)
-        query_set = CustomerFormControl.objects.filter(isActive=True, Site_Codeid=site).order_by('order')
+        query_set = CustomerFormControl.objects.filter(isActive=True, Site_Codeid=site).order_by('order').values()
         serializer = CustomerFormControlSerializer(query_set, many=True)
 
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": serializer.data}
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": query_set}
         return Response(result, status=status.HTTP_200_OK)
 
     def get_object(self, pk):
@@ -12458,10 +12458,12 @@ def CustomerFormSettings(request):
         result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "user has no site", 'error': True, "data": None}
         return Response(result, status=status.HTTP_200_OK)
 
-    query_set = CustomerFormControl.objects.filter(isActive=True, Site_Codeid=site)
-    serializer = CustomerFormControlSerializer(query_set, many=True)
-
-    settings_list = serializer.data
+    settings_list = CustomerFormControl.objects.filter(isActive=True, Site_Codeid=site).values()
+    # serializer = CustomerFormControlSerializer(query_set, many=True)
+    # c = CustomerFormControl.objects.get(id=1)
+    # print(c.layout,type(c.layout))
+    # settings_list = serializer.data
+    # print(settings_list[0])
 
     for _setting in settings_list:
         # if hasattr(Customer,_setting["field_name"]):
@@ -12874,6 +12876,24 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True, "data": None,
                       "error": serializer.errors}
             return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
+            authentication_classes=[TokenAuthentication], url_path='MGM',
+            url_name='MGM')
+    def MGM(self,request,pk=None):
+        site = request.GET.get("site")
+        customer_obj = self.get_object(pk)
+
+
+        resData = {
+            "cust_name": customer_obj.cust_name,
+            "cust_bal_point": customer_obj.cust_bal_point,
+            "reference": "dummy"
+        }
+
+
+        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[TokenAuthentication], url_path='Rewards',
