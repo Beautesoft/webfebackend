@@ -12445,6 +12445,12 @@ class CustomerFormSettingsView(APIView):
                 print("yes")
                 serializer.save()
 
+            try:
+                cf_obj.layout = control.get('layout',cf_obj.layout)
+                cf_obj.save()
+            except Exception as e:
+                print(e)
+
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, }  # "data": serializer.data}
         return Response(result, status=status.HTTP_200_OK)
 
