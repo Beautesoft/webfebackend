@@ -597,6 +597,8 @@ class Employee(models.Model):
     def save(self, *args,**kwargs):
         if self.Site_Codeid:
             self.site_code = self.Site_Codeid.itemsite_code
+        if self.defaultSiteCodeid:
+            self.defaultsitecode = self.defaultSiteCodeid.itemsite_code
         super(Employee,self).save(*args,**kwargs)
 
     class Meta:
@@ -3282,11 +3284,7 @@ class ExchangeDtl(models.Model):
 
 
 class CustomerFormControl(models.Model):
-    _default_layout = {
-        "lg": {"w": 0, "h": 0, "x": 0, "y": 0},
-        "md": {"w": 0, "h": 0, "x": 0, "y": 0},
-        "sm": {"w": 0, "h": 0, "x": 0, "y": 0}
-    }
+    _default_layout = {"lg": {"w": 0, "h": 0, "x": 0, "y": 0}, "md": {"w": 0, "h": 0, "x": 0, "y": 0}, "sm": {"w": 0, "h": 0, "x": 0, "y": 0}}
 
     id = models.AutoField(primary_key=True)
     field_name = models.CharField(db_column='fieldName', max_length=50, blank=True, null=True)  # Field name made lowercase.

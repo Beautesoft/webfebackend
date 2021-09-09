@@ -1910,6 +1910,8 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError("Branch ID Does not exist!!")
                 if not ItemSitelist.objects.filter(pk=data['defaultSiteCodeid'].pk,itemsite_isactive=True):
                     raise serializers.ValidationError("Branch ID Does not exist!!")
+        else:
+            data['defaultSiteCodeid'] = data.get('Site_Codeid')
 
 
         if 'EMP_TYPEid' in data:
@@ -1926,10 +1928,11 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         site_list = request.data.get('site_list', "").split(",")
 
 
-        fmspw = Fmspw.objects.filter(user=self.context['request'].user,pw_isactive=True).first()
-        Site_Codeid = fmspw.loginsite
-        site_code_str = str(Site_Codeid.itemsite_code)
-        siteobj = ItemSitelist.objects.filter(pk=validated_data.get('defaultSiteCodeid').pk,itemsite_isactive=True).first()
+        # fmspw = Fmspw.objects.filter(user=self.context['request'].user,pw_isactive=True).first()
+        # Site_Codeid = fmspw.loginsite
+        # site_code_str = str(Site_Codeid.itemsite_code)
+
+
         employee = Employee.objects.create(emp_name=validated_data.get('emp_name'),
                                            emp_phone1=validated_data.get('emp_phone1'),
                                            display_name=validated_data.get('display_name'),
@@ -1939,7 +1942,6 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                                            emp_joindate=validated_data.get('emp_joindate'),
                                            shift=validated_data.get('shift'),
                                            defaultSiteCodeid=validated_data.get('defaultSiteCodeid'),
-                                           defaultsitecode=siteobj.itemsite_code if siteobj else None,
                                            emp_pic=validated_data.get('emp_pic'),
                                            is_login=validated_data.get('is_login'),
                                            EMP_TYPEid=validated_data.get('EMP_TYPEid'),
@@ -1949,8 +1951,8 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                                            show_in_sales=validated_data.get('show_in_sales'),
                                            show_in_appt=validated_data.get('show_in_appt'),
                                            show_in_trmt=validated_data.get('show_in_trmt'),
-                                           Site_Codeid=Site_Codeid,
-                                           site_code=site_code_str)
+                                           Site_Codeid=validated_data.get('Site_Codeid'),
+                                           )
 
         for s in site_list:
             try:
