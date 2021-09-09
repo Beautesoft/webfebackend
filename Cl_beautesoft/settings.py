@@ -25,7 +25,7 @@ SECRET_KEY = '0hvkn)58&z=%mogc(sz!324jk5-g4pp*8q=7$g(g7lvb3b(^hf'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['52.60.58.9','127.0.0.1','103.253.15.184','103.253.15.185','UBUNTUCLOUD15-185']
+ALLOWED_HOSTS = ['52.60.58.9','127.0.0.1','103.253.15.184','103.253.15.185','103.253.15.218','10.40.40.10','103.253.15.185','UBUNTUCLOUD15-185']
 
 
 
@@ -244,6 +244,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 PDF_ROOT = MEDIA_ROOT + '/pdf/'
+REPORT_SETTINGS_PATH = os.path.join(BASE_DIR, 'media/report_settings/')
 
 # CORS Settings
 CORS_ALLOW_METHODS =['DELETE','GET','OPTIONS','PATCH','POST','PUT',]
