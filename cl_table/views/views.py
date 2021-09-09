@@ -61,7 +61,7 @@ from cl_table.serializers import (EmployeeSerializer, FMSPWSerializer, UserLogin
                                   SkillSerializer,
                                   DiagnosisSerializer, DiagnosisCompareSerializer, SecuritylevellistSerializer,
                                   AppointmentEditSerializer, DailysalesdataSummarySerializer,
-                                  DailysalesdataDetailSerializer, CustomerPointSerializer)
+                                  DailysalesdataDetailSerializer, CustomerPointSerializer, MGMSerializer)
 from datetime import date, timedelta, datetime
 import datetime
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
@@ -12900,16 +12900,19 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         site = request.GET.get("site")
         customer_obj = self.get_object(pk)
 
-
-        resData = {
-            "cust_name": customer_obj.cust_name,
-            "cust_bal_point": customer_obj.cust_bal_point,
-            "reference": "dummy"
-        }
+        serializer = MGMSerializer(customer_obj)
+        resData = serializer.data
+        # resData = {
+        #     "cust_name": customer_obj.cust_name,
+        #     "cust_bal_point": customer_obj.cust_bal_point,
+        #     "reference": "dummy" OS01100001
+        # }
 
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
+
+
 
     @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[TokenAuthentication], url_path='Rewards',

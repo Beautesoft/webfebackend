@@ -1654,9 +1654,20 @@ class CustomerFormControlSerializer(serializers.ModelSerializer):
         read_only_fields = ('field_name','display_field_name')
 
 class MGMSerializer(serializers.ModelSerializer):
+    reference = serializers.SerializerMethodField()
+
+    def get_reference(self,obj):
+        ref_list = Customer.objects.filter(cust_referby_code=obj.cust_code)
+        print(obj.cust_code,ref_list)
+        if ref_list.exists():
+            mgm_serializer = MGMSerializer(ref_list,many=True)
+            return mgm_serializer.data
+        else:
+            return []
+
     class Meta:
         model = Customer
-        fields = ['cust_no','cust_code',]
+        fields = ['cust_no','cust_code','cust_name','reference']
 
 
 class RewardPolicySerializer(serializers.ModelSerializer):
@@ -1928,7 +1939,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
                                            emp_joindate=validated_data.get('emp_joindate'),
                                            shift=validated_data.get('shift'),
                                            defaultSiteCodeid=validated_data.get('defaultSiteCodeid'),
-                                           defaultsitecode=siteobj.itemsite_code,
+                                           defaultsitecode=siteobj.itemsite_code if siteobj else None,
                                            emp_pic=validated_data.get('emp_pic'),
                                            is_login=validated_data.get('is_login'),
                                            EMP_TYPEid=validated_data.get('EMP_TYPEid'),
@@ -1978,7 +1989,7 @@ class StaffPlusSerializer(serializers.ModelSerializer):
         instance.emp_pic = validated_data.get("emp_pic", instance.emp_pic)
         instance.EMP_TYPEid = validated_data.get("EMP_TYPEid", instance.EMP_TYPEid)
         instance.defaultSiteCodeid = validated_data.get("defaultSiteCodeid", instance.defaultSiteCodeid)
-        instance.defaultsitecode = instance.defaultSiteCodeid.itemsite_code
+        instance.defaultsitecode = instance.defaultSiteCodeid.itemsite_code if instance.defaultSiteCodeid else None
         instance.Site_Codeid = validated_data.get("Site_Codeid", instance.Site_Codeid)
         instance.emp_nric = validated_data.get("emp_nric", instance.emp_nric)
         instance.max_disc = validated_data.get("max_disc", instance.max_disc)
