@@ -12444,9 +12444,19 @@ class CustomerFormSettingsView(APIView):
             if serializer.is_valid():
                 print("yes")
                 serializer.save()
+            else:
+                print(serializer.errors)
 
             try:
                 cf_obj.layout = control.get('layout',cf_obj.layout)
+                cf_obj.visible_in_registration = control.get('visible_in_registration',cf_obj.visible_in_registration)
+                cf_obj.visible_in_listing = control.get('visible_in_listing',cf_obj.visible_in_listing)
+                cf_obj.visible_in_profile = control.get('visible_in_profile',cf_obj.visible_in_profile)
+                cf_obj.editable = control.get('editable',cf_obj.editable)
+                cf_obj.mandatory = control.get('mandatory',cf_obj.mandatory)
+                cf_obj.showLabel = control.get('showLabel',cf_obj.showLabel)
+                cf_obj.isStacked = control.get('isStacked',cf_obj.isStacked)
+
                 cf_obj.save()
             except Exception as e:
                 print(e)

@@ -1636,10 +1636,27 @@ class EmpWorkScheduleSerializer(serializers.ModelSerializer):
         return instance
 
 class CustomerFormControlSerializer(serializers.ModelSerializer):
+
+    # def to_representation(self, instance):
+    #     data = super(CustomerFormControlSerializer, self).to_representation(instance)
+    #     layout = json.loads(data.get('layout'))
+    #     print(layout,type(layout),data.get('layout'))
+    #     data['layout'] = data.get('layout')
+    #     data["x"] = {'c':2 }
+    #     return data
+    #
+    # def get_layout_json(self):
+    #     pass
+
     class Meta:
         model = CustomerFormControl
         fields = ['id','field_name','display_field_name','visible_in_registration', 'visible_in_listing','visible_in_profile','mandatory','order','col_width','layout','showLabel']
         read_only_fields = ('field_name','display_field_name')
+
+class MGMSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = ['cust_no','cust_code',]
 
 
 class RewardPolicySerializer(serializers.ModelSerializer):
