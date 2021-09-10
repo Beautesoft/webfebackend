@@ -1680,13 +1680,15 @@ class RewardPolicySerializer(serializers.ModelSerializer):
         data = super(RewardPolicySerializer, self).to_representation(instance)
         try:
             cust_type = CustomerClass.objects.get(class_code=data['cust_type'])
-            data['cust_type'] = cust_type.class_desc
+            data['cust_type_desc'] = cust_type.class_desc
         except Exception as e:
+            data['cust_type_desc'] = ""
             print(e)
         try:
             itm_type = MrRewardItemType.objects.get(itemtype_code=data['reward_item_type'])
-            data['reward_item_type'] = itm_type.itemtype_desc
+            data['reward_item_type_desc'] = itm_type.itemtype_desc
         except Exception as e:
+            data['reward_item_type_desc'] = ""
             print(e)
         return data
 
@@ -1710,9 +1712,9 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
         data = super(RedeemPolicySerializer, self).to_representation(instance)
         try:
             cust_type = CustomerClass.objects.get(class_code=data['cust_type'])
-            data['cust_type'] = cust_type.class_desc
+            data['cust_type_desc'] = cust_type.class_desc
         except Exception as e:
-            print(e)
+            data['cust_type_desc'] = ""
         return data
 
     def create(self, validated_data):
