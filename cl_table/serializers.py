@@ -8,7 +8,7 @@ from .models import (Gender, Employee, Fmspw, Attendance2, Customer, Images, Tre
                      FocReason, Country, State, Language,
                      BlockReason, AppointmentLog, Title, Workschedule, CustomerFormControl,
                      CustomerClass, RewardPolicy, RedeemPolicy, Diagnosis, DiagnosisCompare, Securitylevellist,
-                     DailysalesdataDetail, DailysalesdataSummary, CustomerPoint
+                     DailysalesdataDetail, DailysalesdataSummary, CustomerPoint, MrRewardItemType
                      )
 from cl_app.models import ItemSitelist, SiteGroup
 from custom.models import EmpLevel,Room
@@ -1676,6 +1676,20 @@ class RewardPolicySerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('reward_code',)
 
+    def to_representation(self, instance):
+        data = super(RewardPolicySerializer, self).to_representation(instance)
+        try:
+            cust_type = CustomerClass.objects.get(class_code=data['cust_type'])
+            data['cust_type'] = cust_type.class_desc
+        except Exception as e:
+            print(e)
+        try:
+            itm_type = MrRewardItemType.objects.get(itemtype_code=data['reward_item_type'])
+            data['reward_item_type'] = itm_type.itemtype_desc
+        except Exception as e:
+            print(e)
+        return data
+
     def create(self, validated_data):
         reward = RewardPolicy(**validated_data)
         reward.reward_code = code_generator(size=6)
@@ -1691,6 +1705,15 @@ class RedeemPolicySerializer(serializers.ModelSerializer):
         model = RedeemPolicy
         fields = '__all__'
         read_only_fields = ('redeem_code',)
+
+    def to_representation(self, instance):
+        data = super(RedeemPolicySerializer, self).to_representation(instance)
+        try:
+            cust_type = CustomerClass.objects.get(class_code=data['cust_type'])
+            data['cust_type'] = cust_type.class_desc
+        except Exception as e:
+            print(e)
+        return data
 
     def create(self, validated_data):
         redeem = RedeemPolicy(**validated_data)
