@@ -2136,7 +2136,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
                   'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
                   'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
                   'gender', 'cust_postcode','sgn_unitno','sgn_block','sgn_street',
-                  'masked_nric',
+                  'masked_nric','cust_remark',
                   'cust_email',
                   'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
                   'custallowsendsms','cust_maillist','cust_title']
