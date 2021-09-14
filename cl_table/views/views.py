@@ -12915,23 +12915,30 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
 
 
 
-    @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
+    @action(detail=True, methods=['GET','POST'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[TokenAuthentication], url_path='Rewards',
             url_name='Rewards')
     def Rewards(self,request,pk=None):
         site = request.GET.get("site")
         customer_obj = self.get_object(pk)
 
+        if request.method == "POST":
+            reqData = request.data
 
+
+
+        # GET & POST response
         resData = {
             "cust_name": customer_obj.cust_name,
             "cust_bal_point": customer_obj.cust_bal_point,
-            "reference": "dummy"
+            "cust_point": customer_obj.cust_point if customer_obj.cust_point else 0,
+            "reference": "dummy" # todo:
         }
 
 
         result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
         return Response(result, status=status.HTTP_200_OK)
+
 
     @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[TokenAuthentication], url_path='CustomerPoints',
@@ -14214,6 +14221,8 @@ def RewardItemList(request):
             "message": "error",
         }
         return JsonResponse(response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 @api_view(['GET', ])
 def CustomerClassList(request):
