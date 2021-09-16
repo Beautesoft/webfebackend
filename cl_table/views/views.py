@@ -12925,7 +12925,14 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         if request.method == "POST":
             reqData = request.data
 
-
+            # cust_point_obj = CustomerPoint
+            serializer = CustomerPointSerializer(data=reqData)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
+                          "data": serializer.errors}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
 
         # GET & POST response
         resData = {
