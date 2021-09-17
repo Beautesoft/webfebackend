@@ -12921,11 +12921,25 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
     def Rewards(self,request,pk=None):
         site = request.GET.get("site")
         customer_obj = self.get_object(pk)
+        fmspw = Fmspw.objects.filter(user=request.user, pw_isactive=True).first()
+        if not site:
+            site = fmspw.loginsite.itemsite_code
 
         if request.method == "POST":
             reqData = request.data
 
+            control_obj = ControlNo.objects.filter(control_description="Transaction number",site_code=site).first()
+            next_val = control_obj.control_id
+            reqData['transacno']= "RWD"+site+ "%06d" % next_val
+            reqData['username']= fmspw.pw_userlogin
+            reqData['cust_name']= customer_obj.cust_name
+            reqData['cust_code']= customer_obj.cust_code
+            reqData['locid']= site
+            reqData['type']= "Reward"
+            reqData['sa_status']= "FE"
+            reqData['postransactionno']= "T"+site+ "%06d" % next_val
             # cust_point_obj = CustomerPoint
+            print(reqData)
             serializer = CustomerPointSerializer(data=reqData)
             if serializer.is_valid():
                 serializer.save()
