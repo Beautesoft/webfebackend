@@ -3283,6 +3283,7 @@ class ExchangeDtl(models.Model):
         db_table = 'Exchange_Dtl'
 
 
+
 class CustomerFormControl(models.Model):
     _default_layout = {"lg": {"w": 0, "h": 0, "x": 0, "y": 0}, "md": {"w": 0, "h": 0, "x": 0, "y": 0}, "sm": {"w": 0, "h": 0, "x": 0, "y": 0}}
 
@@ -3434,26 +3435,26 @@ class CustomerPoint(models.Model):
     type = models.CharField(db_column='Type', max_length=20, blank=True, null=True)  # Field name made lowercase.
     refno = models.CharField(db_column='RefNo', max_length=20)  # Field name made lowercase.
     ref_source = models.CharField(db_column='Ref_Source', max_length=50)  # Field name made lowercase.
-    isvoid = models.BooleanField(db_column='Isvoid')  # Field name made lowercase.
+    isvoid = models.BooleanField(db_column='Isvoid',default=True)  # Field name made lowercase.
     sa_status = models.CharField(db_column='Sa_Status', max_length=10)  # Field name made lowercase.
     void_referenceno = models.CharField(db_column='void_ReferenceNo', max_length=20, blank=True, null=True)  # Field name made lowercase.
     total_point = models.FloatField(db_column='Total_Point')  # Field name made lowercase.
     now_point = models.FloatField(db_column='Now_Point', blank=True, null=True)  # Field name made lowercase.
     seq = models.IntegerField(db_column='Seq', blank=True, null=True)  # Field name made lowercase.
     remarks = models.CharField(db_column='Remarks', max_length=10, blank=True, null=True)  # Field name made lowercase.
-    bal_point = models.FloatField(db_column='Bal_Point')  # Field name made lowercase.
-    expired = models.BooleanField(db_column='Expired')  # Field name made lowercase.
+    bal_point = models.FloatField(db_column='Bal_Point', default=0)  # Field name made lowercase.
+    expired = models.BooleanField(db_column='Expired', default=False)  # Field name made lowercase.
     expired_date = models.DateTimeField(db_column='Expired_Date', blank=True, null=True)  # Field name made lowercase.
-    mac_code = models.CharField(db_column='Mac_Code', max_length=100)  # Field name made lowercase.
-    logno = models.CharField(db_column='LogNo', max_length=100)  # Field name made lowercase.
-    approval_user = models.CharField(db_column='Approval_User', max_length=100)  # Field name made lowercase.
-    cardno = models.CharField(db_column='CardNo', max_length=100)  # Field name made lowercase.
+    mac_code = models.CharField(db_column='Mac_Code', max_length=100, default="")  # Field name made lowercase.
+    logno = models.CharField(db_column='LogNo', max_length=100, default="")  # Field name made lowercase.
+    approval_user = models.CharField(db_column='Approval_User', max_length=100, default="")  # Field name made lowercase.
+    cardno = models.CharField(db_column='CardNo', max_length=100, default="")  # Field name made lowercase.
     bdate = models.DateTimeField(db_column='BDate', blank=True, null=True)  # Field name made lowercase.
     pdate = models.DateTimeField(db_column='PDate', blank=True, null=True)  # Field name made lowercase.
-    expired_point = models.FloatField()
-    postransactionno = models.CharField(db_column='posTransactionNo', max_length=50)  # Field name made lowercase.
+    expired_point = models.FloatField(blank=True, default=0)
+    postransactionno = models.CharField(db_column='posTransactionNo', max_length=50, default="")  # Field name made lowercase.
     postotalamt = models.FloatField(db_column='posTotalAmt', blank=True, null=True)  # Field name made lowercase.
-    locid = models.CharField(db_column='LocID', max_length=50)  # Field name made lowercase.
+    locid = models.CharField(db_column='LocID', max_length=50, default="")  # Field name made lowercase.
     mgm_refno = models.CharField(db_column='MGM_RefNo', max_length=20, blank=True, null=True)  # Field name made lowercase.
     tdate = models.CharField(db_column='TDate', max_length=50, blank=True, null=True)  # Field name made lowercase.
 

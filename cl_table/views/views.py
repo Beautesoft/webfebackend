@@ -12929,7 +12929,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             reqData = request.data
 
             control_obj = ControlNo.objects.filter(control_description="Transaction number",site_code=site).first()
-            next_val = control_obj.control_id
+            next_val = control_obj.control_id + 1
             reqData['transacno']= "RWD"+site+ "%06d" % next_val
             reqData['username']= fmspw.pw_userlogin
             reqData['cust_name']= customer_obj.cust_name
@@ -12943,6 +12943,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             serializer = CustomerPointSerializer(data=reqData)
             if serializer.is_valid():
                 serializer.save()
+                control_obj.control_id = next_val
+                control_obj.save()
             else:
                 result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
                           "data": serializer.errors}

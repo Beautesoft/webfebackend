@@ -2272,7 +2272,9 @@ class DailysalesdataSummarySerializer(serializers.ModelSerializer):
 class CustomerPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerPoint
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['id','transacno','username','cust_name','cust_code','locid','type','sa_status','postransactionno','total_point','remarks']
+        read_only_fields = ('id',)
 
     # def to_representation(self, data):
     #     data = super(DailysalesdataSummarySerializer,self).to_representation(data)
