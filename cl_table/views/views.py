@@ -11593,12 +11593,17 @@ class StaffPlusViewSet(viewsets.ModelViewSet):
                 if 'emp_name' in request.data and not request.data['emp_name'] is None:
                     serializer.save()
                     fmspw_obj = Fmspw.objects.filter(Emp_Codeid=employee, pw_isactive=True).first()
+                    pw = request.data.get('pw_password')
                     if fmspw_obj:
                         fmspw_obj.pw_userlogin = request.data['emp_name']
+                        fmspw_obj.pw_password = pw if pw else fmspw_obj.pw_password
                         fmspw_obj.save()
                         if fmspw_obj.user:
                             fmspw_obj.user.username = request.data['emp_name']
+                            if pw:
+                                fmspw_obj.user.set_password(pw)
                             fmspw_obj.user.save()
+
                         else:
                             result = {'status': status.HTTP_400_BAD_REQUEST,
                                       "message": "FMSPW User is not Present.Please map", 'error': True}
@@ -12938,6 +12943,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             reqData['type']= "Reward"
             reqData['sa_status']= "FE"
             reqData['postransactionno']= "T"+site+ "%06d" % next_val
+
+            
             # cust_point_obj = CustomerPoint
             print(reqData)
             serializer = CustomerPointSerializer(data=reqData)
