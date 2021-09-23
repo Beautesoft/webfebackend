@@ -12222,9 +12222,9 @@ class MonthlyAllSchedule(APIView):
 
         # if site_code hasn't in request, get month schedule by default site_code
         # site_code = request.GET.get("site_code",emp_obj.site_code)
-
+        print(site,site.itemsite_id)
         try:
-            emp_qs = Employee.objects.filter(Site_Codeid=site,emp_isactive=True)
+            emp_qs = Employee.objects.filter(Site_Codeid=site,emp_isactive=True).order_by('emp_name')
             # todo: more filters
             full_tot = emp_qs.count()
             try:
