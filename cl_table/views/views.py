@@ -12934,6 +12934,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         if not site:
             site = fmspw.loginsite.itemsite_code
 
+        _type = request.GET.get('type')
+
         if request.method == "POST":
             reqData = request.data
 
@@ -12948,6 +12950,11 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             reqData['sa_status']= "FE"
             reqData['postransactionno']= "T"+site+ "%06d" % next_val
 
+            _points = int(reqData['total_point'])
+            if _type == "redeem":
+                _points *= -1
+
+            reqData['total_point'] = _points
             
             # cust_point_obj = CustomerPoint
             print(reqData)
@@ -12956,6 +12963,14 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 serializer.save()
                 control_obj.control_id = next_val
                 control_obj.save()
+
+                _tot =  customer_obj.cust_point if type(customer_obj.cust_point) == int else 0
+                _tot += _points
+                customer_obj.cust_point = _tot
+                customer_obj.save()
+
+
+
             else:
                 result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
                           "data": serializer.errors}
