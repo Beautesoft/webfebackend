@@ -12981,7 +12981,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             "cust_name": customer_obj.cust_name,
             "cust_bal_point": customer_obj.cust_bal_point,
             "cust_point": customer_obj.cust_point if customer_obj.cust_point else 0,
-            "reference": "dummy" # todo:
+            "reference": customer_obj.cust_code
         }
 
 
