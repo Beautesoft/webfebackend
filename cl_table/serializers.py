@@ -2040,6 +2040,11 @@ class StaffPlusSerializer(serializers.ModelSerializer):
 
         instance.save()
 
+        # update site list
+        old_sites = EmpSitelist.objects.filter(Emp_Codeid=instance)
+        for o in old_sites:
+            o.delete()
+
         for s in site_list:
             try:
                 _obj = EmpSitelist(Emp_Codeid=instance,Site_Codeid_id=int(s))
