@@ -2275,11 +2275,24 @@ class DailysalesdataSummarySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class CustomerPointSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super(CustomerPointSerializer, self).to_representation(instance)
+        if data['total_point'] < 0:
+            data['total_point'] *= -1
+            data['lp_type'] = "Redeem"
+        else:
+            data['lp_type'] = "Reward"
+
+        return data
+
+
     class Meta:
         model = CustomerPoint
         # fields = '__all__'
-        fields = ['id','transacno','username','cust_name','cust_code','locid','type','sa_status','postransactionno','total_point','remarks']
+        fields = ['id','transacno','username','cust_name','cust_code','locid','type','sa_status','postransactionno','total_point','remarks','date']
         read_only_fields = ('id',)
+
+
 
     # def to_representation(self, data):
     #     data = super(DailysalesdataSummarySerializer,self).to_representation(data)
