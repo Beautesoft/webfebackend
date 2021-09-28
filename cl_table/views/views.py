@@ -13031,6 +13031,8 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             except:
                 page = 1
 
+            qs = qs.order_by('-date')
+
             paginator = Paginator(qs, limit)
             total_page = paginator.num_pages
 
