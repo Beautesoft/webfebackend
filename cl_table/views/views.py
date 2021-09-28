@@ -13010,9 +13010,9 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 qs = qs.filter(remarks__icontains=search)
 
             if start:
-                qs = qs.filter(data__gte=start)
+                qs = qs.filter(date__gte=start)
             if end:
-                qs = qs.filter(data__lt=end)
+                qs = qs.filter(date__lt=end)
 
             if not type:
                 pass
