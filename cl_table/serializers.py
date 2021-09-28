@@ -2142,7 +2142,8 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
                   'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
                   'gender', 'cust_postcode','sgn_unitno','sgn_block','sgn_street', 'Cust_titleid',
                   'masked_nric','cust_remark',
-                  'cust_email',
+                  'cust_email', 'cardno1','cardno2','cardno3','cardno4','cardno5','phone4','cust_phoneo','cust_therapist_id',
+                  'cust_consultant_id','cust_address1','cust_address2','cust_address3',
                   'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
                   'custallowsendsms','cust_maillist','cust_title']
         read_only_fields = ('cust_isactive','created_at', 'updated_at','last_visit','upcoming_appointments',
