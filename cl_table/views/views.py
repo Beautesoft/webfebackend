@@ -12964,7 +12964,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 control_obj.control_id = next_val
                 control_obj.save()
 
-                _tot =  customer_obj.cust_point if type(customer_obj.cust_point) == int else 0
+                _tot =  customer_obj.cust_point if customer_obj.cust_point != None else 0
                 _tot += _points
                 customer_obj.cust_point = _tot
                 customer_obj.save()
@@ -13074,7 +13074,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             reqData['postransactionno'] = "T" + site + "%06d" % next_val
 
             _points = int(reqData['total_point'])
-            if _type == "redeem":
+            if type == "redeem":
                 _points *= -1
 
             reqData['total_point'] = _points
@@ -13087,7 +13087,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 control_obj.control_id = next_val
                 control_obj.save()
 
-                _tot = customer_obj.cust_point if type(customer_obj.cust_point) != None else 0
+                _tot = customer_obj.cust_point if customer_obj.cust_point != None else 0
                 _tot += _points
                 customer_obj.cust_point = _tot
                 customer_obj.save()
