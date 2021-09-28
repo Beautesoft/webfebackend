@@ -12969,8 +12969,6 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 customer_obj.cust_point = _tot
                 customer_obj.save()
 
-
-
             else:
                 result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
                           "data": serializer.errors}
@@ -13001,51 +12999,104 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
 
         type= request.GET.get('type')
 
-        qs = CustomerPoint.objects.filter(cust_code=customer_obj.cust_code)
 
-        if not type:
-            pass
-        elif type.lower() == "reward":
-            qs = qs.filter(type="Reward")
-        elif type.lower() == "redeem":
-            qs = qs.filter(type="Void Reward")
-        else:
-            result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid type ", 'error': True,}
+
+        if request.method == "GET":
+            qs = CustomerPoint.objects.filter(cust_code=customer_obj.cust_code)
+            start = request.GET.get('startDate')
+            end = request.GET.get('endDate')
+            search = request.GET.get('search')
+            if search:
+                qs = qs.filter(remarks__icontains=search)
+
+            if start:
+                qs = qs.filter(data__gte=start)
+            if end:
+                qs = qs.filter(data__lt=end)
+
+            if not type:
+                pass
+            elif type.lower() == "reward":
+                qs = qs.filter(total_point__gte=0)
+            elif type.lower() == "redeem":
+                qs = qs.filter(total_point__lt=0)
+
+            full_tot = qs.count()
+            try:
+                limit = int(request.GET.get("limit", 8))
+            except:
+                limit = 8
+            try:
+                page = int(request.GET.get("page", 1))
+            except:
+                page = 1
+
+            paginator = Paginator(qs, limit)
+            total_page = paginator.num_pages
+
+            try:
+                qs = paginator.page(page)
+            except (EmptyPage, InvalidPage):
+                qs = paginator.page(total_page)  # last page
+
+            serializer = CustomerPointSerializer(qs, many=True,context={'request':request})
+
+
+            resData = {
+                'PointList': serializer.data,
+                'pagination': {
+                    "per_page": limit,
+                    "current_page": page,
+                    "total": full_tot,
+                    "total_pages": total_page
+                }
+            }
+
+            result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
             return Response(result, status=status.HTTP_200_OK)
 
-        full_tot = qs.count()
-        try:
-            limit = int(request.GET.get("limit", 8))
-        except:
-            limit = 8
-        try:
-            page = int(request.GET.get("page", 1))
-        except:
-            page = 1
+        if request.method == "POST":
+            reqData = request.data
 
-        paginator = Paginator(qs, limit)
-        total_page = paginator.num_pages
+            control_obj = ControlNo.objects.filter(control_description="Transaction number", site_code=site).first()
+            next_val = control_obj.control_id + 1
+            reqData['transacno'] = "RWD" + site + "%06d" % next_val
+            reqData['username'] = fmspw.pw_userlogin
+            reqData['cust_name'] = customer_obj.cust_name
+            reqData['cust_code'] = customer_obj.cust_code
+            reqData['locid'] = site
+            reqData['type'] = "Reward"
+            reqData['sa_status'] = "FE"
+            reqData['postransactionno'] = "T" + site + "%06d" % next_val
 
-        try:
-            qs = paginator.page(page)
-        except (EmptyPage, InvalidPage):
-            qs = paginator.page(total_page)  # last page
+            _points = int(reqData['total_point'])
+            if _type == "redeem":
+                _points *= -1
 
-        serializer = CustomerPointSerializer(qs, many=True,context={'request':request})
+            reqData['total_point'] = _points
 
+            # cust_point_obj = CustomerPoint
+            print(reqData)
+            serializer = CustomerPointSerializer(data=reqData)
+            if serializer.is_valid():
+                serializer.save()
+                control_obj.control_id = next_val
+                control_obj.save()
 
-        resData = {
-            'PointList': serializer.data,
-            'pagination': {
-                "per_page": limit,
-                "current_page": page,
-                "total": full_tot,
-                "total_pages": total_page
-            }
-        }
+                _tot = customer_obj.cust_point if type(customer_obj.cust_point) == int else 0
+                _tot += _points
+                customer_obj.cust_point = _tot
+                customer_obj.save()
 
-        result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False, "data": resData}
-        return Response(result, status=status.HTTP_200_OK)
+                result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False,
+                          "data": serializer.data}
+                return Response(result, status=status.HTTP_200_OK)
+
+            else:
+                result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
+                          "data": serializer.errors}
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RewardPolicyViewSet(viewsets.ModelViewSet):
     # authentication_classes = [TokenAuthentication]
