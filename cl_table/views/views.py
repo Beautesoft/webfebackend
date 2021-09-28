@@ -13010,8 +13010,10 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 qs = qs.filter(remarks__icontains=search)
 
             if start:
-                qs = qs.filter(date__gte=start)
+
+                qs = qs.filter(date__gte=datetime.datetime.strptime(start, "%Y-%m-%d"))
             if end:
+                end = datetime.datetime.strptime(end, "%Y-%m-%d") + datetime.timedelta(hours=23,minutes=59,seconds=59)
                 qs = qs.filter(date__lt=end)
 
             if not type:
