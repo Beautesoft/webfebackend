@@ -2140,7 +2140,7 @@ class CustomerPlusSerializer(serializers.ModelSerializer):
         fields = ['id','cust_code','cust_name','cust_address','Site_Codeid','site_name','site_code','last_visit',
                   'custClass', 'class_name', 'Cust_Classid', 'cust_joindate','Cust_Sourceid','cust_nric',
                   'upcoming_appointments','cust_dob','cust_phone2','cust_phone1','Cust_sexesid',
-                  'gender', 'cust_postcode','sgn_unitno','sgn_block','sgn_street',
+                  'gender', 'cust_postcode','sgn_unitno','sgn_block','sgn_street', 'Cust_titleid',
                   'masked_nric','cust_remark',
                   'cust_email',
                   'prepaid_card','cust_occupation', 'creditnote','voucher_available','oustanding_payment','cust_refer',
