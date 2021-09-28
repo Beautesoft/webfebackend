@@ -12941,7 +12941,11 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
 
             control_obj = ControlNo.objects.filter(control_description="Transaction number",site_code=site).first()
             next_val = control_obj.control_id + 1
-            reqData['transacno']= "RWD"+site+ "%06d" % next_val
+            r_transacno = "RWD"+site+ "%06d" % next_val
+
+
+
+            reqData['transacno']= r_transacno
             reqData['username']= fmspw.pw_userlogin
             reqData['cust_name']= customer_obj.cust_name
             reqData['cust_code']= customer_obj.cust_code
@@ -12955,6 +12959,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 _points *= -1
 
             reqData['total_point'] = _points
+            print(_type,reqData['total_point'])
             
             # cust_point_obj = CustomerPoint
             print(reqData)
@@ -12968,7 +12973,6 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 _tot += _points
                 customer_obj.cust_point = _tot
                 customer_obj.save()
-
             else:
                 result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "invalid input", 'error': True,
                           "data": serializer.errors}
@@ -12987,7 +12991,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         return Response(result, status=status.HTTP_200_OK)
 
 
-    @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated & authenticated_only],
+    @action(detail=True, methods=['GET','POST'], permission_classes=[IsAuthenticated & authenticated_only],
             authentication_classes=[TokenAuthentication], url_path='CustomerPoints',
             url_name='CustomerPoints')
     def CustomerPoints(self,request,pk=None):
