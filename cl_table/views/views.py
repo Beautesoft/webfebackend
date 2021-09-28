@@ -13083,7 +13083,7 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
                 control_obj.control_id = next_val
                 control_obj.save()
 
-                _tot = customer_obj.cust_point if type(customer_obj.cust_point) == int else 0
+                _tot = customer_obj.cust_point if type(customer_obj.cust_point) != None else 0
                 _tot += _points
                 customer_obj.cust_point = _tot
                 customer_obj.save()
