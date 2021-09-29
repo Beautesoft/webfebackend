@@ -3441,7 +3441,7 @@ class CustomerPoint(models.Model):
     total_point = models.FloatField(db_column='Total_Point')  # Field name made lowercase.
     now_point = models.FloatField(db_column='Now_Point', blank=True, null=True)  # Field name made lowercase.
     seq = models.IntegerField(db_column='Seq', blank=True, null=True)  # Field name made lowercase.
-    remarks = models.CharField(db_column='Remarks', max_length=10, blank=True, null=True)  # Field name made lowercase.
+    remarks = models.CharField(db_column='Remarks', max_length=100, blank=True, null=True)  # Field name made lowercase.
     bal_point = models.FloatField(db_column='Bal_Point', default=0)  # Field name made lowercase.
     expired = models.BooleanField(db_column='Expired', default=False)  # Field name made lowercase.
     expired_date = models.DateTimeField(db_column='Expired_Date', blank=True, null=True)  # Field name made lowercase.
