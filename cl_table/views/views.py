@@ -13068,7 +13068,16 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
 
             control_obj = ControlNo.objects.filter(control_description="Transaction number", site_code=site).first()
             next_val = control_obj.control_id + 1
-            reqData['transacno'] = "RWD" + site + "%06d" % next_val
+            while True:
+                r_transacno = "RWD" + site + "%06d" % next_val
+                is_exist = CustomerPoint.objects.filter(transacno=r_transacno).exists()
+                if is_exist:
+                    next_val += 1
+                    continue
+                break
+
+
+            reqData['transacno'] = r_transacno
             reqData['username'] = fmspw.pw_userlogin
             reqData['cust_name'] = customer_obj.cust_name
             reqData['cust_code'] = customer_obj.cust_code
@@ -13087,14 +13096,18 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
             print(reqData)
             serializer = CustomerPointSerializer(data=reqData)
             if serializer.is_valid():
-                serializer.save()
                 control_obj.control_id = next_val
                 control_obj.save()
+
+                obj = serializer.save()
 
                 _tot = customer_obj.cust_point if customer_obj.cust_point != None else 0
                 _tot += _points
                 customer_obj.cust_point = _tot
                 customer_obj.save()
+
+                obj.now_point = _tot
+                obj.save()
 
                 result = {'status': status.HTTP_200_OK, 'message': "success", 'error': False,
                           "data": serializer.data}

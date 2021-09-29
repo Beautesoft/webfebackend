@@ -2290,7 +2290,7 @@ class CustomerPointSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerPoint
         # fields = '__all__'
-        fields = ['id','transacno','username','cust_name','cust_code','locid','type','sa_status','postransactionno','total_point','remarks','date']
+        fields = ['id','transacno','username','cust_name','cust_code','locid','type','sa_status','postransactionno','total_point','now_point','remarks','date']
         read_only_fields = ('id',)
 
 
