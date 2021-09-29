@@ -12213,7 +12213,8 @@ class MonthlyAllSchedule(APIView):
             start_date = datetime.datetime(year=year, month=month, day=1)
             if month == 12:
                 year += 1
-                month = 1
+                month = 0
+
             end_date = datetime.datetime(year=year, month=month + 1, day=1)
             # change to date range
             # start_date = datetime.datetime.strptime(request.GET.get("start"), "%Y-%m-%d").date()
