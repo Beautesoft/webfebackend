@@ -13588,6 +13588,19 @@ def EmployeeLevels(request):
     return JsonResponse(response_data, status=status.HTTP_200_OK)
 
 
+@api_view(['GET', ])
+def EmployeeLevelsSettings(request):
+    level_code = request.GET.get('code')
+    level_qs = Securitylevellist.objects.filter(level_itemid=level_code)
+    level_serializer = SecuritylevellistSerializer(level_qs, many=True)
+    settings_list = level_serializer.data
+    response_data = {
+        "settings": settings_list,
+        "message": "Listed successfuly"
+    }
+    return JsonResponse(response_data, status=status.HTTP_200_OK)
+
+
 class IndividualEmpSettings(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated & authenticated_only]
