@@ -13067,10 +13067,23 @@ class CustomerPlusViewset(viewsets.ModelViewSet):
         if request.method == "POST":
             reqData = request.data
 
-            control_obj = ControlNo.objects.filter(control_description="Transaction number", site_code=site).first()
-            next_val = control_obj.control_id + 1
+            if type == "reward":
+                control_obj, c = ControlNo.objects.get_or_create(control_prefix="RWD",control_description="reward sales", site_code=site)
+            elif type == "redeem":
+                control_obj, c = ControlNo.objects.get_or_create(control_prefix="RDM", control_description="redeem sales",
+                                                              site_code=site)
+            else:
+                result = {'status': status.HTTP_400_BAD_REQUEST, 'message': "type should be reward or redeem", 'error': True,
+                          }
+                return Response(result, status=status.HTTP_400_BAD_REQUEST)
+
+            if c:
+                next_val = 0
+            else:
+                next_val = control_obj.control_id + 1
+
             while True:
-                r_transacno = "RWD" + site + "%06d" % next_val
+                r_transacno = control_obj.control_prefix + site + "%06d" % next_val
                 is_exist = CustomerPoint.objects.filter(transacno=r_transacno).exists()
                 if is_exist:
                     next_val += 1
